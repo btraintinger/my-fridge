@@ -31,7 +31,9 @@ match /cities/{city} {
 ## Common Patterns
 
 ### Locked Mode (Deny All)
+
 Good for starting development or private data.
+
 ```
 match /{document=**} {
   allow read, write: if false;
@@ -39,7 +41,9 @@ match /{document=**} {
 ```
 
 ### Test Mode (Allow All)
+
 **WARNING: insecure.** Only for quick prototyping. Unsafe to deploy for production apps.
+
 ```
 match /{document=**} {
   allow read, write: if true;
@@ -47,7 +51,9 @@ match /{document=**} {
 ```
 
 ### Auth Required
+
 Allow access only to authenticated users. This allows any logged in user access to all data.
+
 ```
 match /{document=**} {
   allow read, write: if request.auth != null;
@@ -55,7 +61,9 @@ match /{document=**} {
 ```
 
 ### User-Specific Data
+
 Allow users to access only their own data.
+
 ```
 match /users/{userId} {
   allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -63,7 +71,9 @@ match /users/{userId} {
 ```
 
 ### Allow only verified emails
+
 Requires users to verify ownership of the email address before using it to read or write data
+
 ```
 // Allow access based on email domain
 match /some_collection/{document} {
@@ -74,6 +84,7 @@ match /some_collection/{document} {
 ```
 
 ### Validate data in write operations
+
 ```
 // Example for creating a user profile
 match /users/{userId} {
@@ -87,13 +98,13 @@ match /users/{userId} {
 
 You can break down `read` and `write` into more specific operations:
 
-*   **read**
-    *   `get`: Retrieval of a single document.
-    *   `list`: Queries and collection reads.
-*   **write**
-    *   `create`: Writing to a nonexistent document.
-    *   `update`: Writing to an existing document.
-    *   `delete`: Removing a document.
+- **read**
+    - `get`: Retrieval of a single document.
+    - `list`: Queries and collection reads.
+- **write**
+    - `create`: Writing to a nonexistent document.
+    - `update`: Writing to an existing document.
+    - `delete`: Removing a document.
 
 ```firestore
 match /cities/{city} {
@@ -128,7 +139,7 @@ match /cities/{city} {
 
 Use recursive wildcards to apply rules to an arbitrarily deep hierarchy.
 
-*   **Version 2** (recommended): `{path=**}` matches zero or more path segments.
+- **Version 2** (recommended): `{path=**}` matches zero or more path segments.
 
 ```firestore
 // Allow read access to ANY document in the 'cities' collection or its subcollections
@@ -142,16 +153,19 @@ match /cities/{document=**} {
 ### Read Limitations
 
 Reads in Firestore are **document-level**. You cannot retrieve a partial document.
-*   **Allowed**: Read the entire document.
-*   **Denied**: logical failure, no data returned.
 
-To secure specific fields (e.g., private user data), you must **split them into a separate document** (e.g., a `private` subcollection).
+- **Allowed**: Read the entire document.
+- **Denied**: logical failure, no data returned.
+
+To secure specific fields (e.g., private user data), you must **split them into a separate document** (e.g., a `private`
+subcollection).
 
 ### Write Restrictions
 
 You can strictly control which fields can be written or updated.
 
 #### On Creation
+
 Use `request.resource.data.keys()` to validate fields.
 
 ```firestore
@@ -162,7 +176,9 @@ match /restaurant/{restId} {
 ```
 
 #### On Update
-Use `diff()` to see what changed between the existing document (`resource.data`) and the incoming data (`request.resource.data`).
+
+Use `diff()` to see what changed between the existing document (`resource.data`) and the incoming data (
+`request.resource.data`).
 
 ```firestore
 match /restaurant/{restId} {
@@ -172,6 +188,7 @@ match /restaurant/{restId} {
 ```
 
 ### Enforcing Field Types
+
 Use the `is` operator to validate data types.
 
 ```firestore
@@ -202,11 +219,11 @@ match /cities/{document=**} {
 
 ## Common Limits
 
-*   **Call Depth**: Maximum call depth for custom functions is 20.
-*   **Document Access**:
-    *   10 access calls for single-doc requests/queries.
-    *   20 access calls for multi-doc reads/transactions/batches.
-*   **Size**: Ruleset source max 256 KB. Compiled max 250 KB.
+- **Call Depth**: Maximum call depth for custom functions is 20.
+- **Document Access**:
+    - 10 access calls for single-doc requests/queries.
+    - 20 access calls for multi-doc reads/transactions/batches.
+- **Size**: Ruleset source max 256 KB. Compiled max 250 KB.
 
 ## Deploying
 
@@ -221,18 +238,20 @@ For complex applications, follow this structured 6-phase workflow to ensure your
 ### Phase 1: Codebase Analysis
 
 Before writing rules, scan your codebase to identify:
-1.  **Collections & Paths**: List all collections and document structures.
-2.  **Data Models**: Define required fields, data types, and constraints (e.g., string length, regex patterns).
-3.  **Access Patterns**: Document who can read/write what and under what conditions (e.g., exact ownership, role-based).
-4.  **Authentication**: Identify if you use Firebase Auth, anonymous auth, or custom tokens.
+
+1. **Collections & Paths**: List all collections and document structures.
+2. **Data Models**: Define required fields, data types, and constraints (e.g., string length, regex patterns).
+3. **Access Patterns**: Document who can read/write what and under what conditions (e.g., exact ownership, role-based).
+4. **Authentication**: Identify if you use Firebase Auth, anonymous auth, or custom tokens.
 
 ### Phase 2: Security Rules Generation
 
 Write your rules following these core principles:
-*   **Default Deny**: Start with `allow read, write: if false;` and whitelist specific operations.
-*   **Least Privilege**: Grant only the minimum permissions required.
-*   **Validate Data**: Check types (e.g., `is string`), required fields, and values on `create` and `update`.
-*   **UID Protection**: Ensure users cannot create documents with another user's UID or change ownership.
+
+- **Default Deny**: Start with `allow read, write: if false;` and whitelist specific operations.
+- **Least Privilege**: Grant only the minimum permissions required.
+- **Validate Data**: Check types (e.g., `is string`), required fields, and values on `create` and `update`.
+- **UID Protection**: Ensure users cannot create documents with another user's UID or change ownership.
 
 #### Recommended Structure
 
@@ -266,14 +285,15 @@ function isUidUnchanged() {
 ### Phase 3: Devil's Advocate Attack
 
 Attempt to mentally "break" your rules by checking for common vulnerabilities:
-1.  Can I read data I shouldn't?
-2.  Can I create a document with someone else's UID?
-3.  Can I update a document and steal ownership (change the `uid` field)?
-4.  Can I send a massive string to a field with no length limit?
-5.  Can I delete a document I don't own?
-6.  Can I bypass validation by sending `null` or missing fields?
 
-If *any* of these succeed, fix the rule and repeat.
+1. Can I read data I shouldn't?
+2. Can I create a document with someone else's UID?
+3. Can I update a document and steal ownership (change the `uid` field)?
+4. Can I send a massive string to a field with no length limit?
+5. Can I delete a document I don't own?
+6. Can I bypass validation by sending `null` or missing fields?
+
+If _any_ of these succeed, fix the rule and repeat.
 
 ### Phase 4: Syntactic Validation
 
@@ -281,19 +301,21 @@ Use `npx -y firebase-tools@latest deploy --only firestore:rules --dry-run` to va
 
 ### Phase 5: Test Suite Generation
 
-Create a comprehensive test suite using `@firebase/rules-unit-testing`. Ideally, create a dedicated `rules_test/` directory.
+Create a comprehensive test suite using `@firebase/rules-unit-testing`. Ideally, create a dedicated `rules_test/`
+directory.
 
 **Test Coverage Checklist:**
-*   [ ] **Authorized Operations**: Users *can* do what they are supposed to.
-*   [ ] **Unauthorized Operations**: Users *cannot* do what is forbidden.
-*   [ ] **UID Tampering**: Users cannot create/update data with another's UID.
-*   [ ] **Data Validation**: Invalid types, missing fields, or malformed data (bad emails, URLs) must fail.
-*   [ ] **Immutable Fields**: Fields like `createdAt` or `authorId` cannot be changed on update.
+
+- [ ] **Authorized Operations**: Users _can_ do what they are supposed to.
+- [ ] **Unauthorized Operations**: Users _cannot_ do what is forbidden.
+- [ ] **UID Tampering**: Users cannot create/update data with another's UID.
+- [ ] **Data Validation**: Invalid types, missing fields, or malformed data (bad emails, URLs) must fail.
+- [ ] **Immutable Fields**: Fields like `createdAt` or `authorId` cannot be changed on update.
 
 ### Phase 6: Test Validation Loop
 
-1.  Start the emulator: `npx -y firebase-tools@latest emulators:start --only firestore`
-2.  Run tests: `npm test` (inside your test directory)
-3.  If tests fail due to **rules**: Fix the rules.
-4.  If tests fail due to **test bugs**: Fix the tests.
-5.  Repeat until 100% pass rate.
+1. Start the emulator: `npx -y firebase-tools@latest emulators:start --only firestore`
+2. Run tests: `npm test` (inside your test directory)
+3. If tests fail due to **rules**: Fix the rules.
+4. If tests fail due to **test bugs**: Fix the tests.
+5. Repeat until 100% pass rate.

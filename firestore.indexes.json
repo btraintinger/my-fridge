@@ -1,0 +1,33 @@
+{
+    "indexes": [
+        {
+            "collectionGroup": "fridges",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "userId",
+                    "order": "ASCENDING"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        },
+        {
+            "collectionGroup": "fridges",
+            "queryScope": "COLLECTION",
+            "fields": [
+                {
+                    "fieldPath": "sharedWithEmails",
+                    "arrayConfig": "CONTAINS"
+                },
+                {
+                    "fieldPath": "createdAt",
+                    "order": "DESCENDING"
+                }
+            ]
+        }
+    ],
+    "fieldOverrides": []
+}

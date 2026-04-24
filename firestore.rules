@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow users to read/write their own fridges
+    match /fridges/{fridgeId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && 
+      (resource.data.userId == request.auth.uid ||
+      (resource.data.sharedWithEmails != null &&
+       request.auth.token.email in resource.data.sharedWithEmails)
+      );
+
+      // Allow access to items within a fridge
+      match /items/{itemId} {
+        // Check if user is owner or has shared access to parent fridge
+        allow read, write: if request.auth != null && (
+          get(/databases/$(database)/documents/fridges/$(fridgeId)).data.userId == request.auth.uid ||
+          (get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails != null && 
+           request.auth.token.email in get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails)
+        );
+      }
+
+      // Shopping list for this specific fridge
+      match /shopping_list/{itemId} {
+        allow read, write: if request.auth != null && (
+          get(/databases/$(database)/documents/fridges/$(fridgeId)).data.userId == request.auth.uid ||
+          (get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails != null && 
+           request.auth.token.email in get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails)
+        );
+      }
+    }
+
+    // User preferences
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Global products cache (anyone authenticated can read/write to populate cache)
+    match /products/{barcode} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}

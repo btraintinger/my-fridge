@@ -11,12 +11,15 @@ compatibility: This skill is best used with the Firebase CLI, but does not requi
 
 ## Core Concepts
 
-Firebase Authentication provides backend services, easy-to-use SDKs, and ready-made UI libraries to authenticate users to your app.
+Firebase Authentication provides backend services, easy-to-use SDKs, and ready-made UI libraries to authenticate users
+to your app.
 
 ### Users
 
-A user is an entity that can sign in to your app. Each user is identified by a unique ID (`uid`) which is guaranteed to be unique across all providers.
+A user is an entity that can sign in to your app. Each user is identified by a unique ID (`uid`) which is guaranteed to
+be unique across all providers.
 User properties include:
+
 - `uid`: Unique identifier.
 - `email`: User's email address (if available).
 - `displayName`: User's display name (if available).
@@ -26,6 +29,7 @@ User properties include:
 ### Identity Providers
 
 Firebase Auth supports multiple ways to sign in:
+
 - **Email/Password**: Basic email and password authentication.
 - **Federated Identity Providers**: Google, Facebook, Twitter, GitHub, Microsoft, Apple, etc.
 - **Phone Number**: SMS-based authentication.
@@ -36,7 +40,9 @@ Google Sign In is recommended as a good and secure default provider.
 
 ### Tokens
 
-When a user signs in, they receive an ID Token (JWT). This token is used to identify the user when making requests to Firebase services (Realtime Database, Cloud Storage, Firestore) or your own backend.
+When a user signs in, they receive an ID Token (JWT). This token is used to identify the user when making requests to
+Firebase services (Realtime Database, Cloud Storage, Firestore) or your own backend.
+
 - **ID Token**: Short-lived (1 hour), verifies identity.
 - **Refresh Token**: Long-lived, used to get new ID tokens.
 
@@ -46,7 +52,8 @@ When a user signs in, they receive an ID Token (JWT). This token is used to iden
 
 #### Option 1. Enabling Authentication via CLI
 
-Only Google Sign In, anonymous auth, and email/password auth can be enabled via CLI. For other providers, use the Firebase Console.
+Only Google Sign In, anonymous auth, and email/password auth can be enabled via CLI. For other providers, use the
+Firebase Console.
 
 Configure Firebase Authentication in `firebase.json` by adding an 'auth' block:
 
@@ -70,9 +77,9 @@ Configure Firebase Authentication in `firebase.json` by adding an 'auth' block:
 
 Enable other providers in the Firebase Console.
 
-1.  Go to the https://console.firebase.google.com/project/_/authentication/providers
-2.  Select your project.
-3.  Enable the desired Sign-in providers (e.g., Email/Password, Google).
+1. Go to the https://console.firebase.google.com/project/_/authentication/providers
+2. Select your project.
+3. Enable the desired Sign-in providers (e.g., Email/Password, Google).
 
 ### 2. Client Setup & Usage
 

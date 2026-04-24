@@ -1,19 +1,20 @@
 # App Hosting CLI Commands
 
-The Firebase CLI provides a comprehensive suite of commands to manage App Hosting resources. These commands are often faster and more scriptable than using the Firebase Console.
+The Firebase CLI provides a comprehensive suite of commands to manage App Hosting resources. These commands are often
+faster and more scriptable than using the Firebase Console.
 
 ## Initialization
 
 ### `npx -y firebase-tools@latest init apphosting`
 
-- **Purpose**: Interactive command that sets up App Hosting in your local project. 
-Use this command only if you are able to handle interactive CLI inputs well. 
-Alternatively, you can manually edit `firebase.json` and `apphosting.yml`.
+- **Purpose**: Interactive command that sets up App Hosting in your local project.
+  Use this command only if you are able to handle interactive CLI inputs well.
+  Alternatively, you can manually edit `firebase.json` and `apphosting.yml`.
 
 - **Effect**:
-  - Detects your web framework.
-  - Creates/updates `apphosting.yaml`.
-  - Can optionally create a backend if one doesn't exist.
+    - Detects your web framework.
+    - Creates/updates `apphosting.yaml`.
+    - Can optionally create a backend if one doesn't exist.
 
 ## Backend Management
 
@@ -45,27 +46,30 @@ App Hosting uses Cloud Secret Manager to securely handle sensitive environment v
 ### `npx -y firebase-tools@latest apphosting:secrets:grantaccess <secret-name>`
 
 - **Purpose**: Grants the App Hosting service account permission to access the secret.
-- **Note**: Often handled automatically by `secrets:set`, but useful for debugging permission issues or granting access to existing secrets.
+- **Note**: Often handled automatically by `secrets:set`, but useful for debugging permission issues or granting access
+  to existing secrets.
 
 ## Automated deployment via GitHub (CI/CD)
 
-**IMPORTANT** Only use these commands if you are setting up automated deployments via GitHub. If you are managing deployments using `npx -y firebase-tools@latest deploy`, DO NOT use these commands.
+**IMPORTANT** Only use these commands if you are setting up automated deployments via GitHub. If you are managing
+deployments using `npx -y firebase-tools@latest deploy`, DO NOT use these commands.
 
 ### `npx -y firebase-tools@latest apphosting:rollouts:create <backend-id>`
 
 - **Purpose**: Manually triggers a new rollout (deployment).
 - **Options**:
-  - `--git-branch <branch>`: Deploy the latest commit from a specific branch.
-  - `--git-commit <commit-hash>`: Deploy a specific commit.
+    - `--git-branch <branch>`: Deploy the latest commit from a specific branch.
+    - `--git-commit <commit-hash>`: Deploy a specific commit.
 - **Use Case**: Useful for redeploying without code changes, or rolling back to a specific commit.
 
 ### `npx -y firebase-tools@latest apphosting:backends:create`
 
 - **Purpose**: Creates a new App Hosting backend. Use this when setting up automated deployments via GitHub.
 - **Options**:
-  - `--app <webAppId>`: The ID of an existing Firebase web app to associate with the backend.
-  - `--backend <backendId>`: The ID of the new backend.
-  - `--primary-region <location>`: The primary region for the backend.
-  - `--root-dir <rootDir>`: The root directory for the backend. If omitted, defaults to the root directory of the project.
-  - `--service-account <service-account>`: The service account used to run the server. If omitted, defaults to the default service account.
-  
+    - `--app <webAppId>`: The ID of an existing Firebase web app to associate with the backend.
+    - `--backend <backendId>`: The ID of the new backend.
+    - `--primary-region <location>`: The primary region for the backend.
+    - `--root-dir <rootDir>`: The root directory for the backend. If omitted, defaults to the root directory of the
+      project.
+    - `--service-account <service-account>`: The service account used to run the server. If omitted, defaults to the
+      default service account.
