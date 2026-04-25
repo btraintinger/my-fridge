@@ -41,19 +41,17 @@ export default function Scanner() {
     const [barcode, setBarcode] = useState('')
     const [product, setProduct] = useState<Product | null>(null)
     const [searching, setSearching] = useState(false)
-    const [fridges, setFridges] = useState<Fridge[]>([])
     const [selectedFridge, setSelectedFridge] = useState('')
     const [added, setAdded] = useState(false)
     const [scannerOpen, setScannerOpen] = useState(false)
-
-    const { fridges: userFridges } = useFridges()
+    
+    const { fridges } = useFridges()
 
     useEffect(() => {
-        setFridges(userFridges)
-        if (userFridges.length > 0 && !selectedFridge) {
-            setSelectedFridge(userFridges[0].id)
+        if (fridges.length > 0 && !selectedFridge) {
+            setSelectedFridge(fridges[0].id)
         }
-    }, [userFridges, selectedFridge])
+    }, [fridges, selectedFridge])
 
     const handleSearch = useCallback(async (code: string) => {
         if (!code.trim()) return
