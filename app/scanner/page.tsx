@@ -13,6 +13,30 @@ import type { Fridge, Product } from '../../lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
 import Image from 'next/image'
 
+function FlagChip({
+    label,
+    value,
+}: {
+    label: string
+    value: boolean | null | undefined
+}) {
+    const text = value === true ? 'Yes' : value === false ? 'No' : 'Unknown'
+    const style =
+        value === true
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50'
+            : value === false
+              ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/50'
+              : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700'
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border ${style}`}
+        >
+            {label}: {text}
+        </span>
+    )
+}
+
 function NutriScoreScale({ grade }: { grade: string }) {
     const active = grade.toLowerCase()
     return (
@@ -159,6 +183,11 @@ export default function Scanner() {
                                 <p className="text-slate-500 dark:text-slate-400">
                                     {product.brands}
                                 </p>
+                                {product.origin_country && (
+                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                                        Origin: {product.origin_country}
+                                    </p>
+                                )}
                                 {product.nutriscore_grade && (
                                     <div className="mt-3">
                                         <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -171,6 +200,39 @@ export default function Scanner() {
                                 )}
                             </div>
                         </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <FlagChip
+                                label="Vegan"
+                                value={product.dietary_flags?.vegan}
+                            />
+                            <FlagChip
+                                label="Vegetarian"
+                                value={product.dietary_flags?.vegetarian}
+                            />
+                            <FlagChip
+                                label="Palm oil free"
+                                value={product.dietary_flags?.palm_oil_free}
+                            />
+                        </div>
+
+                        {Array.isArray(product.labels) && product.labels.length > 0 && (
+                            <div className="space-y-2">
+                                <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    Labels
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.labels.slice(0, 6).map((label) => (
+                                        <span
+                                            key={label}
+                                            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-300 dark:border-sky-900/50"
+                                        >
+                                            {label}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Nutriments Table */}
                         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4">

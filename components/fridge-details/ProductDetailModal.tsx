@@ -9,6 +9,30 @@ interface ProductDetailModalProps {
     onClose: () => void
 }
 
+function FlagBadge({
+    label,
+    value,
+}: {
+    label: string
+    value: boolean | null | undefined
+}) {
+    const text = value === true ? 'Yes' : value === false ? 'No' : 'Unknown'
+    const tone =
+        value === true
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/40'
+            : value === false
+              ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/40'
+              : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700'
+
+    return (
+        <span
+            className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-semibold ${tone}`}
+        >
+            {label}: {text}
+        </span>
+    )
+}
+
 export function ProductDetailModal({
     product,
     onClose,
@@ -46,6 +70,43 @@ export function ProductDetailModal({
                         <p className="text-slate-500 dark:text-slate-400 font-medium">
                             {product.brands || 'Unknown Brand'}
                         </p>
+                        {product.origin_country && (
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                                Origin: {product.origin_country}
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-50">
+                            Product Info
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                            <FlagBadge
+                                label="Vegan"
+                                value={product.dietary_flags?.vegan}
+                            />
+                            <FlagBadge
+                                label="Vegetarian"
+                                value={product.dietary_flags?.vegetarian}
+                            />
+                            <FlagBadge
+                                label="Palm oil free"
+                                value={product.dietary_flags?.palm_oil_free}
+                            />
+                        </div>
+                        {Array.isArray(product.labels) && product.labels.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                {product.labels.slice(0, 8).map((label) => (
+                                    <span
+                                        key={label}
+                                        className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-300"
+                                    >
+                                        {label}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-4">
