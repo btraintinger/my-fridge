@@ -1,5 +1,9 @@
+'use client'
+
 import { AlertCircle, ChefHat, Info, X } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
 import { NutriScoreBadge } from './NutriScoreComponents'
 import type { Product } from '../../lib/types'
 import { getNutrimentWarnings } from '../../lib/nutrimentWarnings'
@@ -7,6 +11,10 @@ import Image from 'next/image'
 
 interface ProductDetailModalProps {
     product: Product
+    quantity?: number
+    itemId?: string
+    fridgeId?: string
+    onQuantityChange?: (itemId: string, fridgeId: string, quantity: number) => Promise<void>
     onClose: () => void
 }
 
@@ -36,9 +44,29 @@ function FlagBadge({
 
 export function ProductDetailModal({
     product,
+    quantity = 1,
+    itemId,
+    fridgeId,
+    onQuantityChange,
     onClose,
 }: ProductDetailModalProps) {
     const warnings = getNutrimentWarnings(product)
+    const [editingQuantity, setEditingQuantity] = useState(false)
+    const [quantityDraft, setQuantityDraft] = useState(String(quantity))
+    const [savingQuantity, setSavingQuantity] = useState(false)
+
+    const saveQuantity = async () => {
+        const parsed = Number.parseInt(quantityDraft, 10)
+        if (!Number.isFinite(parsed) || parsed < 1 || !itemId || !fridgeId) return
+
+        setSavingQuantity(true)
+        try {
+            await onQuantityChange?.(itemId, fridgeId, parsed)
+            setEditingQuantity(false)
+        } finally {
+            setSavingQuantity(false)
+        }
+    }
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -79,6 +107,55 @@ export function ProductDetailModal({
                             </p>
                         )}
                     </div>
+
+                    {typeof quantity === 'number' && (
+                        <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl p-4 border border-emerald-200/70 dark:border-emerald-900/50">
+                            <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
+                                Inventory
+                            </h3>
+                            {editingQuantity ? (
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        step={1}
+                                        value={quantityDraft}
+                                        onChange={(e) => setQuantityDraft(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault()
+                                                saveQuantity()
+                                            }
+                                        }}
+                                        className="h-8 w-24 text-sm"
+                                    />
+                                    <Button
+                                        size="sm"
+                                        className="h-8 px-3 text-xs"
+                                        disabled={savingQuantity}
+                                        onClick={saveQuantity}
+                                    >
+                                        Save
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 px-3 text-xs"
+                                        onClick={() => setEditingQuantity(false)}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
+                            ) : (
+                                <button
+                                    className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 px-3 py-2 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-950/70 transition-colors"
+                                    onClick={() => setEditingQuantity(true)}
+                                >
+                                    Quantity: {quantity}
+                                </button>
+                            )}
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-50">

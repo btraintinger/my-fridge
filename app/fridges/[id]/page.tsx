@@ -414,6 +414,12 @@ export default function FridgeDetail({
             {selectedItem && (
                 <ProductDetailModal
                     product={selectedItem.product}
+                    quantity={selectedItem.quantity ?? 1}
+                    itemId={selectedItem.id}
+                    fridgeId={id}
+                    onQuantityChange={async (itemId, fridgeId, quantity) => {
+                        await fridgeService.updateItemQuantity(fridgeId, itemId, quantity)
+                    }}
                     onClose={() => setSelectedItem(null)}
                 />
             )}
