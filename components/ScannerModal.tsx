@@ -1,7 +1,11 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
+import {
+    Html5Qrcode,
+    Html5QrcodeResult,
+    Html5QrcodeSupportedFormats,
+} from 'html5-qrcode'
 import { Camera, X } from 'lucide-react'
 import { Button } from './ui/Button'
 
@@ -21,6 +25,80 @@ type TorchTrackSettings = MediaTrackSettings & {
 
 type TorchConstraintSet = MediaTrackConstraintSet & {
     torch?: boolean
+}
+
+function normalizeDigits(value: string): string {
+    return value.replace(/\s+/g, '')
+}
+
+function isNumeric(value: string): boolean {
+    return /^\d+$/.test(value)
+}
+
+function isValidEan13(code: string): boolean {
+    if (code.length !== 13 || !isNumeric(code)) return false
+
+    const check = Number(code[12])
+    const sum = code
+        .slice(0, 12)
+        .split('')
+        .reduce((acc, digit, idx) => {
+            const n = Number(digit)
+            return acc + (idx % 2 === 0 ? n : n * 3)
+        }, 0)
+
+    return (10 - (sum % 10)) % 10 === check
+}
+
+function isValidEan8(code: string): boolean {
+    if (code.length !== 8 || !isNumeric(code)) return false
+
+    const check = Number(code[7])
+    const sum = code
+        .slice(0, 7)
+        .split('')
+        .reduce((acc, digit, idx) => {
+            const n = Number(digit)
+            return acc + (idx % 2 === 0 ? n * 3 : n)
+        }, 0)
+
+    return (10 - (sum % 10)) % 10 === check
+}
+
+function isValidUpcA(code: string): boolean {
+    if (code.length !== 12 || !isNumeric(code)) return false
+
+    const check = Number(code[11])
+    const sum = code
+        .slice(0, 11)
+        .split('')
+        .reduce((acc, digit, idx) => {
+            const n = Number(digit)
+            return acc + (idx % 2 === 0 ? n * 3 : n)
+        }, 0)
+
+    return (10 - (sum % 10)) % 10 === check
+}
+
+function isValidScannedBarcode(
+    decodedText: string,
+    result: Html5QrcodeResult
+): boolean {
+    const value = normalizeDigits(decodedText)
+    const format = result.result?.format?.format
+
+    switch (format) {
+        case Html5QrcodeSupportedFormats.EAN_13:
+            return isValidEan13(value)
+        case Html5QrcodeSupportedFormats.EAN_8:
+            return isValidEan8(value)
+        case Html5QrcodeSupportedFormats.UPC_A:
+            return isValidUpcA(value)
+        case Html5QrcodeSupportedFormats.UPC_E:
+            return value.length === 8 && isNumeric(value)
+        default:
+            return false
+    }
 }
 
 export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
@@ -140,11 +218,10 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     }
 
                     const scanner = new Html5Qrcode('scanner-modal-container', {
+                        useBarCodeDetectorIfSupported: true,
                         formatsToSupport: [
                             Html5QrcodeSupportedFormats.EAN_13,
                             Html5QrcodeSupportedFormats.EAN_8,
-                            Html5QrcodeSupportedFormats.CODE_128,
-                            Html5QrcodeSupportedFormats.CODE_39,
                             Html5QrcodeSupportedFormats.UPC_A,
                             Html5QrcodeSupportedFormats.UPC_E,
                         ],
@@ -155,21 +232,29 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     await scanner.start(
                         { facingMode: 'environment' },
                         {
-                            fps: 15,
+                            fps: 12,
+                            disableFlip: true,
                             qrbox: (viewfinderWidth) => {
                                 const width = Math.min(
-                                    viewfinderWidth * 0.8,
-                                    300
+                                    viewfinderWidth * 0.9,
+                                    360
                                 )
                                 const height = width * 0.5
                                 return { width, height }
                             },
                             aspectRatio: 1.333334,
                         },
-                        (decodedText: string) => {
+                        (decodedText: string, result: Html5QrcodeResult) => {
+                            if (!isValidScannedBarcode(decodedText, result)) {
+                                setError(
+                                    'Unsicherer Scan erkannt. Bitte Barcode ruhiger und naeher scannen.'
+                                )
+                                return
+                            }
+
                             if (hasScannedRef.current) return
                             hasScannedRef.current = true
-                            onScan(decodedText)
+                            onScan(normalizeDigits(decodedText))
                             onClose()
                         },
                         () => {}
