@@ -11,16 +11,36 @@ interface ScannerModalProps {
     onScan: (barcode: string) => void
 }
 
+type TorchTrackCapabilities = MediaTrackCapabilities & {
+    torch?: boolean
+}
+
+type TorchTrackSettings = MediaTrackSettings & {
+    torch?: boolean
+}
+
+type TorchConstraintSet = MediaTrackConstraintSet & {
+    torch?: boolean
+}
+
 export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
     const [error, setError] = useState('')
+    const [scannerReady, setScannerReady] = useState(false)
     const [torchSupported, setTorchSupported] = useState(false)
     const [torchEnabled, setTorchEnabled] = useState(false)
     const [torchBusy, setTorchBusy] = useState(false)
     const scannerRef = useRef<Html5Qrcode | null>(null)
     const transitionRef = useRef<Promise<void> | null>(null)
+    const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const hasScannedRef = useRef(false)
 
     const stopScanner = useCallback(async () => {
         try {
+            if (startTimeoutRef.current) {
+                clearTimeout(startTimeoutRef.current)
+                startTimeoutRef.current = null
+            }
+
             if (transitionRef.current) await transitionRef.current
 
             const stop = async () => {
@@ -38,6 +58,8 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
         } catch (err) {
             console.error('Error stopping scanner:', err)
         } finally {
+            hasScannedRef.current = false
+            setScannerReady(false)
             setTorchEnabled(false)
             setTorchSupported(false)
             setTorchBusy(false)
@@ -53,14 +75,12 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
         }
 
         try {
-            const capabilities = scannerRef.current.getRunningTrackCapabilities()
-            const settings = scannerRef.current.getRunningTrackSettings()
+            const capabilities =
+                scannerRef.current.getRunningTrackCapabilities() as TorchTrackCapabilities
+            const settings =
+                scannerRef.current.getRunningTrackSettings() as TorchTrackSettings
 
-            const supported = Boolean(
-                capabilities &&
-                    'torch' in capabilities &&
-                    (capabilities as MediaTrackCapabilities).torch
-            )
+            const supported = Boolean(capabilities?.torch)
 
             setTorchSupported(supported)
             setTorchEnabled(Boolean(settings?.torch))
@@ -77,9 +97,13 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
 
         setTorchBusy(true)
         try {
-            await scannerRef.current.applyVideoConstraints({
-                advanced: [{ torch: !torchEnabled }],
-            })
+            await scannerRef.current.applyVideoConstraints(
+                {
+                    advanced: [
+                        { torch: !torchEnabled } as TorchConstraintSet,
+                    ],
+                } as MediaTrackConstraints
+            )
             updateTorchStateFromTrack()
         } catch (err) {
             console.error('Error toggling torch:', err)
@@ -91,11 +115,19 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
 
     const startScanner = useCallback(async () => {
         setError('')
+        setScannerReady(false)
         setTorchEnabled(false)
         setTorchSupported(false)
+        hasScannedRef.current = false
+
+        if (startTimeoutRef.current) {
+            clearTimeout(startTimeoutRef.current)
+            startTimeoutRef.current = null
+        }
 
         // Tiny delay to ensure the container is in the DOM
-        setTimeout(async () => {
+        startTimeoutRef.current = setTimeout(async () => {
+            startTimeoutRef.current = null
             if (!isOpen) return // Don't start if it's already closed
 
             try {
@@ -135,12 +167,15 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                             aspectRatio: 1.333334,
                         },
                         (decodedText: string) => {
+                            if (hasScannedRef.current) return
+                            hasScannedRef.current = true
                             onScan(decodedText)
                             onClose()
                         },
                         () => {}
                     )
 
+                    setScannerReady(true)
                     updateTorchStateFromTrack()
                 }
 
@@ -200,13 +235,13 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     <Button
                         variant="outline"
                         className="w-full"
-                        disabled={!torchSupported || torchBusy}
+                        disabled={!scannerReady || !torchSupported || torchBusy}
                         onClick={toggleTorch}
                     >
                         {torchEnabled ? 'Turn Flashlight Off' : 'Turn Flashlight On'}
                     </Button>
 
-                    {!torchSupported && !error && (
+                    {scannerReady && !torchSupported && !error && (
                         <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
                             Flashlight is not supported on this device/camera.
                         </p>
