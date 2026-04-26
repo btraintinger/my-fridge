@@ -13,9 +13,10 @@ export function modalNutriScore(grades: (string | null)[]): string | null {
     for (const g of grades) {
         if (!g) continue
         const key = g.toLowerCase()
+        if (key === 'unknown' || key === '-') continue
         counts[key] = (counts[key] ?? 0) + 1
     }
     const entries = Object.entries(counts)
-    if (entries.length === 0) return null
+    if (entries.length === 0) return '-'
     return entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0]
 }

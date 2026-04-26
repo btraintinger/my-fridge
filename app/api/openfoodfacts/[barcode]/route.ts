@@ -38,6 +38,13 @@ function cleanLocalePrefix(tag: string) {
     return tag.includes(':') ? tag.split(':').slice(1).join(':') : tag
 }
 
+function normalizeUnknownString(value: unknown) {
+    if (typeof value !== 'string') return ''
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+    return trimmed.toLowerCase() === 'unknown' ? '-' : trimmed
+}
+
 async function fetchWithTimeout(url: string, timeoutMs: number) {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), timeoutMs)
@@ -107,14 +114,16 @@ export async function GET(
 
         const productData = {
             barcode: normalizedBarcode,
-            product_name: p.product_name,
-            brands: p.brands,
-            image_url: p.image_front_url,
-            nutriscore_grade: p.nutriscore_grade,
-            allergens: p.allergens_from_ingredients,
-            ingredients: p.ingredients_text,
-            origin_country: p.origins || p.origins_en,
-            sold_in_countries: p.countries || p.countries_en,
+            product_name: normalizeUnknownString(p.product_name),
+            brands: normalizeUnknownString(p.brands),
+            image_url: normalizeUnknownString(p.image_front_url),
+            nutriscore_grade: normalizeUnknownString(p.nutriscore_grade),
+            allergens: normalizeUnknownString(p.allergens_from_ingredients),
+            ingredients: normalizeUnknownString(p.ingredients_text),
+            origin_country: normalizeUnknownString(p.origins || p.origins_en),
+            sold_in_countries: normalizeUnknownString(
+                p.countries || p.countries_en
+            ),
             labels: labelTags.map(cleanLocalePrefix).slice(0, 8),
             dietary_flags: {
                 vegan: flagFromTags(
@@ -143,7 +152,7 @@ export async function GET(
                 salt: nutriments.salt_100g,
                 fiber: nutriments.fiber_100g,
             },
-            ecoscore_grade: p.ecoscore_grade,
+            ecoscore_grade: normalizeUnknownString(p.ecoscore_grade),
         }
 
         const validated = ProductSchema.safeParse(productData)
@@ -154,7 +163,9 @@ export async function GET(
         const fallback = ProductSchema.parse({
             barcode: normalizedBarcode,
             product_name:
-                typeof p.product_name === 'string' && p.product_name
+                typeof p.product_name === 'string' &&
+                p.product_name &&
+                p.product_name.toLowerCase() !== 'unknown'
                     ? p.product_name
                     : '-',
             nutriments: {},

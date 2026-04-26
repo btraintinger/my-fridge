@@ -39,6 +39,7 @@ function FlagChip({
 }
 
 function NutriScoreScale({ grade }: { grade: string }) {
+    if (grade === '-') return null
     const active = grade.toLowerCase()
     return (
         <div className="flex items-end gap-1 mt-1">
