@@ -42,6 +42,13 @@ export default function FridgeDetail({
     const [shareEmail, setShareEmail] = useState('')
     const [sharing, setSharing] = useState(false)
     const [selectedItem, setSelectedItem] = useState<FridgeItem | null>(null)
+    const [editingQuantityItemId, setEditingQuantityItemId] = useState<
+        string | null
+    >(null)
+    const [quantityDraft, setQuantityDraft] = useState('1')
+    const [savingQuantityItemId, setSavingQuantityItemId] = useState<
+        string | null
+    >(null)
 
     const healthScore = useMemo(() => calculateHealthScore(items), [items])
 
@@ -68,6 +75,24 @@ export default function FridgeDetail({
     const handleUnshare = async (email: string) => {
         if (!user || !fridge || fridge.userId !== user.uid) return
         await fridgeService.unshareFridge(id, email)
+    }
+
+    const startQuantityEdit = (item: FridgeItem) => {
+        setEditingQuantityItemId(item.id)
+        setQuantityDraft(String(item.quantity ?? 1))
+    }
+
+    const saveQuantity = async (itemId: string) => {
+        const parsed = Number.parseInt(quantityDraft, 10)
+        if (!Number.isFinite(parsed) || parsed < 1) return
+
+        setSavingQuantityItemId(itemId)
+        try {
+            await fridgeService.updateItemQuantity(id, itemId, parsed)
+            setEditingQuantityItemId(null)
+        } finally {
+            setSavingQuantityItemId(null)
+        }
     }
 
     if (loading) {
@@ -291,6 +316,75 @@ export default function FridgeDetail({
                                             {item.product.brands ||
                                                 'Unknown Brand'}
                                         </p>
+                                        <div
+                                            className="mb-2"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {editingQuantityItemId ===
+                                            item.id ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Input
+                                                        type="number"
+                                                        min={1}
+                                                        step={1}
+                                                        value={quantityDraft}
+                                                        onChange={(e) =>
+                                                            setQuantityDraft(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        onKeyDown={(e) => {
+                                                            if (
+                                                                e.key ===
+                                                                'Enter'
+                                                            ) {
+                                                                e.preventDefault()
+                                                                saveQuantity(
+                                                                    item.id
+                                                                )
+                                                            }
+                                                        }}
+                                                        className="h-8 w-20"
+                                                    />
+                                                    <Button
+                                                        size="sm"
+                                                        className="h-8 px-3"
+                                                        disabled={
+                                                            savingQuantityItemId ===
+                                                            item.id
+                                                        }
+                                                        onClick={() =>
+                                                            saveQuantity(
+                                                                item.id
+                                                            )
+                                                        }
+                                                    >
+                                                        Save
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-8 px-3"
+                                                        onClick={() =>
+                                                            setEditingQuantityItemId(
+                                                                null
+                                                            )
+                                                        }
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2.5 py-1 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
+                                                    onClick={() =>
+                                                        startQuantityEdit(item)
+                                                    }
+                                                >
+                                                    Quantity: {item.quantity ?? 1}
+                                                </button>
+                                            )}
+                                        </div>
                                         <div className="flex items-center gap-2">
                                             <NutriScoreBadge
                                                 grade={

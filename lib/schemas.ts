@@ -37,6 +37,7 @@ export const FridgeItemSchema = z.object({
     fridgeId: z.string().optional(),
     userId: z.string().optional(),
     addedAt: z.any().optional(), // Firestore Timestamp
+    quantity: z.number().int().positive().optional(),
     product: ProductSchema,
 })
 

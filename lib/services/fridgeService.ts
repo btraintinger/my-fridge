@@ -211,6 +211,7 @@ class FridgeService extends BaseService {
                     ),
                     {
                         product: product, // Ensure we store it under product key to match FridgeItem type
+                        quantity: 1,
                         addedAt: serverTimestamp(),
                     }
                 ),
@@ -293,6 +294,7 @@ class FridgeService extends BaseService {
                 ),
                 {
                     product: product,
+                    quantity: 1,
                     addedAt: serverTimestamp(),
                 }
             )
@@ -307,6 +309,29 @@ class FridgeService extends BaseService {
                 )
             )
         }, `Moved ${product.product_name} to fridge`)
+    }
+
+    async updateItemQuantity(fridgeId: string, itemId: string, quantity: number) {
+        const normalizedQuantity = Math.floor(quantity)
+        if (!Number.isFinite(normalizedQuantity) || normalizedQuantity < 1) {
+            this.config?.notifyError('Quantity must be at least 1')
+            return
+        }
+
+        return this.handleAction(
+            async () =>
+                updateDoc(
+                    doc(
+                        db,
+                        COLLECTIONS.FRIDGES,
+                        fridgeId,
+                        COLLECTIONS.ITEMS,
+                        itemId
+                    ),
+                    { quantity: normalizedQuantity }
+                ),
+            'Quantity updated'
+        )
     }
 }
 
