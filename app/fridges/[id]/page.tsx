@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, use, useMemo, useState } from 'react'
+import { FormEvent, use, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { calculateHealthScore } from '../../../lib/healthScore'
 import { fridgeService } from '../../../lib/services/fridgeService'
@@ -49,6 +49,17 @@ export default function FridgeDetail({
     const [savingQuantityItemId, setSavingQuantityItemId] = useState<
         string | null
     >(null)
+    const [swipeItemId, setSwipeItemId] = useState<string | null>(null)
+    const [swipeOffset, setSwipeOffset] = useState(0)
+    const swipeOffsetRef = useRef(0)
+    const swipeSessionRef = useRef<{
+        itemId: string
+        pointerId: number
+        startX: number
+        startY: number
+        active: boolean
+    } | null>(null)
+    const suppressNextClickRef = useRef<string | null>(null)
 
     const healthScore = useMemo(() => calculateHealthScore(items), [items])
 
@@ -93,6 +104,113 @@ export default function FridgeDetail({
         } finally {
             setSavingQuantityItemId(null)
         }
+    }
+
+    const deleteFridgeItem = async (itemId: string) => {
+        await fridgeService.deleteItem(id, itemId)
+        if (selectedItem?.id === itemId) {
+            setSelectedItem(null)
+        }
+    }
+
+    const beginSwipe = (
+        itemId: string,
+        pointerId: number,
+        clientX: number,
+        clientY: number
+    ) => {
+        swipeSessionRef.current = {
+            itemId,
+            pointerId,
+            startX: clientX,
+            startY: clientY,
+            active: true,
+        }
+        setSwipeItemId(itemId)
+        setSwipeOffset(0)
+        swipeOffsetRef.current = 0
+    }
+
+    const updateSwipe = (clientX: number, clientY: number) => {
+        const session = swipeSessionRef.current
+        if (!session?.active) return
+
+        const deltaX = clientX - session.startX
+        const deltaY = clientY - session.startY
+
+        if (Math.abs(deltaY) > 18 && Math.abs(deltaY) > Math.abs(deltaX)) {
+            session.active = false
+            setSwipeItemId(null)
+            setSwipeOffset(0)
+            swipeOffsetRef.current = 0
+            return
+        }
+
+        if (deltaX < 0) {
+            const nextOffset = Math.max(deltaX, -96)
+            swipeOffsetRef.current = nextOffset
+            setSwipeOffset(nextOffset)
+        }
+    }
+
+    const endSwipe = async () => {
+        const session = swipeSessionRef.current
+        if (!session?.active) return
+
+        const shouldDelete = swipeOffsetRef.current < -64
+        const itemId = session.itemId
+
+        swipeSessionRef.current = null
+        setSwipeItemId(null)
+
+        if (shouldDelete) {
+            suppressNextClickRef.current = itemId
+            swipeOffsetRef.current = -96
+            setSwipeOffset(-96)
+            await deleteFridgeItem(itemId)
+        } else {
+            swipeOffsetRef.current = 0
+            setSwipeOffset(0)
+        }
+    }
+
+    const handleItemPointerDown = (
+        itemId: string,
+        event: React.PointerEvent<HTMLDivElement>
+    ) => {
+        if (event.pointerType !== 'touch') return
+        event.currentTarget.setPointerCapture(event.pointerId)
+        beginSwipe(itemId, event.pointerId, event.clientX, event.clientY)
+    }
+
+    const handleItemPointerMove = (
+        event: React.PointerEvent<HTMLDivElement>
+    ) => {
+        if (event.pointerType !== 'touch') return
+        if (swipeSessionRef.current?.pointerId !== event.pointerId) return
+        updateSwipe(event.clientX, event.clientY)
+    }
+
+    const handleItemPointerUp = async (
+        event: React.PointerEvent<HTMLDivElement>
+    ) => {
+        if (event.pointerType !== 'touch') return
+        if (swipeSessionRef.current?.pointerId !== event.pointerId) return
+        try {
+            event.currentTarget.releasePointerCapture(event.pointerId)
+        } catch {
+            // Ignore release failures when the pointer was already released.
+        }
+        await endSwipe()
+    }
+
+    const handleItemClick = (item: FridgeItem) => {
+        if (suppressNextClickRef.current === item.id) {
+            suppressNextClickRef.current = null
+            return
+        }
+        if (swipeOffsetRef.current !== 0) return
+        setSelectedItem(item)
     }
 
     if (loading) {
@@ -284,125 +402,163 @@ export default function FridgeDetail({
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {items.map((item) => (
-                                <div
-                                    key={item.id}
-                                    onClick={() => setSelectedItem(item)}
-                                    className="group bg-white dark:bg-slate-900 rounded-2xl p-3 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all cursor-pointer active:scale-[0.98] flex items-center gap-3"
-                                >
-                                    <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                        {item.product?.image_url ? (
-                                            <Image
-                                                src={item.product.image_url}
-                                                alt={item.product.product_name}
-                                                width={56}
-                                                height={56}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-[9px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
-                                                <ChefHat
-                                                    size={16}
-                                                    className="mb-0.5"
-                                                />
-                                                No Image
-                                            </div>
-                                        )}
+                                <div key={item.id} className="relative overflow-hidden rounded-2xl">
+                                    <div
+                                        className="absolute inset-y-0 right-0 w-20 flex items-center justify-center rounded-r-2xl bg-rose-500/95 text-white opacity-0 transition-opacity"
+                                        aria-hidden="true"
+                                    >
+                                        <div className="flex flex-col items-center gap-1 text-[10px] font-semibold uppercase tracking-wider">
+                                            <Trash2 size={16} />
+                                            Delete
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-sm text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                            {item.product.product_name}
-                                        </h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
-                                            {item.product.brands ||
-                                                '-'}
-                                        </p>
-                                        <div
-                                            className="flex items-center gap-1.5 flex-wrap"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            {editingQuantityItemId ===
-                                            item.id ? (
-                                                <div className="flex items-center gap-1">
-                                                    <Input
-                                                        type="number"
-                                                        min={1}
-                                                        step={1}
-                                                        value={quantityDraft}
-                                                        onChange={(e) =>
-                                                            setQuantityDraft(
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        onKeyDown={(e) => {
-                                                            if (
-                                                                e.key ===
-                                                                'Enter'
-                                                            ) {
-                                                                e.preventDefault()
+                                    <div
+                                        onClick={() => handleItemClick(item)}
+                                        onPointerDown={(event) =>
+                                            handleItemPointerDown(item.id, event)
+                                        }
+                                        onPointerMove={handleItemPointerMove}
+                                        onPointerUp={handleItemPointerUp}
+                                        onPointerCancel={handleItemPointerUp}
+                                        className={`group bg-white dark:bg-slate-900 rounded-2xl p-3 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all cursor-pointer active:scale-[0.98] flex items-center gap-3 ${swipeItemId === item.id ? 'touch-none' : ''}`}
+                                        style={{
+                                            transform:
+                                                swipeItemId === item.id
+                                                    ? `translateX(${swipeOffset}px)`
+                                                    : undefined,
+                                            transition:
+                                                swipeItemId === item.id
+                                                    ? 'none'
+                                                    : 'transform 180ms ease',
+                                            touchAction: 'pan-y',
+                                            willChange:
+                                                swipeItemId === item.id
+                                                    ? 'transform'
+                                                    : undefined,
+                                        }}
+                                    >
+                                        <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                            {item.product?.image_url ? (
+                                                <Image
+                                                    src={item.product.image_url}
+                                                    alt={item.product.product_name}
+                                                    width={56}
+                                                    height={56}
+                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex flex-col items-center justify-center text-[9px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
+                                                    <ChefHat
+                                                        size={16}
+                                                        className="mb-0.5"
+                                                    />
+                                                    No Image
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-sm text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                                {item.product.product_name}
+                                            </h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
+                                                {item.product.brands || '-'}
+                                            </p>
+                                            <div
+                                                className="flex items-center gap-1.5 flex-wrap"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {editingQuantityItemId ===
+                                                item.id ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            step={1}
+                                                            value={quantityDraft}
+                                                            onChange={(e) =>
+                                                                setQuantityDraft(
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            onKeyDown={(e) => {
+                                                                if (
+                                                                    e.key ===
+                                                                    'Enter'
+                                                                ) {
+                                                                    e.preventDefault()
+                                                                    saveQuantity(
+                                                                        item.id
+                                                                    )
+                                                                }
+                                                            }}
+                                                            className="h-7 w-16 text-xs"
+                                                        />
+                                                        <Button
+                                                            size="sm"
+                                                            className="h-7 px-2 text-xs"
+                                                            disabled={
+                                                                savingQuantityItemId ===
+                                                                item.id
+                                                            }
+                                                            onClick={() =>
                                                                 saveQuantity(
                                                                     item.id
                                                                 )
                                                             }
-                                                        }}
-                                                        className="h-7 w-16 text-xs"
-                                                    />
-                                                    <Button
-                                                        size="sm"
-                                                        className="h-7 px-2 text-xs"
-                                                        disabled={
-                                                            savingQuantityItemId ===
-                                                            item.id
-                                                        }
-                                                        onClick={() =>
-                                                            saveQuantity(
-                                                                item.id
-                                                            )
-                                                        }
-                                                    >
-                                                        Save
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="h-7 px-2 text-xs"
-                                                        onClick={() =>
-                                                            setEditingQuantityItemId(
-                                                                null
-                                                            )
-                                                        }
-                                                    >
-                                                        Cancel
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
-                                                        onClick={() =>
-                                                            startQuantityEdit(item)
-                                                        }
-                                                    >
-                                                        Q: {item.quantity ?? 1}
-                                                    </button>
-                                                    <NutriScoreBadge
-                                                        grade={
-                                                            item.product
-                                                                ?.nutriscore_grade
-                                                        }
-                                                        size="sm"
-                                                    />
-                                                    {item.product.dietary_flags
-                                                        ?.vegan && (
-                                                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
-                                                            Vegan
-                                                        </span>
-                                                    )}
-                                                </>
-                                            )}
+                                                        >
+                                                            Save
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="h-7 px-2 text-xs"
+                                                            onClick={() =>
+                                                                setEditingQuantityItemId(
+                                                                    null
+                                                                )
+                                                            }
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
+                                                            onClick={() =>
+                                                                startQuantityEdit(item)
+                                                            }
+                                                        >
+                                                            Q: {item.quantity ?? 1}
+                                                        </button>
+                                                        <NutriScoreBadge
+                                                            grade={
+                                                                item.product
+                                                                    ?.nutriscore_grade
+                                                            }
+                                                            size="sm"
+                                                        />
+                                                        {item.product.dietary_flags
+                                                            ?.vegan && (
+                                                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                                                Vegan
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 dark:text-slate-600">
-                                        <Info size={18} />
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 dark:text-slate-600">
+                                            <Info size={18} />
+                                        </div>
+                                        {swipeItemId === item.id && swipeOffset < 0 && (
+                                            <div
+                                                className="absolute inset-y-0 right-0 rounded-r-2xl bg-rose-500/90"
+                                                style={{
+                                                    width: `${Math.min(20, Math.abs(swipeOffset) / 4)}px`,
+                                                }}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             ))}
