@@ -2,25 +2,22 @@
 
 import { FormEvent, use, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
-import { calculateHealthScore } from '../../../lib/healthScore'
 import { fridgeService } from '../../../lib/services/fridgeService'
 import { useFridge } from '../../../hooks/useFridges'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
 import {
     NutriScoreBadge,
-    NutriScoreDistribution,
 } from '../../../components/fridge-details/NutriScoreComponents'
-import { HealthScoreRing } from '../../../components/fridge-details/HealthScoreRing'
 import { ProductDetailModal } from '../../../components/fridge-details/ProductDetailModal'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
     AlertCircle,
     ArrowLeft,
+    BarChart3,
     ChefHat,
     Info,
-    InfoIcon,
     ScanLine,
     Share2,
     Trash2,
@@ -29,6 +26,7 @@ import {
     X,
 } from 'lucide-react'
 import type { FridgeItem } from '../../../lib/types'
+import { modalNutriScore } from '../../../lib/utils'
 
 export default function FridgeDetail({
     params,
@@ -61,7 +59,10 @@ export default function FridgeDetail({
     } | null>(null)
     const suppressNextClickRef = useRef<string | null>(null)
 
-    const healthScore = useMemo(() => calculateHealthScore(items), [items])
+    const fridgeNutriScore = useMemo(
+        () => modalNutriScore(items.map((item) => item.product?.nutriscore_grade ?? null)),
+        [items]
+    )
 
     const handleShare = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -346,35 +347,28 @@ export default function FridgeDetail({
                     </div>
                 )}
 
-                {/* Health Score & Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white dark:bg-slate-900 rounded-4xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center">
-                        <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6">
-                            Health Score
-                        </h3>
-                        <HealthScoreRing score={healthScore.score} />
-                        <div className="mt-6 flex flex-col gap-2">
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-full">
-                                <InfoIcon
-                                    size={16}
-                                    className="text-emerald-500"
-                                />
-                                <span>
-                                    {items.length} Product
-                                    {items.length !== 1 ? 's' : ''}
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-11 h-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                            <BarChart3 size={18} />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                                Nutri-Score
+                            </p>
+                            <div className="flex items-center gap-2 flex-wrap mt-1">
+                                <NutriScoreBadge grade={fridgeNutriScore} />
+                                <span className="text-sm text-slate-500 dark:text-slate-400">
+                                    {items.length} Product{items.length !== 1 ? 's' : ''}
                                 </span>
                             </div>
                         </div>
                     </div>
-
-                    <div className="bg-white dark:bg-slate-900 rounded-4xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col">
-                        <h3 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-8">
-                            Nutri-Score Spread
-                        </h3>
-                        <div className="flex-1 flex flex-col justify-center">
-                            <NutriScoreDistribution items={items} />
-                        </div>
-                    </div>
+                    <Link href={`/fridges/${id}/analysis`}>
+                        <Button variant="outline" className="w-full sm:w-auto rounded-xl">
+                            Weitere Analyse
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Inventory */}
