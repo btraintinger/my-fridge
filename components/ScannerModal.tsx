@@ -230,19 +230,27 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     scannerRef.current = scanner
 
                     await scanner.start(
-                        { facingMode: 'environment' },
+                        {
+                            facingMode: 'environment',
+                            advanced: [
+                                {
+                                    focusMode: 'continuous' as const,
+                                    focusDistance: 0.1,
+                                } as unknown as MediaTrackConstraintSet,
+                            ],
+                        } as MediaTrackConstraints,
                         {
                             fps: 12,
-                            disableFlip: true,
+                            disableFlip: false,
                             qrbox: (viewfinderWidth) => {
                                 const width = Math.min(
-                                    viewfinderWidth * 0.9,
-                                    360
+                                    viewfinderWidth * 0.85,
+                                    300
                                 )
-                                const height = width * 0.5
+                                const height = width * 0.6
                                 return { width, height }
                             },
-                            aspectRatio: 1.333334,
+                            aspectRatio: 1.5,
                         },
                         (decodedText: string, result: Html5QrcodeResult) => {
                             if (!isValidScannedBarcode(decodedText, result)) {
@@ -308,7 +316,11 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                 <div className="p-6 space-y-4">
                     <div
                         id="scanner-modal-container"
-                        className="w-full aspect-[4/3] rounded-2xl overflow-hidden border-2 border-emerald-500 bg-slate-100 dark:bg-slate-800 flex items-center justify-center"
+                        className="w-full rounded-2xl overflow-hidden border-2 border-emerald-500 bg-slate-100 dark:bg-slate-800 flex items-center justify-center"
+                        style={{
+                            aspectRatio: '1.5',
+                            maxHeight: '360px',
+                        }}
                     >
                         {error && (
                             <p className="text-red-500 text-sm text-center px-4">
