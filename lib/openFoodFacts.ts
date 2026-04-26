@@ -72,6 +72,7 @@ export async function fetchProductByBarcode(barcode: string) {
             nutriments: {
                 energy_kcal: nm?.['energy-kcal_100g'],
                 fat: nm?.fat_100g,
+                saturated_fat: nm?.['saturated-fat_100g'],
                 carbohydrates: nm?.carbohydrates_100g,
                 sugars: nm?.sugars_100g,
                 proteins: nm?.proteins_100g,

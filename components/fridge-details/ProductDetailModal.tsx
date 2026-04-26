@@ -2,6 +2,7 @@ import { AlertCircle, ChefHat, Info, X } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { NutriScoreBadge } from './NutriScoreComponents'
 import type { Product } from '../../lib/types'
+import { getNutrimentWarnings } from '../../lib/nutrimentWarnings'
 import Image from 'next/image'
 
 interface ProductDetailModalProps {
@@ -37,6 +38,8 @@ export function ProductDetailModal({
     product,
     onClose,
 }: ProductDetailModalProps) {
+    const warnings = getNutrimentWarnings(product)
+
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-full duration-300 border-x border-t sm:border border-white/10">
@@ -109,6 +112,28 @@ export function ProductDetailModal({
                         )}
                     </div>
 
+                    {warnings.length > 0 && (
+                        <div className="space-y-2 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+                            <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                                Nutrition warnings (per 100g)
+                            </h3>
+                            <div className="space-y-2">
+                                {warnings.map((warning) => (
+                                    <p
+                                        key={warning.id}
+                                        className="text-sm text-amber-900 dark:text-amber-200"
+                                    >
+                                        <span className="font-semibold">
+                                            {warning.label}:
+                                        </span>{' '}
+                                        {warning.value.toFixed(1)} {warning.unit}{' '}
+                                        - {warning.message}
+                                    </p>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex gap-4">
                         {product.nutriscore_grade && (
                             <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 flex-1 flex flex-col items-center">
@@ -165,6 +190,14 @@ export function ProductDetailModal({
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.fat}g
+                                    </span>
+                                </div>
+                                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
+                                    <span className="text-slate-500 dark:text-slate-400">
+                                        Saturated Fat
+                                    </span>
+                                    <span className="font-bold text-slate-900 dark:text-slate-50">
+                                        {product.nutriments.saturated_fat}g
                                     </span>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">

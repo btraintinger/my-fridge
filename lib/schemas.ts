@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const NutrimentsSchema = z.object({
     energy_kcal: z.number().default(0),
     fat: z.number().default(0),
+    saturated_fat: z.number().default(0),
     carbohydrates: z.number().default(0),
     sugars: z.number().default(0),
     proteins: z.number().default(0),

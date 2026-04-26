@@ -11,6 +11,7 @@ import { Camera, Check, Package, Plus, Search } from 'lucide-react'
 import { ScannerModal } from '../../components/ScannerModal'
 import type { Fridge, Product } from '../../lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
+import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import Image from 'next/image'
 
 function FlagChip({
@@ -70,6 +71,7 @@ export default function Scanner() {
     const [scannerOpen, setScannerOpen] = useState(false)
     
     const { fridges } = useFridges()
+    const warnings = product ? getNutrimentWarnings(product) : []
 
     useEffect(() => {
         if (fridges.length > 0 && !selectedFridge) {
@@ -216,6 +218,28 @@ export default function Scanner() {
                             />
                         </div>
 
+                        {warnings.length > 0 && (
+                            <div className="space-y-2 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+                                <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                                    Nutrition warnings (per 100g)
+                                </h3>
+                                <div className="space-y-2">
+                                    {warnings.map((warning) => (
+                                        <div
+                                            key={warning.id}
+                                            className="text-sm text-amber-900 dark:text-amber-200"
+                                        >
+                                            <span className="font-semibold">
+                                                {warning.label}:
+                                            </span>{' '}
+                                            {warning.value.toFixed(1)}{' '}
+                                            {warning.unit} - {warning.message}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {Array.isArray(product.labels) && product.labels.length > 0 && (
                             <div className="space-y-2">
                                 <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -249,6 +273,11 @@ export default function Scanner() {
                                     {
                                         label: 'Fat',
                                         value: product.nutriments.fat,
+                                        unit: 'g',
+                                    },
+                                    {
+                                        label: 'Saturated Fat',
+                                        value: product.nutriments.saturated_fat,
                                         unit: 'g',
                                     },
                                     {
