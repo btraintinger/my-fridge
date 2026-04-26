@@ -13,6 +13,9 @@ interface ScannerModalProps {
 
 export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
     const [error, setError] = useState('')
+    const [torchSupported, setTorchSupported] = useState(false)
+    const [torchEnabled, setTorchEnabled] = useState(false)
+    const [torchBusy, setTorchBusy] = useState(false)
     const scannerRef = useRef<Html5Qrcode | null>(null)
     const transitionRef = useRef<Promise<void> | null>(null)
 
@@ -35,12 +38,61 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
         } catch (err) {
             console.error('Error stopping scanner:', err)
         } finally {
+            setTorchEnabled(false)
+            setTorchSupported(false)
+            setTorchBusy(false)
             transitionRef.current = null
         }
     }, [])
 
+    const updateTorchStateFromTrack = useCallback(() => {
+        if (!scannerRef.current || !scannerRef.current.isScanning) {
+            setTorchSupported(false)
+            setTorchEnabled(false)
+            return
+        }
+
+        try {
+            const capabilities = scannerRef.current.getRunningTrackCapabilities()
+            const settings = scannerRef.current.getRunningTrackSettings()
+
+            const supported = Boolean(
+                capabilities &&
+                    'torch' in capabilities &&
+                    (capabilities as MediaTrackCapabilities).torch
+            )
+
+            setTorchSupported(supported)
+            setTorchEnabled(Boolean(settings?.torch))
+        } catch (err) {
+            console.error('Error reading torch capabilities:', err)
+            setTorchSupported(false)
+            setTorchEnabled(false)
+        }
+    }, [])
+
+    const toggleTorch = useCallback(async () => {
+        if (!scannerRef.current || !scannerRef.current.isScanning || torchBusy)
+            return
+
+        setTorchBusy(true)
+        try {
+            await scannerRef.current.applyVideoConstraints({
+                advanced: [{ torch: !torchEnabled }],
+            })
+            updateTorchStateFromTrack()
+        } catch (err) {
+            console.error('Error toggling torch:', err)
+            setError('Flashlight is not available on this device/camera.')
+        } finally {
+            setTorchBusy(false)
+        }
+    }, [torchBusy, torchEnabled, updateTorchStateFromTrack])
+
     const startScanner = useCallback(async () => {
         setError('')
+        setTorchEnabled(false)
+        setTorchSupported(false)
 
         // Tiny delay to ensure the container is in the DOM
         setTimeout(async () => {
@@ -88,6 +140,8 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                         },
                         () => {}
                     )
+
+                    updateTorchStateFromTrack()
                 }
 
                 transitionRef.current = start()
@@ -99,7 +153,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                 transitionRef.current = null
             }
         }, 100)
-    }, [isOpen, onClose, onScan])
+    }, [isOpen, onClose, onScan, updateTorchStateFromTrack])
 
     useEffect(() => {
         if (isOpen) {
@@ -142,6 +196,21 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                             </p>
                         )}
                     </div>
+
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={!torchSupported || torchBusy}
+                        onClick={toggleTorch}
+                    >
+                        {torchEnabled ? 'Turn Flashlight Off' : 'Turn Flashlight On'}
+                    </Button>
+
+                    {!torchSupported && !error && (
+                        <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+                            Flashlight is not supported on this device/camera.
+                        </p>
+                    )}
 
                     <Button
                         variant="outline"
