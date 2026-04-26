@@ -156,7 +156,7 @@ export async function GET(
             product_name:
                 typeof p.product_name === 'string' && p.product_name
                     ? p.product_name
-                    : 'Unknown Product',
+                    : '-',
             nutriments: {},
         })
 

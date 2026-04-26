@@ -17,7 +17,7 @@ function FlagBadge({
     label: string
     value: boolean | null | undefined
 }) {
-    const text = value === true ? 'Yes' : value === false ? 'No' : 'Unknown'
+    const text = value === true ? 'Yes' : value === false ? 'No' : '-'
     const tone =
         value === true
             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/40'
@@ -71,7 +71,7 @@ export function ProductDetailModal({
                             {product.product_name}
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 font-medium">
-                            {product.brands || 'Unknown Brand'}
+                            {product.brands || '-'}
                         </p>
                         {product.origin_country && (
                             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">

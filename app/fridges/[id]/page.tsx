@@ -287,42 +287,42 @@ export default function FridgeDetail({
                                 <div
                                     key={item.id}
                                     onClick={() => setSelectedItem(item)}
-                                    className="group bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all cursor-pointer active:scale-[0.98] flex items-center gap-4"
+                                    className="group bg-white dark:bg-slate-900 rounded-2xl p-3 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all cursor-pointer active:scale-[0.98] flex items-center gap-3"
                                 >
-                                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                    <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
                                         {item.product?.image_url ? (
                                             <Image
                                                 src={item.product.image_url}
                                                 alt={item.product.product_name}
-                                                width={64}
-                                                height={64}
+                                                width={56}
+                                                height={56}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-[10px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-[9px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
                                                 <ChefHat
-                                                    size={20}
-                                                    className="mb-1"
+                                                    size={16}
+                                                    className="mb-0.5"
                                                 />
                                                 No Image
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="font-bold text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                        <h4 className="font-bold text-sm text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                             {item.product.product_name}
                                         </h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-1">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
                                             {item.product.brands ||
-                                                'Unknown Brand'}
+                                                '-'}
                                         </p>
                                         <div
-                                            className="mb-2"
+                                            className="flex items-center gap-1.5 flex-wrap"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             {editingQuantityItemId ===
                                             item.id ? (
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1">
                                                     <Input
                                                         type="number"
                                                         min={1}
@@ -344,11 +344,11 @@ export default function FridgeDetail({
                                                                 )
                                                             }
                                                         }}
-                                                        className="h-8 w-20"
+                                                        className="h-7 w-16 text-xs"
                                                     />
                                                     <Button
                                                         size="sm"
-                                                        className="h-8 px-3"
+                                                        className="h-7 px-2 text-xs"
                                                         disabled={
                                                             savingQuantityItemId ===
                                                             item.id
@@ -364,7 +364,7 @@ export default function FridgeDetail({
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="h-8 px-3"
+                                                        className="h-7 px-2 text-xs"
                                                         onClick={() =>
                                                             setEditingQuantityItemId(
                                                                 null
@@ -375,36 +375,34 @@ export default function FridgeDetail({
                                                     </Button>
                                                 </div>
                                             ) : (
-                                                <button
-                                                    className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2.5 py-1 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors"
-                                                    onClick={() =>
-                                                        startQuantityEdit(item)
-                                                    }
-                                                >
-                                                    Quantity: {item.quantity ?? 1}
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <NutriScoreBadge
-                                                grade={
-                                                    item.product
-                                                        ?.nutriscore_grade
-                                                }
-                                                size="sm"
-                                            />
-                                            {item.expiryDate && (
-                                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
-                                                    Exp:{' '}
-                                                    {new Date(
-                                                        item.expiryDate
-                                                    ).toLocaleDateString()}
-                                                </span>
+                                                <>
+                                                    <button
+                                                        className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
+                                                        onClick={() =>
+                                                            startQuantityEdit(item)
+                                                        }
+                                                    >
+                                                        Q: {item.quantity ?? 1}
+                                                    </button>
+                                                    <NutriScoreBadge
+                                                        grade={
+                                                            item.product
+                                                                ?.nutriscore_grade
+                                                        }
+                                                        size="sm"
+                                                    />
+                                                    {item.product.dietary_flags
+                                                        ?.vegan && (
+                                                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                                            Vegan
+                                                        </span>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </div>
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-slate-300 dark:text-slate-600">
-                                        <Info size={20} />
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 dark:text-slate-600">
+                                        <Info size={18} />
                                     </div>
                                 </div>
                             ))}

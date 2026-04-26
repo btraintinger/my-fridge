@@ -123,10 +123,18 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
 
             const stop = async () => {
                 if (scannerRef.current) {
-                    if (scannerRef.current.isScanning) {
+                    try {
+                        // Always call stop first to halt scanning
                         await scannerRef.current.stop()
+                    } catch (e) {
+                        // stop() can throw if not scanning, that's ok
                     }
-                    scannerRef.current.clear()
+                    try {
+                        // Then clear the scanner
+                        scannerRef.current.clear()
+                    } catch (e) {
+                        // clear() might also throw if already cleared
+                    }
                     scannerRef.current = null
                 }
             }
@@ -210,11 +218,21 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
 
             try {
                 if (transitionRef.current) await transitionRef.current
+                if (hasScannedRef.current) return // If scan already completed, don't restart
 
                 const start = async () => {
+                    // Ensure old scanner is fully cleaned up
                     if (scannerRef.current) {
-                        if (scannerRef.current.isScanning) return
-                        scannerRef.current.clear()
+                        try {
+                            await scannerRef.current.stop()
+                        } catch (e) {
+                            // ok if not scanning
+                        }
+                        try {
+                            scannerRef.current.clear()
+                        } catch (e) {
+                            // ok if already cleared
+                        }
                     }
 
                     const scanner = new Html5Qrcode('scanner-modal-container', {

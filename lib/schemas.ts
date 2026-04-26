@@ -19,8 +19,8 @@ export const DietaryFlagsSchema = z.object({
 
 export const ProductSchema = z.object({
     barcode: z.string(),
-    product_name: z.string().default('Unknown Product'),
-    brands: z.string().default('Unknown Brand'),
+    product_name: z.string().default('-'),
+    brands: z.string().default('-'),
     image_url: z.string().default(''),
     nutriscore_grade: z.string().nullable().default(null),
     allergens: z.string().default(''),

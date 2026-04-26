@@ -21,7 +21,7 @@ function FlagChip({
     label: string
     value: boolean | null | undefined
 }) {
-    const text = value === true ? 'Yes' : value === false ? 'No' : 'Unknown'
+    const text = value === true ? 'Yes' : value === false ? 'No' : '-'
     const style =
         value === true
             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50'
