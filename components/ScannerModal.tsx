@@ -230,15 +230,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     scannerRef.current = scanner
 
                     await scanner.start(
-                        {
-                            facingMode: 'environment',
-                            advanced: [
-                                {
-                                    focusMode: 'continuous' as const,
-                                    focusDistance: 0.1,
-                                } as unknown as MediaTrackConstraintSet,
-                            ],
-                        } as MediaTrackConstraints,
+                        { facingMode: 'environment' },
                         {
                             fps: 12,
                             disableFlip: false,
@@ -267,6 +259,21 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                         },
                         () => {}
                     )
+
+                    try {
+                        await scanner.applyVideoConstraints(
+                            {
+                                advanced: [
+                                    {
+                                        focusMode: 'continuous',
+                                        focusDistance: 0.1,
+                                    } as unknown as MediaTrackConstraintSet,
+                                ],
+                            } as MediaTrackConstraints
+                        )
+                    } catch (focusErr) {
+                        console.warn('Autofocus not available:', focusErr)
+                    }
 
                     setScannerReady(true)
                     updateTorchStateFromTrack()
