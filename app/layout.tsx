@@ -17,6 +17,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: 'MyFridge',
     description: 'Digital fridge management application',
+    manifest: '/manifest.webmanifest',
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'default',
+        title: 'MyFridge',
+    },
 }
 
 export default function RootLayout({
