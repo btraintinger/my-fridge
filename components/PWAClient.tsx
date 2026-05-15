@@ -13,6 +13,12 @@ interface BeforeInstallPromptEvent extends Event {
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
+interface SyncableServiceWorkerRegistration extends ServiceWorkerRegistration {
+    sync?: {
+        register(tag: string): Promise<void>
+    }
+}
+
 export function PWAClient() {
     const [deferredPrompt, setDeferredPrompt] =
         useState<BeforeInstallPromptEvent | null>(null)
@@ -44,9 +50,10 @@ export function PWAClient() {
             if (!('serviceWorker' in navigator)) return
 
             try {
-                const registration = await navigator.serviceWorker.ready
-                if ('sync' in registration) {
-                    await registration.sync.register('offline-changes')
+                const registration = (await navigator.serviceWorker.ready) as SyncableServiceWorkerRegistration
+                await registration.sync?.register('offline-changes')
+                if (!registration.sync) {
+                    return
                 }
             } catch (error) {
                 console.warn('Background sync registration failed:', error)
@@ -136,8 +143,8 @@ export function PWAClient() {
         await flushOfflineMutations()
         setPendingMutations(0)
         if ('serviceWorker' in navigator) {
-            const registration = await navigator.serviceWorker.ready
-            if ('sync' in registration) {
+            const registration = (await navigator.serviceWorker.ready) as SyncableServiceWorkerRegistration
+            if (registration.sync) {
                 try {
                     await registration.sync.register('offline-changes')
                 } catch (error) {
