@@ -26,6 +26,7 @@ import type {
 } from '../types'
 import { COLLECTIONS } from '../constants'
 import { BaseService } from './base'
+import { fetchProductByBarcode } from '../openFoodFacts'
 
 class FridgeService extends BaseService {
     // Subscribe to all fridges user has access to
@@ -373,8 +374,31 @@ class ProductService extends BaseService {
                 doc(db, COLLECTIONS.PRODUCTS, barcode)
             )
             if (productDoc.exists()) {
-                return productDoc.data() as Product
+                const data = productDoc.data()
+                
+                // Firestore timestamp zu Millisekunden
+                const updatedAt = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : 0
+                const ageInDays = (Date.now() - updatedAt) / (1000 * 60 * 60 * 24)
+
+                if (ageInDays > 30) {
+                    console.log(`[Cache Miss/Expired] Product ${barcode} is ${Math.round(ageInDays)} days old. Fetching fresh data...`)
+                    const freshProduct = await fetchProductByBarcode(barcode)
+                    if (freshProduct) {
+                        await this.cacheProduct(barcode, freshProduct)
+                        return freshProduct
+                    } else {
+                        console.log(`[Cache Fallback] API fetch failed for ${barcode}, using stale cache data.`)
+                        const { updatedAt: _, ...productData } = data
+                        return productData as Product
+                    }
+                }
+
+                console.log(`[Cache Hit] Product ${barcode} is fresh (${ageInDays.toFixed(1)} days old).`)
+                const { updatedAt: _, ...productData } = data
+                return productData as Product
             }
+            
+            console.log(`[Cache Miss] Product ${barcode} not found in DB cache.`)
             return null
         } catch (error) {
             console.error('Error getting cached product:', error)
@@ -384,7 +408,11 @@ class ProductService extends BaseService {
 
     async cacheProduct(barcode: string, product: Product) {
         try {
-            await setDoc(doc(db, COLLECTIONS.PRODUCTS, barcode), product)
+            await setDoc(doc(db, COLLECTIONS.PRODUCTS, barcode), {
+                ...product,
+                updatedAt: serverTimestamp(),
+            })
+            console.log(`[Cache Write] Saved product ${barcode} to DB with fresh timestamp.`)
         } catch (error) {
             console.error('Error caching product:', error)
         }
