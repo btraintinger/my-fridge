@@ -19,9 +19,9 @@ export function NutriScoreBadge({
     return (
         <div
             className={`${sizeClasses} flex items-center justify-center text-white font-bold uppercase shadow-sm ${g?.bg ?? 'bg-slate-400'}`}
-            title={`Nutri-Score: ${normalizedGrade === 'unknown' ? '-' : grade.toUpperCase()}`}
+            title={`Nutri-Score: ${normalizedGrade === 'unknown' ? '-' : normalizedGrade.toUpperCase()}`}
         >
-            {normalizedGrade === 'unknown' ? '-' : grade.toUpperCase()}
+            {normalizedGrade === 'unknown' ? '-' : normalizedGrade.toUpperCase()}
         </div>
     )
 }

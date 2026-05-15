@@ -5,16 +5,15 @@ import { db } from '@/lib/firebase'
 import { 
     collection, 
     getDocs, 
-    deleteDoc, 
     doc, 
-    writeBatch,
     query,
-    where 
+    where,
+    deleteDoc 
 } from 'firebase/firestore'
 import { useAuth } from '@/contexts/AuthContext'
 import { COLLECTIONS } from '@/lib/constants'
 import { Button } from '@/components/ui/Button'
-import { Trash2, AlertTriangle, CheckCircle2, Loader2, ShieldAlert } from 'lucide-react'
+import { Trash2, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function DebugPage() {
@@ -79,10 +78,10 @@ export default function DebugPage() {
         } catch (err: any) {
             console.error(err)
             setStatus('error')
-            if (err.code === 'permission-denied') {
+            if (err?.code === 'permission-denied') {
                 setMessage('Berechtigung verweigert. Stelle sicher, dass du eingeloggt bist oder öffne die Security Rules temporär in der Firebase Console.')
             } else {
-                setMessage(`Fehler beim Löschen: ${err.message}`)
+                setMessage(`Fehler beim Löschen: ${err?.message || 'Unbekannter Fehler'}`)
             }
         }
     }

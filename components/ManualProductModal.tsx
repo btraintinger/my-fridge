@@ -117,11 +117,10 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
                         </FormField>
                         <FormField label="Kategorie" error={errors.category?.message}>
                             <select
-                                className={`w-full h-12 rounded-xl border-2 bg-white px-4 text-sm font-medium transition-all focus:outline-none focus:ring-0 dark:bg-slate-950 dark:text-slate-100 ${
-                                    errors.category
+                                className={`w-full h-12 rounded-xl border-2 bg-white px-4 text-sm font-medium transition-all focus:outline-none focus:ring-0 dark:bg-slate-950 dark:text-slate-100 ${errors.category
                                         ? 'border-red-500'
                                         : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500'
-                                }`}
+                                    }`}
                                 {...register('category')}
                             >
                                 {CATEGORIES.map((c) => (
@@ -141,11 +140,10 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
 
                     <FormField label="Notizen" error={errors.notes?.message}>
                         <textarea
-                            className={`w-full rounded-xl border-2 bg-white p-4 text-sm font-medium transition-all focus:outline-none focus:ring-0 dark:bg-slate-950 dark:text-slate-100 ${
-                                errors.notes
+                            className={`w-full rounded-xl border-2 bg-white p-4 text-sm font-medium transition-all focus:outline-none focus:ring-0 dark:bg-slate-950 dark:text-slate-100 ${errors.notes
                                     ? 'border-red-500'
                                     : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500'
-                            }`}
+                                }`}
                             rows={3}
                             placeholder="Weitere Details zum Produkt..."
                             {...register('notes')}

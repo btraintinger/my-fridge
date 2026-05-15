@@ -22,25 +22,20 @@ interface SyncableServiceWorkerRegistration extends ServiceWorkerRegistration {
 export function PWAClient() {
     const [deferredPrompt, setDeferredPrompt] =
         useState<BeforeInstallPromptEvent | null>(null)
-    const [isStandalone] = useState(() => {
-        if (typeof window === 'undefined') return false
-
-        return (
-            window.matchMedia('(display-mode: standalone)').matches ||
-            (window.navigator as Navigator & { standalone?: boolean }).standalone ===
-                true
-        )
-    })
-    const [online, setOnline] = useState(() => {
-        if (typeof navigator === 'undefined') return true
-        return navigator.onLine
-    })
-    const [pendingMutations, setPendingMutations] = useState(() =>
-        getOfflineMutationCount()
-    )
+    const [isStandalone, setIsStandalone] = useState(false)
+    const [online, setOnline] = useState(true)
+    const [pendingMutations, setPendingMutations] = useState(0)
 
     useEffect(() => {
         if (typeof window === 'undefined') return
+
+        // Initialize state after mount to avoid hydration mismatch
+        setIsStandalone(
+            window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator as Navigator & { standalone?: boolean }).standalone === true
+        )
+        setOnline(navigator.onLine)
+        setPendingMutations(getOfflineMutationCount())
 
         const updatePendingCount = () => {
             setPendingMutations(getOfflineMutationCount())
@@ -66,7 +61,14 @@ export function PWAClient() {
             try {
                 await navigator.serviceWorker.register('/sw.js')
             } catch (error) {
-                console.warn('Service worker registration failed:', error)
+                if (error instanceof Error && error.name === 'SecurityError') {
+                    console.warn(
+                        'PWA: Service Worker registration failed. This is expected on local IP with self-signed SSL certificates. Features like Offline-Mode and Install-Button might not work on mobile devices during development.',
+                        error.message
+                    )
+                } else {
+                    console.warn('Service worker registration failed:', error)
+                }
             }
         }
 

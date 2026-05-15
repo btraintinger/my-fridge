@@ -46,7 +46,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
     const camerasRef = useRef<any[]>([])
     const currentIdxRef = useRef(0)
     const hasScannedRef = useRef(false)
-    
+
     // Refs für Props (verhindert Re-Renders)
     const onScanRef = useRef(onScan)
     const onCloseRef = useRef(onClose)
@@ -127,7 +127,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
 
                 // Back-Kamera Logik
                 if (idxOverride === undefined && currentIdxRef.current === 0) {
-                    const backIdx = camerasRef.current.findLastIndex(d => 
+                    const backIdx = camerasRef.current.findLastIndex(d =>
                         /back|rück|rear|0/i.test(d.label)
                     )
                     if (backIdx !== -1) currentIdxRef.current = backIdx
@@ -140,23 +140,23 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     cameraId,
                     {
                         fps: 30,
-                        qrbox: (w, h) => ({ 
-                            width: Math.max(Math.min(w * 0.8, 280), 150), 
-                            height: Math.max(Math.min(h * 0.4, 180), 80) 
+                        qrbox: (w, h) => ({
+                            width: Math.max(Math.min(w * 0.8, 280), 150),
+                            height: Math.max(Math.min(h * 0.4, 180), 80)
                         }),
                         aspectRatio: 1.7777777778,
                     },
                     (text) => {
                         if (hasScannedRef.current) return
                         hasScannedRef.current = true
-                        
+
                         // ERST Hardware stoppen, DANN navigieren (verhindert removeChild Fehler)
                         stopScanner().then(() => {
                             onCloseRef.current()
                             setTimeout(() => onScanRef.current(normalizeDigits(text)), 100)
                         })
                     },
-                    () => {}
+                    () => { }
                 )
 
                 // Makro-Zoom für Samsung
@@ -169,7 +169,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                             await track.applyConstraints({ advanced: [{ zoom: Math.min(2.0, caps.zoom.max) }] })
                         }
                     }
-                } catch (e) {}
+                } catch (e) { }
 
                 setScannerReady(true)
             } catch (err: any) {
@@ -248,12 +248,12 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                         <X size={24} />
                     </button>
                 </div>
-                
+
                 <div className="p-6 space-y-4">
                     <ScannerContainer />
-                    
+
                     {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
-                    
+
                     {!scannerReady && !error && (
                         <div className="flex flex-col items-center gap-2 py-4">
                             <Loader2 className="animate-spin text-emerald-500" size={32} />

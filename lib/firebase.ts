@@ -1,6 +1,10 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { enableIndexedDbPersistence, getFirestore } from 'firebase/firestore'
+import { 
+    initializeFirestore, 
+    persistentLocalCache, 
+    persistentMultipleTabManager 
+} from 'firebase/firestore'
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -14,12 +18,12 @@ const firebaseConfig = {
 // Initialize Firebase only once
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 const auth = getAuth(app)
-const db = getFirestore(app)
 
-if (typeof window !== 'undefined') {
-    void enableIndexedDbPersistence(db).catch((error) => {
-        console.warn('Firestore offline persistence unavailable:', error)
+// Use modern Firestore initialization with persistent cache
+const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
     })
-}
+})
 
 export { app, auth, db }
