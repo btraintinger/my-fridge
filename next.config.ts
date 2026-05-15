@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    experimental: {
+        allowedDevOrigins: ['https://localhost:3000', 'https://192.168.178.28:3000'],
+    },
 }
 
 export default nextConfig

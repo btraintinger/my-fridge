@@ -14,6 +14,7 @@ import type { Fridge, Product } from '../../lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import Image from 'next/image'
+import { toast } from 'react-hot-toast'
 
 function FlagChip({
     label,
@@ -83,7 +84,7 @@ export default function Scanner() {
     }, [fridges, selectedFridge])
 
     const handleSearch = useCallback(async (code: string) => {
-        if (!code.trim()) return
+        if (!code.trim() || searching) return
         setSearching(true)
         setProduct(null)
         setAdded(false)
@@ -101,9 +102,14 @@ export default function Scanner() {
             const result = await fetchProductByBarcode(code.trim())
             if (result) {
                 setProduct(result)
-                // Save to cache
                 await productService.cacheProduct(code.trim(), result)
+            } else {
+                toast.error('Produkt nicht gefunden. Bitte manuell anlegen.')
+                setBarcode(code.trim()) // Barcode im Feld lassen für manuelle Suche
             }
+        } catch (err) {
+            console.error('Search error:', err)
+            toast.error('Fehler bei der Produktsuche.')
         } finally {
             setSearching(false)
         }
