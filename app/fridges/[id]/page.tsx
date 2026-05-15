@@ -69,6 +69,7 @@ export default function FridgeDetail({
     const [filterCategory, setFilterCategory] = useState<string>('all')
     const [isSortInitialized, setIsSortInitialized] = useState(false)
     const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
+    const [itemToDelete, setItemToDelete] = useState<FridgeItem | null>(null)
 
     useEffect(() => {
         const savedSort = localStorage.getItem('fridgeSortPreference')
@@ -291,9 +292,12 @@ export default function FridgeDetail({
 
         if (shouldDelete) {
             suppressNextClickRef.current = itemId
-            swipeOffsetRef.current = -96
-            setSwipeOffset(-96)
-            await deleteFridgeItem(itemId)
+            const itemToDel = items.find((i) => i.id === itemId)
+            if (itemToDel) {
+                setItemToDelete(itemToDel)
+            }
+            swipeOffsetRef.current = 0
+            setSwipeOffset(0)
         } else {
             swipeOffsetRef.current = 0
             setSwipeOffset(0)
@@ -596,7 +600,22 @@ export default function FridgeDetail({
                                             <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-b from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 rounded-b-xl shadow-inner pointer-events-none -z-10" />
                                             
                                             {groupedItems[category].map((item) => (
-                                                <div key={item.id} className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800/60 transform transition-transform hover:-translate-y-1 hover:shadow-md">
+                                                <div key={item.id} className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800/60 transform transition-transform hover:-translate-y-1 hover:shadow-md group/item">
+                                                    
+                                                    {/* Desktop Hover Delete Button */}
+                                                    <div className="hidden md:flex absolute top-2 right-2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setItemToDelete(item)
+                                                            }}
+                                                            className="p-2 bg-white/90 dark:bg-slate-800/90 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-full shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-700 transition-colors"
+                                                            title="Produkt löschen"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+
                                                     <div
                                                         className="absolute inset-y-0 right-0 w-20 flex items-center justify-center rounded-r-2xl bg-rose-500/95 text-white opacity-0 transition-opacity"
                                                         aria-hidden="true"
@@ -779,8 +798,47 @@ export default function FridgeDetail({
                     onQuantityChange={async (itemId, fridgeId, quantity) => {
                         await fridgeService.updateItemQuantity(fridgeId, itemId, quantity)
                     }}
+                    onDelete={async (itemId, fridgeId) => {
+                        setSelectedItem(null)
+                        setItemToDelete(selectedItem)
+                    }}
                     onClose={() => setSelectedItem(null)}
                 />
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {itemToDelete && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-800">
+                        <div className="p-6 text-center space-y-4">
+                            <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <Trash2 size={32} />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">Produkt löschen</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">
+                                Möchtest du <span className="font-bold text-slate-700 dark:text-slate-300">"{itemToDelete.product.product_name}"</span> wirklich aus dem Kühlschrank entfernen?
+                            </p>
+                        </div>
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex gap-3 border-t border-slate-100 dark:border-slate-800">
+                            <Button 
+                                variant="outline" 
+                                className="flex-1"
+                                onClick={() => setItemToDelete(null)}
+                            >
+                                Abbrechen
+                            </Button>
+                            <Button 
+                                className="flex-1 bg-rose-500 hover:bg-rose-600 text-white border-transparent"
+                                onClick={async () => {
+                                    await deleteFridgeItem(itemToDelete.id)
+                                    setItemToDelete(null)
+                                }}
+                            >
+                                Löschen
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     )
