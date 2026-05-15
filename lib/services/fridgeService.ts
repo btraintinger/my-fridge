@@ -97,12 +97,27 @@ class FridgeService extends BaseService {
 
         return onSnapshot(
             itemsQuery,
-            (snapshot) => {
-                const items = snapshot.docs.map((d) => ({
-                    id: d.id,
-                    ...d.data(),
-                })) as FridgeItem[]
-                callback(items)
+            async (snapshot) => {
+                const itemsPromises = snapshot.docs.map(async (d) => {
+                    const data = d.data()
+                    let product = data.product
+
+                    // Wenn wir nur die productId (normalisiertes Schema) haben, lade das Produkt via Join
+                    if (!product && data.productId) {
+                        product = await productService.getCachedProduct(data.productId)
+                    }
+
+                    return {
+                        id: d.id,
+                        ...data,
+                        product,
+                    } as FridgeItem
+                })
+                
+                const items = await Promise.all(itemsPromises)
+                
+                // Gebe nur die Items zurück, deren Produkt erfolgreich geladen wurde
+                callback(items.filter((item) => item.product))
             },
             onError
         )
@@ -211,7 +226,7 @@ class FridgeService extends BaseService {
                         COLLECTIONS.ITEMS
                     ),
                     {
-                        product: product, // Ensure we store it under product key to match FridgeItem type
+                        productId: product.barcode, // Normalisiertes Schema: Nur Referenz speichern
                         quantity: 1,
                         addedAt: serverTimestamp(),
                     }
@@ -299,7 +314,7 @@ class FridgeService extends BaseService {
                 )
 
                 batch.set(newItemRef, {
-                    product: product,
+                    productId: product.barcode, // Normalisiertes Schema
                     quantity: 1,
                     addedAt: serverTimestamp(),
                 })
