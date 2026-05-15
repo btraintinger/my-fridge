@@ -15,6 +15,7 @@ import {
     setDoc,
     updateDoc,
     where,
+    writeBatch,
 } from 'firebase/firestore'
 import type { FirestoreError } from 'firebase/firestore'
 import type {
@@ -284,30 +285,43 @@ class FridgeService extends BaseService {
         product: Product
     ) {
         return this.handleAction(async () => {
-            // Add to fridge items
-            await addDoc(
-                collection(
-                    db,
-                    COLLECTIONS.FRIDGES,
-                    fridgeId,
-                    COLLECTIONS.ITEMS
-                ),
-                {
+            try {
+                const batch = writeBatch(db)
+
+                // Ref for the new item in the fridge inventory
+                const newItemRef = doc(
+                    collection(
+                        db,
+                        COLLECTIONS.FRIDGES,
+                        fridgeId,
+                        COLLECTIONS.ITEMS
+                    )
+                )
+
+                batch.set(newItemRef, {
                     product: product,
                     quantity: 1,
                     addedAt: serverTimestamp(),
-                }
-            )
-            // Remove from shopping list
-            await deleteDoc(
-                doc(
+                })
+
+                // Ref for the item to remove from the shopping list
+                const shoppingItemRef = doc(
                     db,
                     COLLECTIONS.FRIDGES,
                     fridgeId,
                     COLLECTIONS.SHOPPING_LIST,
                     itemId
                 )
-            )
+
+                batch.delete(shoppingItemRef)
+
+                console.log(`[FridgeService] Executing batch write: Moving shopping item ${itemId} to fridge ${fridgeId}`)
+                await batch.commit()
+                console.log(`[FridgeService] Successfully moved shopping item ${itemId}`)
+            } catch (error) {
+                console.error(`[FridgeService] Failed to move shopping item ${itemId} to fridge ${fridgeId}:`, error)
+                throw error
+            }
         }, `Moved ${product.product_name} to fridge`)
     }
 
