@@ -1,27 +1,46 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuth } from '../../contexts/AuthContext'
 import { fridgeService } from '../../lib/services/fridgeService'
 import { useFridges } from '../../hooks/useFridges'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
+import { FormField } from '../../components/ui/FormField'
 import { Plus, Refrigerator } from 'lucide-react'
 import { FridgeCard } from '../../components/fridges/FridgeCard'
+import { createFridgeSchema, type CreateFridgeFormData } from '../../lib/validations'
+import toast from 'react-hot-toast'
 
 export default function Fridges() {
     const { user } = useAuth()
     const { fridges, fridgeScores, loading } = useFridges()
     const [showCreate, setShowCreate] = useState(false)
-    const [newFridgeName, setNewFridgeName] = useState('')
 
-    const handleCreateFridge = async (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        if (!user || !newFridgeName.trim()) return
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting, isValid },
+    } = useForm<CreateFridgeFormData>({
+        resolver: zodResolver(createFridgeSchema),
+        mode: 'onChange',
+        defaultValues: { name: '' },
+    })
 
-        await fridgeService.createFridge(user.uid, newFridgeName)
-        setNewFridgeName('')
-        setShowCreate(false)
+    const onCreateFridge = async (data: CreateFridgeFormData) => {
+        if (!user) return
+
+        try {
+            await fridgeService.createFridge(user.uid, data.name)
+            toast.success(`"${data.name}" wurde erstellt!`)
+            reset()
+            setShowCreate(false)
+        } catch {
+            toast.error('Kühlschrank konnte nicht erstellt werden.')
+        }
     }
 
     if (loading) {
@@ -51,17 +70,30 @@ export default function Fridges() {
 
                 {showCreate && (
                     <form
-                        onSubmit={handleCreateFridge}
-                        className="flex gap-2 animate-in slide-in-from-top-4 fade-in duration-300"
+                        onSubmit={handleSubmit(onCreateFridge)}
+                        className="animate-in slide-in-from-top-4 fade-in duration-300 space-y-2"
                     >
-                        <Input
-                            placeholder="e.g. WG Kitchen, Office"
-                            value={newFridgeName}
-                            onChange={(e) => setNewFridgeName(e.target.value)}
-                            autoFocus
-                            className="flex-1"
-                        />
-                        <Button type="submit">Create</Button>
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <Input
+                                    placeholder="e.g. WG Kitchen, Office"
+                                    error={!!errors.name}
+                                    autoFocus
+                                    {...register('name')}
+                                />
+                            </div>
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting || !isValid}
+                            >
+                                {isSubmitting ? '...' : 'Create'}
+                            </Button>
+                        </div>
+                        {errors.name && (
+                            <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 ml-1 animate-in fade-in duration-200">
+                                {errors.name.message}
+                            </p>
+                        )}
                     </form>
                 )}
             </div>

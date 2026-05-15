@@ -1,10 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { X } from 'lucide-react'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
+import { FormField } from './ui/FormField'
+import { manualProductSchema, type ManualProductFormData } from '../lib/validations'
 import type { Product } from '../lib/types'
+import toast from 'react-hot-toast'
 
 const CATEGORIES = [
     'Milchprodukte',
@@ -25,22 +29,27 @@ interface ManualProductModalProps {
 }
 
 export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProps) {
-    const [name, setName] = useState('')
-    const [quantity, setQuantity] = useState(1)
-    const [category, setCategory] = useState(CATEGORIES[0])
-    const [expiryDate, setExpiryDate] = useState('')
-    const [notes, setNotes] = useState('')
-    const [loading, setLoading] = useState(false)
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting, isValid },
+    } = useForm<ManualProductFormData>({
+        resolver: zodResolver(manualProductSchema),
+        mode: 'onBlur',
+        defaultValues: {
+            name: '',
+            quantity: 1,
+            category: CATEGORIES[0],
+            expiryDate: '',
+            notes: '',
+        },
+    })
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!name.trim()) return
-
-        setLoading(true)
+    const onFormSubmit = async (data: ManualProductFormData) => {
         try {
             const dummyProduct: Product = {
                 barcode: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-                product_name: name.trim(),
+                product_name: data.name.trim(),
                 brands: '-',
                 labels: ['Manuell'],
                 image_url: '',
@@ -61,19 +70,19 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
                     fiber: 0,
                 },
                 ecoscore_grade: null,
-                category: category,
+                category: data.category,
             }
 
             await onSubmit(dummyProduct, {
-                quantity,
-                expiryDate: expiryDate || undefined,
-                notes: notes.trim() || undefined,
+                quantity: data.quantity,
+                expiryDate: data.expiryDate || undefined,
+                notes: data.notes?.trim() || undefined,
             })
+            toast.success(`"${data.name}" hinzugefügt!`)
             onClose()
         } catch (error) {
             console.error('Failed to add manual product', error)
-        } finally {
-            setLoading(false)
+            toast.error('Produkt konnte nicht hinzugefügt werden.')
         }
     }
 
@@ -86,46 +95,70 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
                         <X size={20} />
                     </button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5">
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Produktname *</label>
-                        <Input required value={name} onChange={(e) => setName(e.target.value)} placeholder="z.B. Äpfel vom Markt" className="h-12" />
-                    </div>
+                <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 overflow-y-auto space-y-5">
+                    <FormField label="Produktname" required error={errors.name?.message}>
+                        <Input
+                            placeholder="z.B. Äpfel vom Markt"
+                            error={!!errors.name}
+                            className="h-12"
+                            {...register('name')}
+                        />
+                    </FormField>
+
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Menge *</label>
-                            <Input required type="number" min="1" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="h-12" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Kategorie</label>
+                        <FormField label="Menge" required error={errors.quantity?.message}>
+                            <Input
+                                type="number"
+                                min="1"
+                                error={!!errors.quantity}
+                                className="h-12"
+                                {...register('quantity', { valueAsNumber: true })}
+                            />
+                        </FormField>
+                        <FormField label="Kategorie" error={errors.category?.message}>
                             <select
-                                className="w-full h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium transition-all focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                                value={category}
-                                onChange={(e) => setCategory(e.target.value)}
+                                className={`w-full h-12 rounded-xl border-2 bg-white px-4 text-sm font-medium transition-all focus:outline-none focus:ring-0 dark:bg-slate-950 dark:text-slate-100 ${
+                                    errors.category
+                                        ? 'border-red-500'
+                                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500'
+                                }`}
+                                {...register('category')}
                             >
                                 {CATEGORIES.map((c) => (
                                     <option key={c} value={c}>{c}</option>
                                 ))}
                             </select>
-                        </div>
+                        </FormField>
                     </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Ablaufdatum (Optional)</label>
-                        <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="h-12" />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Notizen (Optional)</label>
-                        <textarea
-                            className="w-full rounded-xl border border-slate-200 bg-white p-4 text-sm font-medium transition-all focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                            rows={3}
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Weitere Details zum Produkt..."
+
+                    <FormField label="Ablaufdatum" error={errors.expiryDate?.message}>
+                        <Input
+                            type="date"
+                            className="h-12"
+                            {...register('expiryDate')}
                         />
-                    </div>
+                    </FormField>
+
+                    <FormField label="Notizen" error={errors.notes?.message}>
+                        <textarea
+                            className={`w-full rounded-xl border-2 bg-white p-4 text-sm font-medium transition-all focus:outline-none focus:ring-0 dark:bg-slate-950 dark:text-slate-100 ${
+                                errors.notes
+                                    ? 'border-red-500'
+                                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500'
+                            }`}
+                            rows={3}
+                            placeholder="Weitere Details zum Produkt..."
+                            {...register('notes')}
+                        />
+                    </FormField>
+
                     <div className="pt-2">
-                        <Button type="submit" disabled={loading} className="w-full h-12 rounded-2xl text-base">
-                            In den Kühlschrank legen
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !isValid}
+                            className="w-full h-12 rounded-2xl text-base"
+                        >
+                            {isSubmitting ? 'Wird hinzugefügt...' : 'In den Kühlschrank legen'}
                         </Button>
                     </div>
                 </form>
