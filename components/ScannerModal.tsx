@@ -250,12 +250,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     const hasNativeBarcodeDetector = typeof window !== 'undefined' && 'BarcodeDetector' in window
 
                     await scanner.start(
-                        { 
-                            facingMode: 'environment',
-                            // 1. Videoauflösung auf 720p/1080p begrenzen
-                            width: { ideal: 1280, max: 1920 },
-                            height: { ideal: 720, max: 1080 }
-                        },
+                        { facingMode: 'environment' },
                         {
                             // 3. FPS auf 30 erhöhen
                             fps: 30,
@@ -304,9 +299,17 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                             focusDistance: 0.1,
                         })
                         
-                        if (advanced.length > 0) {
-                            await scanner.applyVideoConstraints({ advanced } as MediaTrackConstraints)
+                        // Videoauflösung hier setzen, da scanner.start nur 1 Key im Config-Objekt erlaubt
+                        const videoConstraints: MediaTrackConstraints = {
+                            width: { ideal: 1280, max: 1920 },
+                            height: { ideal: 720, max: 1080 },
                         }
+                        
+                        if (advanced.length > 0) {
+                            videoConstraints.advanced = advanced as any
+                        }
+                        
+                        await scanner.applyVideoConstraints(videoConstraints)
                     } catch (focusErr) {
                         console.warn('Advanced camera constraints not available:', focusErr)
                     }
