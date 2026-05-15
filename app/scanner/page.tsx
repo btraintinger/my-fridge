@@ -133,17 +133,20 @@ export default function Scanner() {
     }
 
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-            <div className="pt-12 px-6 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
+            <div className="pt-safe">
+            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50">
                     Scan Product
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
                     Scan a barcode or search manually
                 </p>
             </div>
+            </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+                <div className="content-container max-w-2xl space-y-6">
                 {/* Manual Search */}
                 <form
                     onSubmit={(e) => {
@@ -403,6 +406,7 @@ export default function Scanner() {
                         )}
                     </div>
                 )}
+                </div>
             </div>
             <ScannerModal
                 isOpen={scannerOpen}

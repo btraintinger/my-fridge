@@ -52,8 +52,9 @@ export default function Fridges() {
     }
 
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-            <div className="pt-12 px-6 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
+        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
+            <div className="pt-safe">
+            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
                         My Fridges
@@ -97,8 +98,10 @@ export default function Fridges() {
                     </form>
                 )}
             </div>
+            </div>
 
-            <div className="p-6">
+            <div className="p-4 sm:p-6 lg:p-8">
+                <div className="content-container">
                 {fridges.length === 0 && !showCreate ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500">
                         <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center text-emerald-500 mb-6 shadow-inner">
@@ -116,7 +119,7 @@ export default function Fridges() {
                         </Button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                         {fridges.map((fridge) => (
                             <FridgeCard
                                 key={fridge.id}
@@ -126,6 +129,7 @@ export default function Fridges() {
                         ))}
                     </div>
                 )}
+                </div>
             </div>
         </div>
     )

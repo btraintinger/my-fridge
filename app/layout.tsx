@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from '../components/Providers'
@@ -17,6 +17,25 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: 'MyFridge',
     description: 'Digital fridge management application',
+    appleWebApp: {
+        capable: true,
+        statusBarStyle: 'black-translucent',
+        title: 'MyFridge',
+    },
+    formatDetection: {
+        telephone: false,
+    },
+}
+
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    viewportFit: 'cover',
+    themeColor: [
+        { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+        { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
+    ],
 }
 
 export default function RootLayout({
@@ -26,12 +45,15 @@ export default function RootLayout({
 }>) {
     return (
         <html
-            lang="en"
+            lang="de"
             className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+            suppressHydrationWarning
         >
-            <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50">
+            <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 overflow-x-hidden">
                 <Providers>
-                    <div className="flex-1 flex flex-col">{children}</div>
+                    <div className="flex-1 flex flex-col lg:flex-row">
+                        <div className="flex-1 flex flex-col min-w-0">{children}</div>
+                    </div>
                     <Navigation />
                 </Providers>
             </body>

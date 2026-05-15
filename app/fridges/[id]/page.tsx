@@ -371,24 +371,25 @@ export default function FridgeDetail({
     }
 
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-            <div className="pt-12 px-6 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 flex items-center gap-4 shadow-sm">
+        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
+            <div className="pt-safe">
+            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 flex items-center gap-3 sm:gap-4 shadow-sm">
                 <Link
                     href="/fridges"
-                    className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400"
+                    className="p-2.5 -ml-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
                     <ArrowLeft size={24} />
                 </Link>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 truncate flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-50 truncate flex-1">
                     {fridge.name}
                 </h1>
                 {fridge.userId === user?.uid && (
                     <button
                         onClick={() => setShowShare(!showShare)}
-                        className={`p-2 rounded-full transition-colors ${showShare ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
+                        className={`p-2.5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${showShare ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
                         title="Share Fridge"
                     >
-                        <Share2 size={24} />
+                        <Share2 size={22} />
                     </button>
                 )}
                 <Link href="/scanner">
@@ -397,8 +398,10 @@ export default function FridgeDetail({
                     </Button>
                 </Link>
             </div>
+            </div>
 
-            <div className="p-6 flex-1 flex flex-col space-y-8">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col space-y-6 sm:space-y-8">
+                <div className="content-container w-full space-y-6 sm:space-y-8">
                 {/* Sharing Section */}
                 {showShare && fridge.userId === user?.uid && (
                     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-md border border-emerald-100 dark:border-emerald-900/30 animate-in slide-in-from-top-4 fade-in duration-300">
@@ -577,7 +580,7 @@ export default function FridgeDetail({
                                 <div key={category} className="space-y-3">
                                     <button 
                                         onClick={() => toggleCategory(category)}
-                                        className="w-full flex items-center justify-between p-3 bg-white dark:bg-slate-900 border-b-4 border-slate-200 dark:border-slate-800 rounded-t-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        className="w-full flex items-center justify-between p-3 sm:p-4 bg-white dark:bg-slate-900 border-b-4 border-slate-200 dark:border-slate-800 rounded-t-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-h-[48px]"
                                     >
                                         <div className="flex items-center gap-2">
                                             {isCategoryExpanded(category) ? (
@@ -595,7 +598,7 @@ export default function FridgeDetail({
                                     </button>
                                     
                                     <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isCategoryExpanded(category) ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4 px-2 relative">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 pb-4 px-1 sm:px-2 relative">
                                             {/* Visuelles Regalbrett im Hintergrund für 3D Effekt */}
                                             <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-b from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 rounded-b-xl shadow-inner pointer-events-none -z-10" />
                                             
@@ -787,6 +790,7 @@ export default function FridgeDetail({
                         </div>
                     )}
                 </div>
+            </div>
             </div>
 
             {selectedItem && (

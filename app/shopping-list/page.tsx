@@ -137,14 +137,17 @@ export default function ShoppingList() {
     const checkedItems = items.filter((i) => i.checked)
 
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-            <div className="pt-12 px-6 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
+            <div className="pt-safe">
+            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50">
                     Shopping List
                 </h1>
             </div>
+            </div>
 
-            <div className="p-6 space-y-8">
+            <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+                <div className="content-container max-w-2xl space-y-6 sm:space-y-8">
                 {/* Moving Item Loading */}
                 {movingItem && (
                     <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
@@ -250,6 +253,7 @@ export default function ShoppingList() {
                         )}
                     </div>
                 )}
+                </div>
             </div>
             <ScannerModal
                 isOpen={scannerOpen}

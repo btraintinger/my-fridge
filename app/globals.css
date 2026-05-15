@@ -42,18 +42,88 @@
         @apply border-slate-200 dark:border-slate-800;
     }
 
+    html {
+        /* Prevent iOS overscroll bounce revealing background */
+        -webkit-tap-highlight-color: transparent;
+        /* Smooth scrolling */
+        scroll-behavior: smooth;
+    }
+
     body {
         @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 antialiased min-h-screen flex flex-col;
         font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+        /* Prevent iOS text size adjustment */
+        -webkit-text-size-adjust: 100%;
+        /* Prevent horizontal overflow */
+        overflow-x: hidden;
+    }
+
+    /* Ensure minimum touch target size for interactive elements */
+    button,
+    [role="button"],
+    a,
+    select,
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Exception for inline tiny buttons (badges, quantity editors) */
+    .touch-target-sm {
+        min-height: 32px;
+        min-width: 32px;
+    }
+
+    /* Override for input fields — they should be tall enough but can be any width */
+    input,
+    textarea,
+    select {
+        min-width: 0;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    /* Improve dark mode contrast for placeholders */
+    .dark input::placeholder,
+    .dark textarea::placeholder {
+        color: #64748b; /* slate-500 — WCAG AA */
     }
 }
 
 @layer utilities {
     .glass {
         @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800;
+        /* Safari backdrop-blur fallback */
+        @supports not (backdrop-filter: blur(12px)) {
+            @apply bg-white/95 dark:bg-slate-900/95;
+        }
     }
 
     .pb-safe {
         padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .pt-safe {
+        padding-top: env(safe-area-inset-top);
+    }
+
+    .px-safe {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+
+    /* Content container that caps width on large screens */
+    .content-container {
+        @apply w-full mx-auto;
+        max-width: 1280px;
+    }
+
+    /* Scrollable areas without visible scrollbar (cross-browser) */
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
     }
 }
