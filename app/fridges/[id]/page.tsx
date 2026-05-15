@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, use, useMemo, useRef, useState } from 'react'
+import { FormEvent, use, useMemo, useRef, useState, useEffect } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { fridgeService } from '../../../lib/services/fridgeService'
 import { useFridge } from '../../../hooks/useFridges'
@@ -15,9 +15,12 @@ import Image from 'next/image'
 import {
     AlertCircle,
     ArrowLeft,
+    ArrowUpDown,
     BarChart3,
     ChefHat,
+    Filter,
     Info,
+    Search,
     ScanLine,
     Share2,
     Trash2,
@@ -58,6 +61,87 @@ export default function FridgeDetail({
         active: boolean
     } | null>(null)
     const suppressNextClickRef = useRef<string | null>(null)
+
+    const [searchQuery, setSearchQuery] = useState('')
+    const [sortBy, setSortBy] = useState<string>('name-asc')
+    const [filterCategory, setFilterCategory] = useState<string>('all')
+    const [isSortInitialized, setIsSortInitialized] = useState(false)
+
+    useEffect(() => {
+        const savedSort = localStorage.getItem('fridgeSortPreference')
+        if (savedSort) {
+            setSortBy(savedSort)
+        }
+        setIsSortInitialized(true)
+    }, [])
+
+    useEffect(() => {
+        if (isSortInitialized) {
+            localStorage.setItem('fridgeSortPreference', sortBy)
+        }
+    }, [sortBy, isSortInitialized])
+
+    const CATEGORY_KEYWORDS: Record<string, string[]> = {
+        dairy: ['milch', 'käse', 'joghurt', 'butter', 'sahne', 'quark', 'milk', 'cheese', 'yogurt', 'dairy'],
+        meat: ['fleisch', 'wurst', 'schinken', 'hähnchen', 'rind', 'schwein', 'meat', 'chicken', 'beef', 'pork', 'speck'],
+        veg: ['gemüse', 'tomate', 'gurke', 'paprika', 'salat', 'karotte', 'vegetable', 'tomato', 'cucumber', 'pepper', 'salad', 'carrot', 'zwiebel', 'knoblauch'],
+        fruit: ['obst', 'apfel', 'banane', 'orange', 'beere', 'fruit', 'apple', 'banana', 'orange', 'berry', 'zitrone'],
+        drinks: ['saft', 'wasser', 'cola', 'limo', 'bier', 'wein', 'drink', 'water', 'juice', 'beer', 'wine', 'getränk']
+    }
+
+    const filteredAndSortedItems = useMemo(() => {
+        let result = [...items]
+
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase()
+            result = result.filter(item => 
+                item.product.product_name?.toLowerCase().includes(query) ||
+                item.product.brands?.toLowerCase().includes(query)
+            )
+        }
+
+        if (filterCategory !== 'all') {
+            const keywords = CATEGORY_KEYWORDS[filterCategory]
+            if (keywords) {
+                result = result.filter(item => {
+                    const text = `${item.product.product_name} ${item.product.ingredients} ${item.product.labels?.join(' ')}`.toLowerCase()
+                    return keywords.some(kw => text.includes(kw))
+                })
+            }
+        }
+
+        result.sort((a, b) => {
+            switch (sortBy) {
+                case 'name-asc':
+                    return (a.product.product_name || '').localeCompare(b.product.product_name || '')
+                case 'name-desc':
+                    return (b.product.product_name || '').localeCompare(a.product.product_name || '')
+                case 'quantity-asc':
+                    return (a.quantity ?? 1) - (b.quantity ?? 1)
+                case 'quantity-desc':
+                    return (b.quantity ?? 1) - (a.quantity ?? 1)
+                case 'nutri-asc': {
+                    const gradeA = a.product.nutriscore_grade || 'z'
+                    const gradeB = b.product.nutriscore_grade || 'z'
+                    return gradeA.localeCompare(gradeB)
+                }
+                case 'nutri-desc': {
+                    const gradeA = a.product.nutriscore_grade || 'a'
+                    const gradeB = b.product.nutriscore_grade || 'a'
+                    return gradeB.localeCompare(gradeA)
+                }
+                case 'expiry-asc': {
+                    const dateA = a.expiryDate ? new Date(a.expiryDate).getTime() : Infinity
+                    const dateB = b.expiryDate ? new Date(b.expiryDate).getTime() : Infinity
+                    return dateA - dateB
+                }
+                default:
+                    return 0
+            }
+        })
+
+        return result
+    }, [items, searchQuery, filterCategory, sortBy])
 
     const fridgeNutriScore = useMemo(
         () => modalNutriScore(items.map((item) => item.product?.nutriscore_grade ?? null)),
@@ -359,7 +443,7 @@ export default function FridgeDetail({
                             <div className="flex items-center gap-2 flex-wrap mt-1">
                                 <NutriScoreBadge grade={fridgeNutriScore} />
                                 <span className="text-sm text-slate-500 dark:text-slate-400">
-                                    {items.length} Product{items.length !== 1 ? 's' : ''}
+                                    {filteredAndSortedItems.length} Product{filteredAndSortedItems.length !== 1 ? 's' : ''}
                                 </span>
                             </div>
                         </div>
@@ -371,6 +455,53 @@ export default function FridgeDetail({
                     </Link>
                 </div>
 
+                {/* Filters and Search */}
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 space-y-3">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Input
+                            type="text"
+                            placeholder="Produkte suchen..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 py-2 text-sm rounded-xl"
+                        />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex-1 relative">
+                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            <select
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                                className="w-full appearance-none rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 outline-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500"
+                            >
+                                <option value="all">Alle Kategorien</option>
+                                <option value="dairy">Milchprodukte</option>
+                                <option value="meat">Fleisch & Wurst</option>
+                                <option value="veg">Gemüse</option>
+                                <option value="fruit">Obst</option>
+                                <option value="drinks">Getränke</option>
+                            </select>
+                        </div>
+                        <div className="flex-1 relative">
+                            <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="w-full appearance-none rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 outline-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500"
+                            >
+                                <option value="name-asc">Name (A-Z)</option>
+                                <option value="name-desc">Name (Z-A)</option>
+                                <option value="quantity-asc">Menge (Aufsteigend)</option>
+                                <option value="quantity-desc">Menge (Absteigend)</option>
+                                <option value="nutri-asc">Nutri-Score (Aufsteigend)</option>
+                                <option value="nutri-desc">Nutri-Score (Absteigend)</option>
+                                <option value="expiry-asc">Ablaufdatum (Bald ablaufen zuerst)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Inventory */}
                 <div className="space-y-4">
                     <div className="flex justify-between items-center px-1">
@@ -379,23 +510,25 @@ export default function FridgeDetail({
                         </h3>
                     </div>
 
-                    {items.length === 0 ? (
+                    {filteredAndSortedItems.length === 0 ? (
                         <div className="bg-white dark:bg-slate-900 rounded-4xl p-16 border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center text-center">
                             <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-600 mb-6">
                                 <ChefHat size={40} strokeWidth={1.5} />
                             </div>
                             <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mb-8">
-                                Your fridge is empty. Scan items to fill it up!
+                                {items.length === 0 ? 'Your fridge is empty. Scan items to fill it up!' : 'Keine Produkte gefunden, die den Filtern entsprechen.'}
                             </p>
-                            <Link href="/scanner">
-                                <Button variant="outline">
-                                    Start Scanning
-                                </Button>
-                            </Link>
+                            {items.length === 0 && (
+                                <Link href="/scanner">
+                                    <Button variant="outline">
+                                        Start Scanning
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {items.map((item) => (
+                            {filteredAndSortedItems.map((item) => (
                                 <div key={item.id} className="relative overflow-hidden rounded-2xl">
                                     <div
                                         className="absolute inset-y-0 right-0 w-20 flex items-center justify-center rounded-r-2xl bg-rose-500/95 text-white opacity-0 transition-opacity"
