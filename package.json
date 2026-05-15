@@ -16,6 +16,7 @@
     "@firebase/auth": "^1.12.1",
     "@firebase/firestore": "^4.12.0",
     "@openfoodfacts/openfoodfacts-nodejs": "^2.0.0-alpha.29",
+    "@tanstack/react-virtual": "^3.13.24",
     "clsx": "^2.1.1",
     "firebase": "^12.10.0",
     "html5-qrcode": "^2.3.8",
