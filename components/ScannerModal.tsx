@@ -247,17 +247,28 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     })
                     scannerRef.current = scanner
 
+                    const hasNativeBarcodeDetector = typeof window !== 'undefined' && 'BarcodeDetector' in window
+
                     await scanner.start(
-                        { facingMode: 'environment' },
+                        { 
+                            facingMode: 'environment',
+                            // 1. Videoauflösung auf 720p/1080p begrenzen
+                            width: { ideal: 1280, max: 1920 },
+                            height: { ideal: 720, max: 1080 }
+                        },
                         {
-                            fps: 12,
+                            // 3. FPS auf 30 erhöhen
+                            fps: 30,
                             disableFlip: false,
                             qrbox: (viewfinderWidth) => {
+                                // 4. Scan-Bereich (qrbox) verkleinern bei iOS (JS-Fallback)
+                                const ratio = hasNativeBarcodeDetector ? 0.85 : 0.6
+                                const maxWidth = hasNativeBarcodeDetector ? 300 : 220
                                 const width = Math.min(
-                                    viewfinderWidth * 0.85,
-                                    300
+                                    viewfinderWidth * ratio,
+                                    maxWidth
                                 )
-                                const height = width * 0.6
+                                const height = width * 0.5
                                 return { width, height }
                             },
                             aspectRatio: 1.5,
@@ -279,18 +290,25 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     )
 
                     try {
-                        await scanner.applyVideoConstraints(
-                            {
-                                advanced: [
-                                    {
-                                        focusMode: 'continuous',
-                                        focusDistance: 0.1,
-                                    } as unknown as MediaTrackConstraintSet,
-                                ],
-                            } as MediaTrackConstraints
-                        )
+                        const capabilities = scanner.getRunningTrackCapabilities() as any
+                        const advanced: any[] = []
+                        
+                        // 2. Digitalen Zoom (2x) über WebRTC-API aktivieren, falls unterstützt
+                        if (capabilities?.zoom) {
+                            const maxZoom = capabilities.zoom.max || 2
+                            advanced.push({ zoom: Math.min(2, maxZoom) })
+                        }
+                        
+                        advanced.push({
+                            focusMode: 'continuous',
+                            focusDistance: 0.1,
+                        })
+                        
+                        if (advanced.length > 0) {
+                            await scanner.applyVideoConstraints({ advanced } as MediaTrackConstraints)
+                        }
                     } catch (focusErr) {
-                        console.warn('Autofocus not available:', focusErr)
+                        console.warn('Advanced camera constraints not available:', focusErr)
                     }
 
                     setScannerReady(true)
