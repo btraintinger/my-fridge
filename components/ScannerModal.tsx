@@ -266,7 +266,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                                 const height = width * 0.5
                                 return { width, height }
                             },
-                            aspectRatio: 1.5,
+                            aspectRatio: 1.7777777778,
                         },
                         (decodedText: string, result: Html5QrcodeResult) => {
                             if (!isValidScannedBarcode(decodedText, result)) {
@@ -294,9 +294,11 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                             advanced.push({ zoom: Math.min(2, maxZoom) })
                         }
                         
+                        // Fokus und Bildqualität optimieren
                         advanced.push({
                             focusMode: 'continuous',
-                            focusDistance: 0.1,
+                            whiteBalanceMode: 'continuous',
+                            exposureMode: 'continuous',
                         })
                         
                         // Videoauflösung hier setzen, da scanner.start nur 1 Key im Config-Objekt erlaubt
