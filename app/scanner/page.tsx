@@ -10,7 +10,7 @@ import { Input } from '../../components/ui/Input'
 import { Camera, Check, Package, Plus, Search, Edit3 } from 'lucide-react'
 import { ScannerModal } from '../../components/ScannerModal'
 import { ManualProductModal } from '../../components/ManualProductModal'
-import type { Fridge, Product } from '../../lib/types'
+import type { Product } from '../../lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import Image from 'next/image'
@@ -89,11 +89,18 @@ export default function Scanner() {
         setProduct(null)
         setAdded(false)
         setBarcode(code.trim())
+        const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
         // Check cache first
         const cached = await productService.getCachedProduct(code.trim())
         if (cached) {
             setProduct(cached)
+            setSearching(false)
+            return
+        }
+
+        if (isOffline) {
+            toast.error('Offline sind nur bereits gespeicherte Produkte verfügbar.')
             setSearching(false)
             return
         }
@@ -113,7 +120,7 @@ export default function Scanner() {
         } finally {
             setSearching(false)
         }
-    }, [])
+    }, [searching])
 
     const handleAddToFridge = async () => {
         if (!user || !product || !selectedFridge) return

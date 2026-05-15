@@ -25,8 +25,19 @@ import type {
     ShoppingListItem as ShoppingListItemType,
 } from '../types'
 import { COLLECTIONS } from '../constants'
+import { enqueueOfflineMutation } from '../offlineQueue'
 import { BaseService } from './base'
 import { fetchProductByBarcode } from '../openFoodFacts'
+
+function trackOfflineMutation(
+    type: Parameters<typeof enqueueOfflineMutation>[0]['type'],
+    payload: Record<string, unknown>,
+    dedupeKey?: string
+) {
+    if (typeof navigator === 'undefined' || navigator.onLine) return
+
+    enqueueOfflineMutation({ type, payload, dedupeKey })
+}
 
 class FridgeService extends BaseService {
     // Subscribe to all fridges user has access to
@@ -159,6 +170,11 @@ class FridgeService extends BaseService {
             this.config?.notifyError('Fridge name cannot be empty')
             return
         }
+        trackOfflineMutation(
+            'createFridge',
+            { userId, name: name.trim() },
+            `createFridge:${userId}:${name.trim().toLowerCase()}`
+        )
         return this.handleAction(
             async () =>
                 addDoc(collection(db, COLLECTIONS.FRIDGES), {
@@ -176,6 +192,11 @@ class FridgeService extends BaseService {
             this.config?.notifyError('Email cannot be empty')
             return
         }
+        trackOfflineMutation(
+            'shareFridge',
+            { fridgeId, email: email.trim().toLowerCase() },
+            `shareFridge:${fridgeId}:${email.trim().toLowerCase()}`
+        )
         const docRef = doc(db, COLLECTIONS.FRIDGES, fridgeId)
         return this.handleAction(
             async () =>
@@ -188,6 +209,11 @@ class FridgeService extends BaseService {
 
     // Unshare fridge
     async unshareFridge(fridgeId: string, email: string) {
+        trackOfflineMutation(
+            'unshareFridge',
+            { fridgeId, email: email.trim().toLowerCase() },
+            `unshareFridge:${fridgeId}:${email.trim().toLowerCase()}`
+        )
         const docRef = doc(db, COLLECTIONS.FRIDGES, fridgeId)
         return this.handleAction(
             async () =>
@@ -200,6 +226,11 @@ class FridgeService extends BaseService {
 
     // Delete item from fridge
     async deleteItem(fridgeId: string, itemId: string) {
+        trackOfflineMutation(
+            'deleteItem',
+            { fridgeId, itemId },
+            `deleteItem:${fridgeId}:${itemId}`
+        )
         return this.handleAction(
             async () =>
                 deleteDoc(
@@ -221,6 +252,15 @@ class FridgeService extends BaseService {
         product: Product,
         options: { quantity?: number; expiryDate?: string; notes?: string } = {}
     ) {
+        trackOfflineMutation(
+            'addItemToFridge',
+            {
+                fridgeId,
+                product,
+                options,
+            },
+            `addItemToFridge:${fridgeId}:${product.barcode}:${options.expiryDate || ''}:${options.notes || ''}`
+        )
         return this.handleAction(
             async () =>
                 addDoc(
@@ -244,6 +284,11 @@ class FridgeService extends BaseService {
 
     // Shopping List Operations
     async addShoppingItem(fridgeId: string, userId: string, name: string) {
+        trackOfflineMutation(
+            'addShoppingItem',
+            { fridgeId, userId, name: name.trim() },
+            `addShoppingItem:${fridgeId}:${name.trim().toLowerCase()}`
+        )
         return this.handleAction(
             async () =>
                 addDoc(
@@ -269,6 +314,11 @@ class FridgeService extends BaseService {
         itemId: string,
         currentChecked: boolean
     ) {
+        trackOfflineMutation(
+            'toggleShoppingItem',
+            { fridgeId, itemId, currentChecked: !currentChecked },
+            `toggleShoppingItem:${fridgeId}:${itemId}`
+        )
         return this.handleAction(async () =>
             updateDoc(
                 doc(
@@ -286,6 +336,11 @@ class FridgeService extends BaseService {
     }
 
     async deleteShoppingItem(fridgeId: string, itemId: string) {
+        trackOfflineMutation(
+            'deleteShoppingItem',
+            { fridgeId, itemId },
+            `deleteShoppingItem:${fridgeId}:${itemId}`
+        )
         return this.handleAction(
             async () =>
                 deleteDoc(
@@ -306,6 +361,11 @@ class FridgeService extends BaseService {
         itemId: string,
         product: Product
     ) {
+        trackOfflineMutation(
+            'moveShoppingItemToFridge',
+            { fridgeId, itemId, product },
+            `moveShoppingItemToFridge:${fridgeId}:${itemId}`
+        )
         return this.handleAction(async () => {
             try {
                 const batch = writeBatch(db)
@@ -354,6 +414,12 @@ class FridgeService extends BaseService {
             return
         }
 
+        trackOfflineMutation(
+            'updateItemQuantity',
+            { fridgeId, itemId, quantity: normalizedQuantity },
+            `updateItemQuantity:${fridgeId}:${itemId}`
+        )
+
         return this.handleAction(
             async () =>
                 updateDoc(
@@ -385,8 +451,9 @@ class ProductService extends BaseService {
                 // Firestore timestamp zu Millisekunden
                 const updatedAt = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : 0
                 const ageInDays = (Date.now() - updatedAt) / (1000 * 60 * 60 * 24)
+                const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
-                if (ageInDays > 30) {
+                if (ageInDays > 30 && !isOffline) {
                     console.log(`[Cache Miss/Expired] Product ${barcode} is ${Math.round(ageInDays)} days old. Fetching fresh data...`)
                     const freshProduct = await fetchProductByBarcode(barcode)
                     if (freshProduct) {
@@ -394,13 +461,19 @@ class ProductService extends BaseService {
                         return freshProduct
                     } else {
                         console.log(`[Cache Fallback] API fetch failed for ${barcode}, using stale cache data.`)
-                        const { updatedAt: _, ...productData } = data
+                        const productData = { ...data }
+                        delete (productData as { updatedAt?: unknown }).updatedAt
                         return productData as Product
                     }
                 }
 
-                console.log(`[Cache Hit] Product ${barcode} is fresh (${ageInDays.toFixed(1)} days old).`)
-                const { updatedAt: _, ...productData } = data
+                if (ageInDays > 30) {
+                    console.log(`[Cache Fallback] Product ${barcode} is stale but offline. Using local cache data.`)
+                } else {
+                    console.log(`[Cache Hit] Product ${barcode} is fresh (${ageInDays.toFixed(1)} days old).`)
+                }
+                const productData = { ...data }
+                delete (productData as { updatedAt?: unknown }).updatedAt
                 return productData as Product
             }
             

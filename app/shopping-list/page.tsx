@@ -81,10 +81,15 @@ export default function ShoppingList() {
 
         setMovingItem(true)
         try {
+            const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
             let product: Product | null = null
 
             // Check cache first
             product = await productService.getCachedProduct(barcode)
+
+            if (!product && isOffline) {
+                return
+            }
 
             if (!product) {
                 product = await fetchProductByBarcode(barcode)
