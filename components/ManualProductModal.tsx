@@ -7,12 +7,11 @@ import { Input } from './ui/Input'
 import type { Product } from '../lib/types'
 
 const CATEGORIES = [
-    'Obst',
-    'Gemüse',
     'Milchprodukte',
-    'Fleisch',
+    'Fleisch & Fisch',
+    'Gemüse & Obst',
+    'Snacks & Süßes',
     'Getränke',
-    'Snacks',
     'Tiefkühl',
     'Sonstiges',
 ]
@@ -42,7 +41,7 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
             const dummyProduct: Product = {
                 barcode: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
                 product_name: name.trim(),
-                brands: category,
+                brands: '-',
                 labels: ['Manuell'],
                 image_url: '',
                 nutriscore_grade: null,
@@ -62,6 +61,7 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
                     fiber: 0,
                 },
                 ecoscore_grade: null,
+                category: category,
             }
 
             await onSubmit(dummyProduct, {

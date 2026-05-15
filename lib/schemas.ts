@@ -35,6 +35,7 @@ export const ProductSchema = z.object({
     }),
     nutriments: NutrimentsSchema,
     ecoscore_grade: z.string().nullable().default(null),
+    category: z.string().default('Sonstiges'),
 })
 
 export const FridgeSchema = z.object({

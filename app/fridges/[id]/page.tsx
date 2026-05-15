@@ -18,6 +18,8 @@ import {
     ArrowUpDown,
     BarChart3,
     ChefHat,
+    ChevronDown,
+    ChevronRight,
     Filter,
     Info,
     Search,
@@ -66,6 +68,7 @@ export default function FridgeDetail({
     const [sortBy, setSortBy] = useState<string>('name-asc')
     const [filterCategory, setFilterCategory] = useState<string>('all')
     const [isSortInitialized, setIsSortInitialized] = useState(false)
+    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
 
     useEffect(() => {
         const savedSort = localStorage.getItem('fridgeSortPreference')
@@ -142,6 +145,44 @@ export default function FridgeDetail({
 
         return result
     }, [items, searchQuery, filterCategory, sortBy])
+
+    const groupedItems = useMemo(() => {
+        const groups: Record<string, FridgeItem[]> = {}
+        filteredAndSortedItems.forEach(item => {
+            const cat = item.product.category || 'Sonstiges'
+            if (!groups[cat]) groups[cat] = []
+            groups[cat].push(item)
+        })
+        return groups
+    }, [filteredAndSortedItems])
+
+    const CATEGORY_ORDER = [
+        'Milchprodukte',
+        'Fleisch & Fisch',
+        'Gemüse & Obst',
+        'Getränke',
+        'Snacks & Süßes',
+        'Tiefkühl',
+        'Sonstiges',
+    ]
+
+    const sortedCategories = Object.keys(groupedItems).sort((a, b) => {
+        const idxA = CATEGORY_ORDER.indexOf(a)
+        const idxB = CATEGORY_ORDER.indexOf(b)
+        if (idxA === -1 && idxB === -1) return a.localeCompare(b)
+        if (idxA === -1) return 1
+        if (idxB === -1) return -1
+        return idxA - idxB
+    })
+
+    const toggleCategory = (cat: string) => {
+        setExpandedCategories(prev => ({
+            ...prev,
+            [cat]: prev[cat] === false ? true : false
+        }))
+    }
+
+    const isCategoryExpanded = (cat: string) => expandedCategories[cat] !== false
 
     const fridgeNutriScore = useMemo(
         () => modalNutriScore(items.map((item) => item.product?.nutriscore_grade ?? null)),
@@ -527,170 +568,200 @@ export default function FridgeDetail({
                             )}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {filteredAndSortedItems.map((item) => (
-                                <div key={item.id} className="relative overflow-hidden rounded-2xl">
-                                    <div
-                                        className="absolute inset-y-0 right-0 w-20 flex items-center justify-center rounded-r-2xl bg-rose-500/95 text-white opacity-0 transition-opacity"
-                                        aria-hidden="true"
+                        <div className="space-y-8">
+                            {sortedCategories.map(category => (
+                                <div key={category} className="space-y-3">
+                                    <button 
+                                        onClick={() => toggleCategory(category)}
+                                        className="w-full flex items-center justify-between p-3 bg-white dark:bg-slate-900 border-b-4 border-slate-200 dark:border-slate-800 rounded-t-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                     >
-                                        <div className="flex flex-col items-center gap-1 text-[10px] font-semibold uppercase tracking-wider">
-                                            <Trash2 size={16} />
-                                            Delete
-                                        </div>
-                                    </div>
-                                    <div
-                                        onClick={() => handleItemClick(item)}
-                                        onPointerDown={(event) =>
-                                            handleItemPointerDown(item.id, event)
-                                        }
-                                        onPointerMove={handleItemPointerMove}
-                                        onPointerUp={handleItemPointerUp}
-                                        onPointerCancel={handleItemPointerUp}
-                                        className={`group bg-white dark:bg-slate-900 rounded-2xl p-3 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all cursor-pointer active:scale-[0.98] flex items-center gap-3 ${swipeItemId === item.id ? 'touch-none' : ''}`}
-                                        style={{
-                                            transform:
-                                                swipeItemId === item.id
-                                                    ? `translateX(${swipeOffset}px)`
-                                                    : undefined,
-                                            transition:
-                                                swipeItemId === item.id
-                                                    ? 'none'
-                                                    : 'transform 180ms ease',
-                                            touchAction: 'pan-y',
-                                            willChange:
-                                                swipeItemId === item.id
-                                                    ? 'transform'
-                                                    : undefined,
-                                        }}
-                                    >
-                                        <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                            {item.product?.image_url ? (
-                                                <Image
-                                                    src={item.product.image_url}
-                                                    alt={item.product.product_name}
-                                                    width={56}
-                                                    height={56}
-                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                />
+                                        <div className="flex items-center gap-2">
+                                            {isCategoryExpanded(category) ? (
+                                                <ChevronDown size={20} className="text-slate-400" />
                                             ) : (
-                                                <div className="w-full h-full flex flex-col items-center justify-center text-[9px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
-                                                    <ChefHat
-                                                        size={16}
-                                                        className="mb-0.5"
-                                                    />
-                                                    No Image
-                                                </div>
+                                                <ChevronRight size={20} className="text-slate-400" />
                                             )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-sm text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                                {item.product.product_name}
+                                            <h4 className="font-bold text-slate-700 dark:text-slate-300">
+                                                {category}
                                             </h4>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
-                                                {item.product.brands || '-'}
-                                            </p>
-                                            <div
-                                                className="flex items-center gap-1.5 flex-wrap"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                {editingQuantityItemId ===
-                                                item.id ? (
-                                                    <div className="flex items-center gap-1">
-                                                        <Input
-                                                            type="number"
-                                                            min={1}
-                                                            step={1}
-                                                            value={quantityDraft}
-                                                            onChange={(e) =>
-                                                                setQuantityDraft(
-                                                                    e.target.value
-                                                                )
-                                                            }
-                                                            onKeyDown={(e) => {
-                                                                if (
-                                                                    e.key ===
-                                                                    'Enter'
-                                                                ) {
-                                                                    e.preventDefault()
-                                                                    saveQuantity(
-                                                                        item.id
-                                                                    )
-                                                                }
-                                                            }}
-                                                            className="h-7 w-16 text-xs"
-                                                        />
-                                                        <Button
-                                                            size="sm"
-                                                            className="h-7 px-2 text-xs"
-                                                            disabled={
-                                                                savingQuantityItemId ===
-                                                                item.id
-                                                            }
-                                                            onClick={() =>
-                                                                saveQuantity(
-                                                                    item.id
-                                                                )
-                                                            }
-                                                        >
-                                                            Save
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            className="h-7 px-2 text-xs"
-                                                            onClick={() =>
-                                                                setEditingQuantityItemId(
-                                                                    null
-                                                                )
-                                                            }
-                                                        >
-                                                            Cancel
-                                                        </Button>
+                                            <span className="ml-2 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 py-0.5 px-2 rounded-full">
+                                                {groupedItems[category].length}
+                                            </span>
+                                        </div>
+                                    </button>
+                                    
+                                    <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isCategoryExpanded(category) ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-4 px-2 relative">
+                                            {/* Visuelles Regalbrett im Hintergrund für 3D Effekt */}
+                                            <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-b from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 rounded-b-xl shadow-inner pointer-events-none -z-10" />
+                                            
+                                            {groupedItems[category].map((item) => (
+                                                <div key={item.id} className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800/60 transform transition-transform hover:-translate-y-1 hover:shadow-md">
+                                                    <div
+                                                        className="absolute inset-y-0 right-0 w-20 flex items-center justify-center rounded-r-2xl bg-rose-500/95 text-white opacity-0 transition-opacity"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <div className="flex flex-col items-center gap-1 text-[10px] font-semibold uppercase tracking-wider">
+                                                            <Trash2 size={16} />
+                                                            Delete
+                                                        </div>
                                                     </div>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
-                                                            onClick={() =>
-                                                                startQuantityEdit(item)
-                                                            }
-                                                        >
-                                                            Q: {item.quantity ?? 1}
-                                                        </button>
-                                                        <NutriScoreBadge
-                                                            grade={
-                                                                item.product
-                                                                    ?.nutriscore_grade
-                                                            }
-                                                            size="sm"
-                                                        />
-                                                        {item.product.dietary_flags
-                                                            ?.vegan && (
-                                                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
-                                                                Vegan
-                                                            </span>
+                                                    <div
+                                                        onClick={() => handleItemClick(item)}
+                                                        onPointerDown={(event) =>
+                                                            handleItemPointerDown(item.id, event)
+                                                        }
+                                                        onPointerMove={handleItemPointerMove}
+                                                        onPointerUp={handleItemPointerUp}
+                                                        onPointerCancel={handleItemPointerUp}
+                                                        className={`group p-3 cursor-pointer active:scale-[0.98] flex items-center gap-3 ${swipeItemId === item.id ? 'touch-none' : ''}`}
+                                                        style={{
+                                                            transform:
+                                                                swipeItemId === item.id
+                                                                    ? `translateX(${swipeOffset}px)`
+                                                                    : undefined,
+                                                            transition:
+                                                                swipeItemId === item.id
+                                                                    ? 'none'
+                                                                    : 'transform 180ms ease',
+                                                            touchAction: 'pan-y',
+                                                            willChange:
+                                                                swipeItemId === item.id
+                                                                    ? 'transform'
+                                                                    : undefined,
+                                                        }}
+                                                    >
+                                                        <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                                            {item.product?.image_url ? (
+                                                                <Image
+                                                                    src={item.product.image_url}
+                                                                    alt={item.product.product_name}
+                                                                    width={56}
+                                                                    height={56}
+                                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex flex-col items-center justify-center text-[9px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
+                                                                    <ChefHat
+                                                                        size={16}
+                                                                        className="mb-0.5"
+                                                                    />
+                                                                    No Image
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="font-bold text-sm text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                                                {item.product.product_name}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
+                                                                {item.product.brands || '-'}
+                                                            </p>
+                                                            <div
+                                                                className="flex items-center gap-1.5 flex-wrap"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                {editingQuantityItemId ===
+                                                                item.id ? (
+                                                                    <div className="flex items-center gap-1">
+                                                                        <Input
+                                                                            type="number"
+                                                                            min={1}
+                                                                            step={1}
+                                                                            value={quantityDraft}
+                                                                            onChange={(e) =>
+                                                                                setQuantityDraft(
+                                                                                    e.target.value
+                                                                                )
+                                                                            }
+                                                                            onKeyDown={(e) => {
+                                                                                if (
+                                                                                    e.key ===
+                                                                                    'Enter'
+                                                                                ) {
+                                                                                    e.preventDefault()
+                                                                                    saveQuantity(
+                                                                                        item.id
+                                                                                    )
+                                                                                }
+                                                                            }}
+                                                                            className="h-7 w-16 text-xs"
+                                                                        />
+                                                                        <Button
+                                                                            size="sm"
+                                                                            className="h-7 px-2 text-xs"
+                                                                            disabled={
+                                                                                savingQuantityItemId ===
+                                                                                item.id
+                                                                            }
+                                                                            onClick={() =>
+                                                                                saveQuantity(
+                                                                                    item.id
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            Save
+                                                                        </Button>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            className="h-7 px-2 text-xs"
+                                                                            onClick={() =>
+                                                                                setEditingQuantityItemId(
+                                                                                    null
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            Cancel
+                                                                        </Button>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        <button
+                                                                            className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
+                                                                            onClick={() =>
+                                                                                startQuantityEdit(item)
+                                                                            }
+                                                                        >
+                                                                            Q: {item.quantity ?? 1}
+                                                                        </button>
+                                                                        <NutriScoreBadge
+                                                                            grade={
+                                                                                item.product
+                                                                                    ?.nutriscore_grade
+                                                                            }
+                                                                            size="sm"
+                                                                        />
+                                                                        {item.product.dietary_flags
+                                                                            ?.vegan && (
+                                                                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                                                                Vegan
+                                                                            </span>
+                                                                        )}
+                                                                        {item.product.labels?.includes('Manuell') && (
+                                                                            <span className="text-xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border border-sky-200/70 dark:border-sky-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                                                                Manuell
+                                                                            </span>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 dark:text-slate-600">
+                                                            <Info size={18} />
+                                                        </div>
+                                                        {swipeItemId === item.id && swipeOffset < 0 && (
+                                                            <div
+                                                                className="absolute inset-y-0 right-0 rounded-r-2xl bg-rose-500/90"
+                                                                style={{
+                                                                    width: `${Math.min(20, Math.abs(swipeOffset) / 4)}px`,
+                                                                }}
+                                                            />
                                                         )}
-                                                        {item.product.labels?.includes('Manuell') && (
-                                                            <span className="text-xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border border-sky-200/70 dark:border-sky-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
-                                                                Manuell
-                                                            </span>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 dark:text-slate-600">
-                                            <Info size={18} />
-                                        </div>
-                                        {swipeItemId === item.id && swipeOffset < 0 && (
-                                            <div
-                                                className="absolute inset-y-0 right-0 rounded-r-2xl bg-rose-500/90"
-                                                style={{
-                                                    width: `${Math.min(20, Math.abs(swipeOffset) / 4)}px`,
-                                                }}
-                                            />
-                                        )}
                                     </div>
                                 </div>
                             ))}
