@@ -216,7 +216,11 @@ class FridgeService extends BaseService {
     }
 
     // Add item to fridge
-    async addItemToFridge(fridgeId: string, product: Product) {
+    async addItemToFridge(
+        fridgeId: string, 
+        product: Product,
+        options: { quantity?: number; expiryDate?: string; notes?: string } = {}
+    ) {
         return this.handleAction(
             async () =>
                 addDoc(
@@ -228,7 +232,9 @@ class FridgeService extends BaseService {
                     ),
                     {
                         productId: product.barcode, // Normalisiertes Schema: Nur Referenz speichern
-                        quantity: 1,
+                        quantity: options.quantity || 1,
+                        ...(options.expiryDate && { expiryDate: options.expiryDate }),
+                        ...(options.notes && { notes: options.notes }),
                         addedAt: serverTimestamp(),
                     }
                 ),

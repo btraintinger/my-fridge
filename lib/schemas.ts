@@ -55,6 +55,7 @@ export const FridgeItemSchema = z.object({
     quantity: z.number().int().positive().optional(),
     expiryDate: z.string().optional(),
     productId: z.string().optional(),
+    notes: z.string().optional(),
     product: ProductSchema,
 })
 

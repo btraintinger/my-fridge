@@ -538,6 +538,11 @@ export default function FridgeDetail({
                                                                 Vegan
                                                             </span>
                                                         )}
+                                                        {item.product.labels?.includes('Manuell') && (
+                                                            <span className="text-xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border border-sky-200/70 dark:border-sky-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                                                Manuell
+                                                            </span>
+                                                        )}
                                                     </>
                                                 )}
                                             </div>
