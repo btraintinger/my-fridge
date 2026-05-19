@@ -7,13 +7,41 @@ import { useFridges } from '../../hooks/useFridges'
 import { fetchProductByBarcode } from '../../lib/openFoodFacts'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
-import { Camera, Check, Package, Plus, Search } from 'lucide-react'
+import { Camera, Check, Package, Plus, Search, Edit3 } from 'lucide-react'
 import { ScannerModal } from '../../components/ScannerModal'
-import type { Fridge, Product } from '../../lib/types'
+import { ManualProductModal } from '../../components/ManualProductModal'
+import type { Product } from '../../lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
+import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import Image from 'next/image'
+import { toast } from 'react-hot-toast'
+
+function FlagChip({
+    label,
+    value,
+}: {
+    label: string
+    value: boolean | null | undefined
+}) {
+    const text = value === true ? 'Yes' : value === false ? 'No' : '-'
+    const style =
+        value === true
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/50'
+            : value === false
+              ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/50'
+              : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700'
+
+    return (
+        <span
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border ${style}`}
+        >
+            {label}: {text}
+        </span>
+    )
+}
 
 function NutriScoreScale({ grade }: { grade: string }) {
+    if (grade === '-') return null
     const active = grade.toLowerCase()
     return (
         <div className="flex items-end gap-1 mt-1">
@@ -41,26 +69,27 @@ export default function Scanner() {
     const [barcode, setBarcode] = useState('')
     const [product, setProduct] = useState<Product | null>(null)
     const [searching, setSearching] = useState(false)
-    const [fridges, setFridges] = useState<Fridge[]>([])
     const [selectedFridge, setSelectedFridge] = useState('')
     const [added, setAdded] = useState(false)
     const [scannerOpen, setScannerOpen] = useState(false)
-
-    const { fridges: userFridges } = useFridges()
+    const [manualModalOpen, setManualModalOpen] = useState(false)
+    
+    const { fridges } = useFridges()
+    const warnings = product ? getNutrimentWarnings(product) : []
 
     useEffect(() => {
-        setFridges(userFridges)
-        if (userFridges.length > 0 && !selectedFridge) {
-            setSelectedFridge(userFridges[0].id)
+        if (fridges.length > 0 && !selectedFridge) {
+            setSelectedFridge(fridges[0].id)
         }
-    }, [userFridges, selectedFridge])
+    }, [fridges, selectedFridge])
 
     const handleSearch = useCallback(async (code: string) => {
-        if (!code.trim()) return
+        if (!code.trim() || searching) return
         setSearching(true)
         setProduct(null)
         setAdded(false)
         setBarcode(code.trim())
+        const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
         // Check cache first
         const cached = await productService.getCachedProduct(code.trim())
@@ -70,17 +99,28 @@ export default function Scanner() {
             return
         }
 
+        if (isOffline) {
+            toast.error('Offline sind nur bereits gespeicherte Produkte verfügbar.')
+            setSearching(false)
+            return
+        }
+
         try {
             const result = await fetchProductByBarcode(code.trim())
             if (result) {
                 setProduct(result)
-                // Save to cache
                 await productService.cacheProduct(code.trim(), result)
+            } else {
+                toast.error('Produkt nicht gefunden. Bitte manuell anlegen.')
+                setBarcode(code.trim()) // Barcode im Feld lassen für manuelle Suche
             }
+        } catch (err) {
+            console.error('Search error:', err)
+            toast.error('Fehler bei der Produktsuche.')
         } finally {
             setSearching(false)
         }
-    }, [])
+    }, [searching])
 
     const handleAddToFridge = async () => {
         if (!user || !product || !selectedFridge) return
@@ -89,18 +129,37 @@ export default function Scanner() {
         setAdded(true)
     }
 
+    const handleManualSubmit = async (
+        manualProduct: Product,
+        options: { quantity: number; expiryDate?: string; notes?: string }
+    ) => {
+        if (!user || !selectedFridge) return
+
+        // Cache the dummy product so it can be resolved by the join in subscribeToFridgeItems
+        await productService.cacheProduct(manualProduct.barcode, manualProduct)
+
+        // Add to fridge with all details
+        await fridgeService.addItemToFridge(selectedFridge, manualProduct, options)
+        
+        setProduct(manualProduct)
+        setAdded(true)
+    }
+
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-            <div className="pt-12 px-6 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
+            <div className="pt-safe">
+            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50">
                     Scan Product
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
                     Scan a barcode or search manually
                 </p>
             </div>
+            </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+                <div className="content-container max-w-2xl space-y-6">
                 {/* Manual Search */}
                 <form
                     onSubmit={(e) => {
@@ -120,15 +179,25 @@ export default function Scanner() {
                     </Button>
                 </form>
 
-                {/* Camera Scanner */}
-                <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setScannerOpen(true)}
-                >
-                    <Camera size={20} className="mr-2" />
-                    Open Camera Scanner
-                </Button>
+                {/* Scanner & Manual Actions */}
+                <div className="grid grid-cols-2 gap-3">
+                    <Button
+                        variant="outline"
+                        className="w-full flex-col h-auto py-4"
+                        onClick={() => setScannerOpen(true)}
+                    >
+                        <Camera size={24} className="mb-2 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-xs font-semibold">Kamera Scanner</span>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full flex-col h-auto py-4"
+                        onClick={() => setManualModalOpen(true)}
+                    >
+                        <Edit3 size={24} className="mb-2 text-sky-600 dark:text-sky-400" />
+                        <span className="text-xs font-semibold">Manuell anlegen</span>
+                    </Button>
+                </div>
 
                 {/* Loading */}
                 {searching && (
@@ -161,6 +230,11 @@ export default function Scanner() {
                                 <p className="text-slate-500 dark:text-slate-400">
                                     {product.brands}
                                 </p>
+                                {product.origin_country && (
+                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                                        Origin: {product.origin_country}
+                                    </p>
+                                )}
                                 {product.nutriscore_grade && (
                                     <div className="mt-3">
                                         <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -173,6 +247,61 @@ export default function Scanner() {
                                 )}
                             </div>
                         </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            <FlagChip
+                                label="Vegan"
+                                value={product.dietary_flags?.vegan}
+                            />
+                            <FlagChip
+                                label="Vegetarian"
+                                value={product.dietary_flags?.vegetarian}
+                            />
+                            <FlagChip
+                                label="Palm oil free"
+                                value={product.dietary_flags?.palm_oil_free}
+                            />
+                        </div>
+
+                        {warnings.length > 0 && (
+                            <div className="space-y-2 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+                                <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                                    Nutrition warnings (per 100g)
+                                </h3>
+                                <div className="space-y-2">
+                                    {warnings.map((warning) => (
+                                        <div
+                                            key={warning.id}
+                                            className="text-sm text-amber-900 dark:text-amber-200"
+                                        >
+                                            <span className="font-semibold">
+                                                {warning.label}:
+                                            </span>{' '}
+                                            {warning.value.toFixed(1)}{' '}
+                                            {warning.unit} - {warning.message}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {Array.isArray(product.labels) && product.labels.length > 0 && (
+                            <div className="space-y-2">
+                                <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    Labels
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {product.labels.slice(0, 6).map((label) => (
+                                        <span
+                                            key={label}
+                                            className="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/30 dark:text-sky-300 dark:border-sky-900/50"
+                                        >
+                                            {label}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Nutriments Table */}
                         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4">
@@ -189,6 +318,11 @@ export default function Scanner() {
                                     {
                                         label: 'Fat',
                                         value: product.nutriments.fat,
+                                        unit: 'g',
+                                    },
+                                    {
+                                        label: 'Saturated Fat',
+                                        value: product.nutriments.saturated_fat,
                                         unit: 'g',
                                     },
                                     {
@@ -285,12 +419,19 @@ export default function Scanner() {
                         )}
                     </div>
                 )}
+                </div>
             </div>
             <ScannerModal
                 isOpen={scannerOpen}
                 onClose={() => setScannerOpen(false)}
                 onScan={handleSearch}
             />
+            {manualModalOpen && (
+                <ManualProductModal
+                    onClose={() => setManualModalOpen(false)}
+                    onSubmit={handleManualSubmit}
+                />
+            )}
         </div>
     )
 }

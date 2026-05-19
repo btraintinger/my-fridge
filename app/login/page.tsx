@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
     sendEmailVerification,
     sendPasswordResetEmail,
@@ -12,8 +14,10 @@ import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
+import { FormField } from '../../components/ui/FormField'
 import { GoogleSignInButton } from '../../components/ui/GoogleSignInButton'
 import { AuthLayout } from '../../components/auth/AuthLayout'
+import { loginSchema, type LoginFormData } from '../../lib/validations'
 import Link from 'next/link'
 
 export default function Login() {
@@ -165,33 +169,25 @@ export default function Login() {
 
                 {error && (
                     <div className="p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-semibold border border-red-100 dark:border-red-900/50 animate-in shake-in duration-300">
-                        {error}
+                        {serverError}
                     </div>
                 )}
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">
-                        Email
-                    </label>
+                <FormField label="Email" required error={errors.email?.message}>
                     <Input
                         type="email"
                         placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
+                        error={!!errors.email}
+                        {...register('email')}
                     />
-                </div>
+                </FormField>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">
-                        Password
-                    </label>
+                <FormField label="Password" required error={errors.password?.message}>
                     <Input
                         type="password"
                         placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
+                        error={!!errors.password}
+                        {...register('password')}
                     />
                     <div className="flex flex-col sm:flex-row gap-3 pt-2">
                         {(attemptedUnverifiedLogin || showVerificationSent) && (
@@ -227,7 +223,7 @@ export default function Login() {
                     className="w-full mt-4 h-14 rounded-2xl text-lg shadow-lg"
                     disabled={loading || verificationLoading || resetLoading}
                 >
-                    {loading ? 'Signing in...' : 'Sign In'}
+                    {isSubmitting ? 'Signing in...' : 'Sign In'}
                 </Button>
             </form>
 

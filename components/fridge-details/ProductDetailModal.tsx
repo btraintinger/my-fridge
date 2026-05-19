@@ -1,18 +1,75 @@
-import { AlertCircle, ChefHat, Info, X } from 'lucide-react'
+'use client'
+
+import { AlertCircle, ChefHat, Info, Trash2, X } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
 import { NutriScoreBadge } from './NutriScoreComponents'
 import type { Product } from '../../lib/types'
+import { getNutrimentWarnings } from '../../lib/nutrimentWarnings'
 import Image from 'next/image'
 
 interface ProductDetailModalProps {
     product: Product
+    quantity?: number
+    itemId?: string
+    fridgeId?: string
+    onQuantityChange?: (itemId: string, fridgeId: string, quantity: number) => Promise<void>
+    onDelete?: (itemId: string, fridgeId: string) => Promise<void>
     onClose: () => void
+}
+
+function FlagBadge({
+    label,
+    value,
+}: {
+    label: string
+    value: boolean | null | undefined
+}) {
+    const text = value === true ? 'Yes' : value === false ? 'No' : '-'
+    const tone =
+        value === true
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/40'
+            : value === false
+              ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-300 dark:border-rose-900/40'
+              : 'bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700'
+
+    return (
+        <span
+            className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-xs font-semibold ${tone}`}
+        >
+            {label}: {text}
+        </span>
+    )
 }
 
 export function ProductDetailModal({
     product,
+    quantity = 1,
+    itemId,
+    fridgeId,
+    onQuantityChange,
+    onDelete,
     onClose,
 }: ProductDetailModalProps) {
+    const warnings = getNutrimentWarnings(product)
+    const [editingQuantity, setEditingQuantity] = useState(false)
+    const [quantityDraft, setQuantityDraft] = useState(String(quantity))
+    const [savingQuantity, setSavingQuantity] = useState(false)
+
+    const saveQuantity = async () => {
+        const parsed = Number.parseInt(quantityDraft, 10)
+        if (!Number.isFinite(parsed) || parsed < 1 || !itemId || !fridgeId) return
+
+        setSavingQuantity(true)
+        try {
+            await onQuantityChange?.(itemId, fridgeId, parsed)
+            setEditingQuantity(false)
+        } finally {
+            setSavingQuantity(false)
+        }
+    }
+
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-full duration-300 border-x border-t sm:border border-white/10">
@@ -44,9 +101,117 @@ export function ProductDetailModal({
                             {product.product_name}
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 font-medium">
-                            {product.brands || 'Unknown Brand'}
+                            {product.brands || '-'}
                         </p>
+                        {product.origin_country && (
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                                Origin: {product.origin_country}
+                            </p>
+                        )}
                     </div>
+
+                    {typeof quantity === 'number' && (
+                        <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl p-4 border border-emerald-200/70 dark:border-emerald-900/50">
+                            <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
+                                Inventory
+                            </h3>
+                            {editingQuantity ? (
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        step={1}
+                                        value={quantityDraft}
+                                        onChange={(e) => setQuantityDraft(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault()
+                                                saveQuantity()
+                                            }
+                                        }}
+                                        className="h-8 w-24 text-sm"
+                                    />
+                                    <Button
+                                        size="sm"
+                                        className="h-8 px-3 text-xs"
+                                        disabled={savingQuantity}
+                                        onClick={saveQuantity}
+                                    >
+                                        Save
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 px-3 text-xs"
+                                        onClick={() => setEditingQuantity(false)}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
+                            ) : (
+                                <button
+                                    className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 px-3 py-2 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-950/70 transition-colors"
+                                    onClick={() => setEditingQuantity(true)}
+                                >
+                                    Quantity: {quantity}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-50">
+                            Product Info
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                            <FlagBadge
+                                label="Vegan"
+                                value={product.dietary_flags?.vegan}
+                            />
+                            <FlagBadge
+                                label="Vegetarian"
+                                value={product.dietary_flags?.vegetarian}
+                            />
+                            <FlagBadge
+                                label="Palm oil free"
+                                value={product.dietary_flags?.palm_oil_free}
+                            />
+                        </div>
+                        {Array.isArray(product.labels) && product.labels.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                {product.labels.slice(0, 8).map((label) => (
+                                    <span
+                                        key={label}
+                                        className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-300"
+                                    >
+                                        {label}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {warnings.length > 0 && (
+                        <div className="space-y-2 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
+                            <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300">
+                                Nutrition warnings (per 100g)
+                            </h3>
+                            <div className="space-y-2">
+                                {warnings.map((warning) => (
+                                    <p
+                                        key={warning.id}
+                                        className="text-sm text-amber-900 dark:text-amber-200"
+                                    >
+                                        <span className="font-semibold">
+                                            {warning.label}:
+                                        </span>{' '}
+                                        {warning.value.toFixed(1)} {warning.unit}{' '}
+                                        - {warning.message}
+                                    </p>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex gap-4">
                         {product.nutriscore_grade && (
@@ -104,6 +269,14 @@ export function ProductDetailModal({
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.fat}g
+                                    </span>
+                                </div>
+                                <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
+                                    <span className="text-slate-500 dark:text-slate-400">
+                                        Saturated Fat
+                                    </span>
+                                    <span className="font-bold text-slate-900 dark:text-slate-50">
+                                        {product.nutriments.saturated_fat}g
                                     </span>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
@@ -175,13 +348,25 @@ export function ProductDetailModal({
                         </div>
                     )}
 
-                    <Button
-                        onClick={onClose}
-                        className="w-full h-12 rounded-2xl"
-                        variant="outline"
-                    >
-                        Close
-                    </Button>
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={onClose}
+                            className="flex-1 h-12 rounded-2xl"
+                            variant="outline"
+                        >
+                            Schließen
+                        </Button>
+                        {onDelete && itemId && fridgeId && (
+                            <Button
+                                onClick={() => onDelete(itemId, fridgeId)}
+                                className="flex-1 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/50 border-rose-200 dark:border-rose-900/50"
+                                variant="outline"
+                            >
+                                <Trash2 size={18} className="mr-2" />
+                                Löschen
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

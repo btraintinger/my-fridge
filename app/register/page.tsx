@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
     createUserWithEmailAndPassword,
     sendEmailVerification,
@@ -12,37 +14,45 @@ import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
 import { useRouter } from 'next/navigation'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
+import { FormField } from '../../components/ui/FormField'
 import { GoogleSignInButton } from '../../components/ui/GoogleSignInButton'
 import { AuthLayout } from '../../components/auth/AuthLayout'
+import { registerSchema, type RegisterFormData } from '../../lib/validations'
 import Link from 'next/link'
+import toast from 'react-hot-toast'
+import type { FirebaseError } from 'firebase/app'
 
 export default function Register() {
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
-    const [loading, setLoading] = useState(false)
+    const [serverError, setServerError] = useState('')
     const router = useRouter()
 
-    const handleRegister = async (e: React.SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        setLoading(true)
-        setError('')
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting, isValid },
+    } = useForm<RegisterFormData>({
+        resolver: zodResolver(registerSchema),
+        mode: 'onBlur',
+        defaultValues: { name: '', email: '', password: '' },
+    })
+
+    const onSubmit = async (data: RegisterFormData) => {
+        setServerError('')
 
         try {
             const userCredential = await createUserWithEmailAndPassword(
                 auth,
-                email,
-                password
+                data.email,
+                data.password
             )
-            await updateProfile(userCredential.user, { displayName: name })
-            await sendEmailVerification(userCredential.user)
-            await signOut(auth)
-            router.push('/login?verification=sent')
+            await updateProfile(userCredential.user, { displayName: data.name })
+            toast.success('Konto erfolgreich erstellt!')
+            router.push('/fridges')
         } catch (err: unknown) {
-            setError(getFirebaseAuthErrorMessage(err, 'Failed to create an account.'))
-        } finally {
-            setLoading(false)
+            const message =
+                (err as FirebaseError).message || 'Konto konnte nicht erstellt werden.'
+            setServerError(message)
+            toast.error(message)
         }
     }
 
@@ -51,59 +61,49 @@ export default function Register() {
             title="Create Account"
             subtitle="Start managing your fridge waste-free."
         >
-            <form onSubmit={handleRegister} className="w-full space-y-6">
-                {error && (
+            <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
+                {serverError && (
                     <div className="p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-semibold border border-red-100 dark:border-red-900/50 animate-in shake-in duration-300">
-                        {error}
+                        {serverError}
                     </div>
                 )}
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">
-                        Name
-                    </label>
+                <FormField label="Name" required error={errors.name?.message}>
                     <Input
                         type="text"
                         placeholder="Your name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
+                        error={!!errors.name}
+                        {...register('name')}
                     />
-                </div>
+                </FormField>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">
-                        Email
-                    </label>
+                <FormField label="Email" required error={errors.email?.message}>
                     <Input
                         type="email"
                         placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
+                        error={!!errors.email}
+                        {...register('email')}
                     />
-                </div>
+                </FormField>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">
-                        Password
-                    </label>
+                <FormField label="Password" required error={errors.password?.message}>
                     <Input
                         type="password"
                         placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={6}
+                        error={!!errors.password}
+                        {...register('password')}
                     />
-                </div>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 ml-1 mt-1">
+                        Min. 8 Zeichen, 1 Großbuchstabe, 1 Zahl, 1 Sonderzeichen
+                    </p>
+                </FormField>
 
                 <Button
                     type="submit"
                     className="w-full mt-4 h-14 rounded-2xl text-lg shadow-lg"
-                    disabled={loading}
+                    disabled={isSubmitting || !isValid}
                 >
-                    {loading ? 'Creating account...' : 'Sign Up'}
+                    {isSubmitting ? 'Creating account...' : 'Sign Up'}
                 </Button>
             </form>
 

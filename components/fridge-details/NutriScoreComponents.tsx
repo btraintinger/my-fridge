@@ -8,8 +8,9 @@ export function NutriScoreBadge({
     grade?: string | null
     size?: 'sm' | 'md'
 }) {
-    if (!grade) return null
-    const g = NUTRI_GRADES.find((x) => x.grade === grade.toLowerCase())
+    const normalizedGrade = grade?.toLowerCase()
+    if (!normalizedGrade) return null
+    const g = NUTRI_GRADES.find((x) => x.grade === normalizedGrade)
     const sizeClasses =
         size === 'sm'
             ? 'w-6 h-6 rounded-lg text-[10px]'
@@ -18,9 +19,9 @@ export function NutriScoreBadge({
     return (
         <div
             className={`${sizeClasses} flex items-center justify-center text-white font-bold uppercase shadow-sm ${g?.bg ?? 'bg-slate-400'}`}
-            title={`Nutri-Score: ${grade.toUpperCase()}`}
+            title={`Nutri-Score: ${normalizedGrade === 'unknown' ? '-' : normalizedGrade.toUpperCase()}`}
         >
-            {grade.toUpperCase()}
+            {normalizedGrade === 'unknown' ? '-' : normalizedGrade.toUpperCase()}
         </div>
     )
 }

@@ -1,8 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
-import { Camera, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, memo } from 'react'
+import {
+    Html5Qrcode,
+    Html5QrcodeResult,
+    Html5QrcodeSupportedFormats,
+} from 'html5-qrcode'
+import { Camera, X, Loader2 } from 'lucide-react'
 import { Button } from './ui/Button'
 
 interface ScannerModalProps {
@@ -11,95 +15,203 @@ interface ScannerModalProps {
     onScan: (barcode: string) => void
 }
 
+// Wir nutzen memo, damit die UI-Komponenten nicht unnötig neu rendern
+const ScannerContainer = memo(() => (
+    <div
+        id="scanner-modal-container"
+        className="w-full rounded-2xl overflow-hidden border-2 border-emerald-500 bg-black flex items-center justify-center relative"
+        style={{
+            aspectRatio: '1.5',
+            maxHeight: '360px',
+        }}
+    />
+))
+ScannerContainer.displayName = 'ScannerContainer'
+
+function normalizeDigits(value: string): string {
+    return value.replace(/\s+/g, '')
+}
+
 export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
+    const [scannerReady, setScannerReady] = useState(false)
     const [error, setError] = useState('')
+    const [torchSupported, setTorchSupported] = useState(false)
+    const [torchEnabled, setTorchEnabled] = useState(false)
+    const [torchBusy, setTorchBusy] = useState(false)
+    const [optimizationState, setOptimizationState] = useState('')
+
     const scannerRef = useRef<Html5Qrcode | null>(null)
     const transitionRef = useRef<Promise<void> | null>(null)
+    const isInitializedRef = useRef(false)
+    const camerasRef = useRef<any[]>([])
+    const currentIdxRef = useRef(0)
+    const hasScannedRef = useRef(false)
+
+    // Refs für Props (verhindert Re-Renders)
+    const onScanRef = useRef(onScan)
+    const onCloseRef = useRef(onClose)
+    useEffect(() => { onScanRef.current = onScan }, [onScan])
+    useEffect(() => { onCloseRef.current = onClose }, [onClose])
 
     const stopScanner = useCallback(async () => {
-        try {
-            if (transitionRef.current) await transitionRef.current
-
-            const stop = async () => {
+        const currentTransition = transitionRef.current
+        transitionRef.current = (async () => {
+            try {
+                if (currentTransition) await currentTransition
                 if (scannerRef.current) {
-                    if (scannerRef.current.isScanning) {
-                        await scannerRef.current.stop()
+                    const scanner = scannerRef.current
+                    if (scanner.isScanning) {
+                        await scanner.stop()
                     }
-                    scannerRef.current.clear()
+                    // WICHTIG: Wir rufen NICHT scanner.clear() auf, da dies den removeChild Fehler verursacht.
+                    // Stattdessen räumen wir den DOM-Knoten manuell leer.
+                    const container = document.getElementById('scanner-modal-container')
+                    if (container) {
+                        container.innerHTML = ''
+                    }
                     scannerRef.current = null
                 }
+            } catch (e) {
+                console.debug('Safe stop error:', e)
+                // Fallback: DOM trotzdem leeren
+                const container = document.getElementById('scanner-modal-container')
+                if (container) container.innerHTML = ''
+            } finally {
+                isInitializedRef.current = false
+                setScannerReady(false)
+                setTorchEnabled(false)
+                setTorchSupported(false)
             }
-
-            transitionRef.current = stop()
-            await transitionRef.current
-        } catch (err) {
-            console.error('Error stopping scanner:', err)
-        } finally {
-            transitionRef.current = null
-        }
+        })()
+        return transitionRef.current
     }, [])
 
-    const startScanner = useCallback(async () => {
-        setError('')
+    const startScanner = useCallback(async (idxOverride?: number) => {
+        if (isInitializedRef.current && idxOverride === undefined) return
+        isInitializedRef.current = true
 
-        // Tiny delay to ensure the container is in the DOM
-        setTimeout(async () => {
-            if (!isOpen) return // Don't start if it's already closed
-
+        const currentTransition = transitionRef.current
+        transitionRef.current = (async () => {
             try {
-                if (transitionRef.current) await transitionRef.current
-
-                const start = async () => {
-                    if (scannerRef.current) {
-                        if (scannerRef.current.isScanning) return
-                        scannerRef.current.clear()
-                    }
-
-                    const scanner = new Html5Qrcode('scanner-modal-container', {
-                        formatsToSupport: [
-                            Html5QrcodeSupportedFormats.EAN_13,
-                            Html5QrcodeSupportedFormats.EAN_8,
-                            Html5QrcodeSupportedFormats.CODE_128,
-                            Html5QrcodeSupportedFormats.CODE_39,
-                            Html5QrcodeSupportedFormats.UPC_A,
-                            Html5QrcodeSupportedFormats.UPC_E,
-                        ],
-                        verbose: false,
-                    })
-                    scannerRef.current = scanner
-
-                    await scanner.start(
-                        { facingMode: 'environment' },
-                        {
-                            fps: 15,
-                            qrbox: (viewfinderWidth) => {
-                                const width = Math.min(
-                                    viewfinderWidth * 0.8,
-                                    300
-                                )
-                                const height = width * 0.5
-                                return { width, height }
-                            },
-                            aspectRatio: 1.333334,
-                        },
-                        (decodedText: string) => {
-                            onScan(decodedText)
-                            onClose()
-                        },
-                        () => {}
-                    )
+                if (currentTransition) await currentTransition
+                if (!isOpen) {
+                    isInitializedRef.current = false
+                    return
                 }
 
-                transitionRef.current = start()
-                await transitionRef.current
-            } catch (err) {
-                console.error('Error starting scanner:', err)
-                setError('Could not access camera. Please check permissions.')
-            } finally {
-                transitionRef.current = null
+                setError('')
+                setScannerReady(false)
+                hasScannedRef.current = false
+
+                // DOM Container Check
+                const container = document.getElementById('scanner-modal-container')
+                if (!container) throw new Error('Scanner-Bereich nicht gefunden')
+                container.innerHTML = ''
+
+                const scanner = new Html5Qrcode('scanner-modal-container', {
+                    verbose: false,
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                    ],
+                })
+                scannerRef.current = scanner
+
+                if (camerasRef.current.length === 0) {
+                    camerasRef.current = await Html5Qrcode.getCameras()
+                }
+
+                if (camerasRef.current.length === 0) throw new Error('Keine Kamera gefunden')
+
+                // Back-Kamera Logik
+                if (idxOverride === undefined && currentIdxRef.current === 0) {
+                    const backIdx = camerasRef.current.findLastIndex(d =>
+                        /back|rück|rear|0/i.test(d.label)
+                    )
+                    if (backIdx !== -1) currentIdxRef.current = backIdx
+                }
+
+                const selectedIdx = idxOverride !== undefined ? idxOverride : currentIdxRef.current
+                const cameraId = camerasRef.current[selectedIdx].id
+
+                await scanner.start(
+                    cameraId,
+                    {
+                        fps: 30,
+                        qrbox: (w, h) => ({
+                            width: Math.max(Math.min(w * 0.8, 280), 150),
+                            height: Math.max(Math.min(h * 0.4, 180), 80)
+                        }),
+                        aspectRatio: 1.7777777778,
+                    },
+                    (text) => {
+                        if (hasScannedRef.current) return
+                        hasScannedRef.current = true
+
+                        // ERST Hardware stoppen, DANN navigieren (verhindert removeChild Fehler)
+                        stopScanner().then(() => {
+                            onCloseRef.current()
+                            setTimeout(() => onScanRef.current(normalizeDigits(text)), 100)
+                        })
+                    },
+                    () => { }
+                )
+
+                // Makro-Zoom für Samsung
+                try {
+                    const track = (scanner as any)._videoTrack
+                    if (track) {
+                        const caps = track.getCapabilities()
+                        setTorchSupported(!!caps.torch)
+                        if (caps.zoom) {
+                            await track.applyConstraints({ advanced: [{ zoom: Math.min(2.0, caps.zoom.max) }] })
+                        }
+                    }
+                } catch (e) { }
+
+                setScannerReady(true)
+            } catch (err: any) {
+                console.error('Start failed:', err)
+                setError('Kamera startet...')
+                isInitializedRef.current = false
+                // Auto-Retry
+                setTimeout(() => {
+                    if (isOpen && !hasScannedRef.current) switchCamera()
+                }, 3000)
             }
-        }, 100)
-    }, [isOpen, onClose, onScan])
+        })()
+    }, [isOpen, stopScanner])
+
+    const switchCamera = useCallback(() => {
+        if (camerasRef.current.length <= 1) return
+        currentIdxRef.current = (currentIdxRef.current + 1) % camerasRef.current.length
+        setOptimizationState('Optimiere Linse...')
+        isInitializedRef.current = false
+        stopScanner().then(() => startScanner(currentIdxRef.current))
+    }, [stopScanner, startScanner])
+
+    const toggleTorch = useCallback(async () => {
+        if (!scannerRef.current || torchBusy) return
+        const currentTransition = transitionRef.current
+        transitionRef.current = (async () => {
+            try {
+                if (currentTransition) await currentTransition
+                setTorchBusy(true)
+                const newState = !torchEnabled
+                const track = (scannerRef.current as any)._videoTrack
+                if (track) {
+                    await track.applyConstraints({ advanced: [{ torch: newState }] })
+                    setTorchEnabled(newState)
+                }
+            } catch (e) {
+                console.error('Torch error:', e)
+            } finally {
+                setTorchBusy(false)
+            }
+        })()
+    }, [torchEnabled, torchBusy])
 
     useEffect(() => {
         if (isOpen) {
@@ -107,48 +219,69 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
         } else {
             stopScanner()
         }
-
-        return () => {
-            stopScanner()
-        }
+        return () => { stopScanner() }
     }, [isOpen, startScanner, stopScanner])
+
+    // Fokus-Intervall
+    useEffect(() => {
+        if (isOpen && scannerReady && !hasScannedRef.current) {
+            const timer = setInterval(() => {
+                if (hasScannedRef.current || !isOpen) return
+                setOptimizationState('Fokussiere...')
+                setTimeout(() => setOptimizationState(''), 1500)
+            }, 5000)
+            return () => clearInterval(timer)
+        }
+    }, [isOpen, scannerReady])
 
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col border border-white/10">
-                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+                <div className="p-4 flex items-center justify-between border-b dark:border-slate-800">
+                    <h3 className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <Camera size={20} className="text-emerald-500" />
-                        Scan Barcode
+                        Scanner
                     </h3>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 dark:text-slate-500"
-                    >
-                        <X size={20} />
+                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                        <X size={24} />
                     </button>
                 </div>
 
                 <div className="p-6 space-y-4">
-                    <div
-                        id="scanner-modal-container"
-                        className="w-full aspect-[4/3] rounded-2xl overflow-hidden border-2 border-emerald-500 bg-slate-100 dark:bg-slate-800 flex items-center justify-center"
-                    >
-                        {error && (
-                            <p className="text-red-500 text-sm text-center px-4">
-                                {error}
-                            </p>
+                    <ScannerContainer />
+
+                    {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
+
+                    {!scannerReady && !error && (
+                        <div className="flex flex-col items-center gap-2 py-4">
+                            <Loader2 className="animate-spin text-emerald-500" size={32} />
+                            <p className="text-slate-500 text-xs">Initialisiere Kamera...</p>
+                        </div>
+                    )}
+
+                    {optimizationState && (
+                        <div className="text-center">
+                            <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider animate-pulse">
+                                {optimizationState}
+                            </span>
+                        </div>
+                    )}
+
+                    <div className="flex gap-2">
+                        {torchSupported && (
+                            <Button variant="outline" className="flex-1" onClick={toggleTorch} disabled={torchBusy}>
+                                {torchEnabled ? 'Blitz Aus' : 'Blitz An'}
+                            </Button>
                         )}
+                        <Button variant="secondary" className="flex-1" onClick={switchCamera}>
+                            Linse wechseln
+                        </Button>
                     </div>
 
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={onClose}
-                    >
-                        Cancel
+                    <Button variant="ghost" className="w-full text-slate-400 text-xs" onClick={onClose}>
+                        Abbrechen
                     </Button>
                 </div>
             </div>
