@@ -7,12 +7,14 @@ import { useFridges } from '../../hooks/useFridges'
 import { fetchProductByBarcode } from '../../lib/openFoodFacts'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
-import { Camera, Check, Package, Plus, Search } from 'lucide-react'
+import { Camera, Check, Package, Plus, Search, Edit3 } from 'lucide-react'
 import { ScannerModal } from '../../components/ScannerModal'
-import type { Fridge, Product } from '../../lib/types'
+import { ManualProductModal } from '../../components/ManualProductModal'
+import type { Product } from '../../lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import Image from 'next/image'
+import { toast } from 'react-hot-toast'
 
 function FlagChip({
     label,
@@ -70,6 +72,7 @@ export default function Scanner() {
     const [selectedFridge, setSelectedFridge] = useState('')
     const [added, setAdded] = useState(false)
     const [scannerOpen, setScannerOpen] = useState(false)
+    const [manualModalOpen, setManualModalOpen] = useState(false)
     
     const { fridges } = useFridges()
     const warnings = product ? getNutrimentWarnings(product) : []
@@ -81,11 +84,12 @@ export default function Scanner() {
     }, [fridges, selectedFridge])
 
     const handleSearch = useCallback(async (code: string) => {
-        if (!code.trim()) return
+        if (!code.trim() || searching) return
         setSearching(true)
         setProduct(null)
         setAdded(false)
         setBarcode(code.trim())
+        const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
         // Check cache first
         const cached = await productService.getCachedProduct(code.trim())
@@ -95,17 +99,28 @@ export default function Scanner() {
             return
         }
 
+        if (isOffline) {
+            toast.error('Offline sind nur bereits gespeicherte Produkte verfügbar.')
+            setSearching(false)
+            return
+        }
+
         try {
             const result = await fetchProductByBarcode(code.trim())
             if (result) {
                 setProduct(result)
-                // Save to cache
                 await productService.cacheProduct(code.trim(), result)
+            } else {
+                toast.error('Produkt nicht gefunden. Bitte manuell anlegen.')
+                setBarcode(code.trim()) // Barcode im Feld lassen für manuelle Suche
             }
+        } catch (err) {
+            console.error('Search error:', err)
+            toast.error('Fehler bei der Produktsuche.')
         } finally {
             setSearching(false)
         }
-    }, [])
+    }, [searching])
 
     const handleAddToFridge = async () => {
         if (!user || !product || !selectedFridge) return
@@ -114,18 +129,37 @@ export default function Scanner() {
         setAdded(true)
     }
 
+    const handleManualSubmit = async (
+        manualProduct: Product,
+        options: { quantity: number; expiryDate?: string; notes?: string }
+    ) => {
+        if (!user || !selectedFridge) return
+
+        // Cache the dummy product so it can be resolved by the join in subscribeToFridgeItems
+        await productService.cacheProduct(manualProduct.barcode, manualProduct)
+
+        // Add to fridge with all details
+        await fridgeService.addItemToFridge(selectedFridge, manualProduct, options)
+        
+        setProduct(manualProduct)
+        setAdded(true)
+    }
+
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-            <div className="pt-12 px-6 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
+            <div className="pt-safe">
+            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50">
                     Scan Product
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
                     Scan a barcode or search manually
                 </p>
             </div>
+            </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+                <div className="content-container max-w-2xl space-y-6">
                 {/* Manual Search */}
                 <form
                     onSubmit={(e) => {
@@ -145,15 +179,25 @@ export default function Scanner() {
                     </Button>
                 </form>
 
-                {/* Camera Scanner */}
-                <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setScannerOpen(true)}
-                >
-                    <Camera size={20} className="mr-2" />
-                    Open Camera Scanner
-                </Button>
+                {/* Scanner & Manual Actions */}
+                <div className="grid grid-cols-2 gap-3">
+                    <Button
+                        variant="outline"
+                        className="w-full flex-col h-auto py-4"
+                        onClick={() => setScannerOpen(true)}
+                    >
+                        <Camera size={24} className="mb-2 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-xs font-semibold">Kamera Scanner</span>
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full flex-col h-auto py-4"
+                        onClick={() => setManualModalOpen(true)}
+                    >
+                        <Edit3 size={24} className="mb-2 text-sky-600 dark:text-sky-400" />
+                        <span className="text-xs font-semibold">Manuell anlegen</span>
+                    </Button>
+                </div>
 
                 {/* Loading */}
                 {searching && (
@@ -375,12 +419,19 @@ export default function Scanner() {
                         )}
                     </div>
                 )}
+                </div>
             </div>
             <ScannerModal
                 isOpen={scannerOpen}
                 onClose={() => setScannerOpen(false)}
                 onScan={handleSearch}
             />
+            {manualModalOpen && (
+                <ManualProductModal
+                    onClose={() => setManualModalOpen(false)}
+                    onSubmit={handleManualSubmit}
+                />
+            )}
         </div>
     )
 }

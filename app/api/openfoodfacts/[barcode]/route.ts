@@ -13,6 +13,7 @@ const OFF_FIELDS = [
     'countries',
     'countries_en',
     'labels_tags',
+    'categories_tags',
     'ingredients_analysis_tags',
     'nutriments',
     'ecoscore_grade',
@@ -43,6 +44,27 @@ function normalizeUnknownString(value: unknown) {
     const trimmed = value.trim()
     if (!trimmed) return ''
     return trimmed.toLowerCase() === 'unknown' ? '-' : trimmed
+}
+
+function categorizeProduct(tags: string[], productName: string): string {
+    const pName = productName.toLowerCase()
+    const hasTag = (matches: string[]) => tags.some(tag => matches.some(m => tag.includes(m)))
+    
+    if (hasTag(['frozen'])) return 'Tiefkühl'
+    if (hasTag(['beverage', 'drink', 'water', 'juice', 'soda', 'beer', 'wine', 'alcohol'])) return 'Getränke'
+    if (hasTag(['dairy', 'milk', 'cheese', 'yogurt', 'butter', 'cream'])) return 'Milchprodukte'
+    if (hasTag(['meat', 'poultry', 'beef', 'pork', 'fish', 'seafood', 'sausage'])) return 'Fleisch & Fisch'
+    if (hasTag(['snack', 'sweet', 'candy', 'chocolate', 'dessert', 'biscuit', 'cake', 'ice-cream'])) return 'Snacks & Süßes'
+    if (hasTag(['vegetable', 'fruit', 'legume', 'plant-based-foods'])) return 'Gemüse & Obst'
+    
+    if (['milch', 'käse', 'joghurt', 'butter', 'sahne', 'quark'].some(w => pName.includes(w))) return 'Milchprodukte'
+    if (['fleisch', 'wurst', 'schinken', 'fisch', 'lachs', 'huhn', 'rind', 'schwein'].some(w => pName.includes(w))) return 'Fleisch & Fisch'
+    if (['gemüse', 'obst', 'apfel', 'banane', 'tomate', 'salat', 'kartoffel'].some(w => pName.includes(w))) return 'Gemüse & Obst'
+    if (['schokolade', 'keks', 'chips', 'bonbon', 'eis', 'riegel'].some(w => pName.includes(w))) return 'Snacks & Süßes'
+    if (['saft', 'wasser', 'cola', 'limo', 'bier', 'wein'].some(w => pName.includes(w))) return 'Getränke'
+    if (['tiefkühl', 'pizza'].some(w => pName.includes(w))) return 'Tiefkühl'
+
+    return 'Sonstiges'
 }
 
 async function fetchWithTimeout(url: string, timeoutMs: number) {
@@ -111,10 +133,13 @@ export async function GET(
             {}
         const analysisTags = normalizeTags(p.ingredients_analysis_tags)
         const labelTags = normalizeTags(p.labels_tags)
+        const catTags = normalizeTags(p.categories_tags)
+        
+        const productName = normalizeUnknownString(p.product_name)
 
         const productData = {
             barcode: normalizedBarcode,
-            product_name: normalizeUnknownString(p.product_name),
+            product_name: productName,
             brands: normalizeUnknownString(p.brands),
             image_url: normalizeUnknownString(p.image_front_url),
             nutriscore_grade: normalizeUnknownString(p.nutriscore_grade),
@@ -153,6 +178,7 @@ export async function GET(
                 fiber: nutriments.fiber_100g,
             },
             ecoscore_grade: normalizeUnknownString(p.ecoscore_grade),
+            category: categorizeProduct(catTags, productName),
         }
 
         const validated = ProductSchema.safeParse(productData)

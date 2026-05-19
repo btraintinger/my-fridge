@@ -35,6 +35,7 @@ export const ProductSchema = z.object({
     }),
     nutriments: NutrimentsSchema,
     ecoscore_grade: z.string().nullable().default(null),
+    category: z.string().default('Sonstiges'),
 })
 
 export const FridgeSchema = z.object({
@@ -53,6 +54,9 @@ export const FridgeItemSchema = z.object({
     userId: z.string().optional(),
     addedAt: z.any().optional(), // Firestore Timestamp
     quantity: z.number().int().positive().optional(),
+    expiryDate: z.string().optional(),
+    productId: z.string().optional(),
+    notes: z.string().optional(),
     product: ProductSchema,
 })
 

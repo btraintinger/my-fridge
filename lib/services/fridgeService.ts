@@ -15,6 +15,7 @@ import {
     setDoc,
     updateDoc,
     where,
+    writeBatch,
 } from 'firebase/firestore'
 import type { FirestoreError } from 'firebase/firestore'
 import type {
@@ -24,7 +25,19 @@ import type {
     ShoppingListItem as ShoppingListItemType,
 } from '../types'
 import { COLLECTIONS } from '../constants'
+import { enqueueOfflineMutation } from '../offlineQueue'
 import { BaseService } from './base'
+import { fetchProductByBarcode } from '../openFoodFacts'
+
+function trackOfflineMutation(
+    type: Parameters<typeof enqueueOfflineMutation>[0]['type'],
+    payload: Record<string, unknown>,
+    dedupeKey?: string
+) {
+    if (typeof navigator === 'undefined' || navigator.onLine) return
+
+    enqueueOfflineMutation({ type, payload, dedupeKey })
+}
 
 class FridgeService extends BaseService {
     // Subscribe to all fridges user has access to
@@ -96,12 +109,27 @@ class FridgeService extends BaseService {
 
         return onSnapshot(
             itemsQuery,
-            (snapshot) => {
-                const items = snapshot.docs.map((d) => ({
-                    id: d.id,
-                    ...d.data(),
-                })) as FridgeItem[]
-                callback(items)
+            async (snapshot) => {
+                const itemsPromises = snapshot.docs.map(async (d) => {
+                    const data = d.data()
+                    let product = data.product
+
+                    // Wenn wir nur die productId (normalisiertes Schema) haben, lade das Produkt via Join
+                    if (!product && data.productId) {
+                        product = await productService.getCachedProduct(data.productId)
+                    }
+
+                    return {
+                        id: d.id,
+                        ...data,
+                        product,
+                    } as FridgeItem
+                })
+                
+                const items = await Promise.all(itemsPromises)
+                
+                // Gebe nur die Items zurück, deren Produkt erfolgreich geladen wurde
+                callback(items.filter((item) => item.product))
             },
             onError
         )
@@ -142,6 +170,11 @@ class FridgeService extends BaseService {
             this.config?.notifyError('Fridge name cannot be empty')
             return
         }
+        trackOfflineMutation(
+            'createFridge',
+            { userId, name: name.trim() },
+            `createFridge:${userId}:${name.trim().toLowerCase()}`
+        )
         return this.handleAction(
             async () =>
                 addDoc(collection(db, COLLECTIONS.FRIDGES), {
@@ -159,6 +192,11 @@ class FridgeService extends BaseService {
             this.config?.notifyError('Email cannot be empty')
             return
         }
+        trackOfflineMutation(
+            'shareFridge',
+            { fridgeId, email: email.trim().toLowerCase() },
+            `shareFridge:${fridgeId}:${email.trim().toLowerCase()}`
+        )
         const docRef = doc(db, COLLECTIONS.FRIDGES, fridgeId)
         return this.handleAction(
             async () =>
@@ -171,6 +209,11 @@ class FridgeService extends BaseService {
 
     // Unshare fridge
     async unshareFridge(fridgeId: string, email: string) {
+        trackOfflineMutation(
+            'unshareFridge',
+            { fridgeId, email: email.trim().toLowerCase() },
+            `unshareFridge:${fridgeId}:${email.trim().toLowerCase()}`
+        )
         const docRef = doc(db, COLLECTIONS.FRIDGES, fridgeId)
         return this.handleAction(
             async () =>
@@ -183,6 +226,11 @@ class FridgeService extends BaseService {
 
     // Delete item from fridge
     async deleteItem(fridgeId: string, itemId: string) {
+        trackOfflineMutation(
+            'deleteItem',
+            { fridgeId, itemId },
+            `deleteItem:${fridgeId}:${itemId}`
+        )
         return this.handleAction(
             async () =>
                 deleteDoc(
@@ -199,7 +247,20 @@ class FridgeService extends BaseService {
     }
 
     // Add item to fridge
-    async addItemToFridge(fridgeId: string, product: Product) {
+    async addItemToFridge(
+        fridgeId: string, 
+        product: Product,
+        options: { quantity?: number; expiryDate?: string; notes?: string } = {}
+    ) {
+        trackOfflineMutation(
+            'addItemToFridge',
+            {
+                fridgeId,
+                product,
+                options,
+            },
+            `addItemToFridge:${fridgeId}:${product.barcode}:${options.expiryDate || ''}:${options.notes || ''}`
+        )
         return this.handleAction(
             async () =>
                 addDoc(
@@ -210,8 +271,10 @@ class FridgeService extends BaseService {
                         COLLECTIONS.ITEMS
                     ),
                     {
-                        product: product, // Ensure we store it under product key to match FridgeItem type
-                        quantity: 1,
+                        productId: product.barcode, // Normalisiertes Schema: Nur Referenz speichern
+                        quantity: options.quantity || 1,
+                        ...(options.expiryDate && { expiryDate: options.expiryDate }),
+                        ...(options.notes && { notes: options.notes }),
                         addedAt: serverTimestamp(),
                     }
                 ),
@@ -221,6 +284,11 @@ class FridgeService extends BaseService {
 
     // Shopping List Operations
     async addShoppingItem(fridgeId: string, userId: string, name: string) {
+        trackOfflineMutation(
+            'addShoppingItem',
+            { fridgeId, userId, name: name.trim() },
+            `addShoppingItem:${fridgeId}:${name.trim().toLowerCase()}`
+        )
         return this.handleAction(
             async () =>
                 addDoc(
@@ -246,6 +314,11 @@ class FridgeService extends BaseService {
         itemId: string,
         currentChecked: boolean
     ) {
+        trackOfflineMutation(
+            'toggleShoppingItem',
+            { fridgeId, itemId, currentChecked: !currentChecked },
+            `toggleShoppingItem:${fridgeId}:${itemId}`
+        )
         return this.handleAction(async () =>
             updateDoc(
                 doc(
@@ -263,6 +336,11 @@ class FridgeService extends BaseService {
     }
 
     async deleteShoppingItem(fridgeId: string, itemId: string) {
+        trackOfflineMutation(
+            'deleteShoppingItem',
+            { fridgeId, itemId },
+            `deleteShoppingItem:${fridgeId}:${itemId}`
+        )
         return this.handleAction(
             async () =>
                 deleteDoc(
@@ -283,31 +361,49 @@ class FridgeService extends BaseService {
         itemId: string,
         product: Product
     ) {
+        trackOfflineMutation(
+            'moveShoppingItemToFridge',
+            { fridgeId, itemId, product },
+            `moveShoppingItemToFridge:${fridgeId}:${itemId}`
+        )
         return this.handleAction(async () => {
-            // Add to fridge items
-            await addDoc(
-                collection(
-                    db,
-                    COLLECTIONS.FRIDGES,
-                    fridgeId,
-                    COLLECTIONS.ITEMS
-                ),
-                {
-                    product: product,
+            try {
+                const batch = writeBatch(db)
+
+                // Ref for the new item in the fridge inventory
+                const newItemRef = doc(
+                    collection(
+                        db,
+                        COLLECTIONS.FRIDGES,
+                        fridgeId,
+                        COLLECTIONS.ITEMS
+                    )
+                )
+
+                batch.set(newItemRef, {
+                    productId: product.barcode, // Normalisiertes Schema
                     quantity: 1,
                     addedAt: serverTimestamp(),
-                }
-            )
-            // Remove from shopping list
-            await deleteDoc(
-                doc(
+                })
+
+                // Ref for the item to remove from the shopping list
+                const shoppingItemRef = doc(
                     db,
                     COLLECTIONS.FRIDGES,
                     fridgeId,
                     COLLECTIONS.SHOPPING_LIST,
                     itemId
                 )
-            )
+
+                batch.delete(shoppingItemRef)
+
+                console.log(`[FridgeService] Executing batch write: Moving shopping item ${itemId} to fridge ${fridgeId}`)
+                await batch.commit()
+                console.log(`[FridgeService] Successfully moved shopping item ${itemId}`)
+            } catch (error) {
+                console.error(`[FridgeService] Failed to move shopping item ${itemId} to fridge ${fridgeId}:`, error)
+                throw error
+            }
         }, `Moved ${product.product_name} to fridge`)
     }
 
@@ -317,6 +413,12 @@ class FridgeService extends BaseService {
             this.config?.notifyError('Quantity must be at least 1')
             return
         }
+
+        trackOfflineMutation(
+            'updateItemQuantity',
+            { fridgeId, itemId, quantity: normalizedQuantity },
+            `updateItemQuantity:${fridgeId}:${itemId}`
+        )
 
         return this.handleAction(
             async () =>
@@ -344,8 +446,38 @@ class ProductService extends BaseService {
                 doc(db, COLLECTIONS.PRODUCTS, barcode)
             )
             if (productDoc.exists()) {
-                return productDoc.data() as Product
+                const data = productDoc.data()
+                
+                // Firestore timestamp zu Millisekunden
+                const updatedAt = data.updatedAt?.toMillis ? data.updatedAt.toMillis() : 0
+                const ageInDays = (Date.now() - updatedAt) / (1000 * 60 * 60 * 24)
+                const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+
+                if (ageInDays > 30 && !isOffline) {
+                    console.log(`[Cache Miss/Expired] Product ${barcode} is ${Math.round(ageInDays)} days old. Fetching fresh data...`)
+                    const freshProduct = await fetchProductByBarcode(barcode)
+                    if (freshProduct) {
+                        await this.cacheProduct(barcode, freshProduct)
+                        return freshProduct
+                    } else {
+                        console.log(`[Cache Fallback] API fetch failed for ${barcode}, using stale cache data.`)
+                        const productData = { ...data }
+                        delete (productData as { updatedAt?: unknown }).updatedAt
+                        return productData as Product
+                    }
+                }
+
+                if (ageInDays > 30) {
+                    console.log(`[Cache Fallback] Product ${barcode} is stale but offline. Using local cache data.`)
+                } else {
+                    console.log(`[Cache Hit] Product ${barcode} is fresh (${ageInDays.toFixed(1)} days old).`)
+                }
+                const productData = { ...data }
+                delete (productData as { updatedAt?: unknown }).updatedAt
+                return productData as Product
             }
+            
+            console.log(`[Cache Miss] Product ${barcode} not found in DB cache.`)
             return null
         } catch (error) {
             console.error('Error getting cached product:', error)
@@ -355,7 +487,11 @@ class ProductService extends BaseService {
 
     async cacheProduct(barcode: string, product: Product) {
         try {
-            await setDoc(doc(db, COLLECTIONS.PRODUCTS, barcode), product)
+            await setDoc(doc(db, COLLECTIONS.PRODUCTS, barcode), {
+                ...product,
+                updatedAt: serverTimestamp(),
+            })
+            console.log(`[Cache Write] Saved product ${barcode} to DB with fresh timestamp.`)
         } catch (error) {
             console.error('Error caching product:', error)
         }

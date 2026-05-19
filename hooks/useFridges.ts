@@ -100,6 +100,7 @@ export function useFridge(id: string) {
                     data.userId === user.uid ||
                     (data.sharedWithEmails &&
                         Array.isArray(data.sharedWithEmails) &&
+                        user.email &&
                         data.sharedWithEmails.includes(user.email))
 
                 if (!hasAccess) {

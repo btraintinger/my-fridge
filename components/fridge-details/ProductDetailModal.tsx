@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertCircle, ChefHat, Info, X } from 'lucide-react'
+import { AlertCircle, ChefHat, Info, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
@@ -15,6 +15,7 @@ interface ProductDetailModalProps {
     itemId?: string
     fridgeId?: string
     onQuantityChange?: (itemId: string, fridgeId: string, quantity: number) => Promise<void>
+    onDelete?: (itemId: string, fridgeId: string) => Promise<void>
     onClose: () => void
 }
 
@@ -48,6 +49,7 @@ export function ProductDetailModal({
     itemId,
     fridgeId,
     onQuantityChange,
+    onDelete,
     onClose,
 }: ProductDetailModalProps) {
     const warnings = getNutrimentWarnings(product)
@@ -346,13 +348,25 @@ export function ProductDetailModal({
                         </div>
                     )}
 
-                    <Button
-                        onClick={onClose}
-                        className="w-full h-12 rounded-2xl"
-                        variant="outline"
-                    >
-                        Close
-                    </Button>
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={onClose}
+                            className="flex-1 h-12 rounded-2xl"
+                            variant="outline"
+                        >
+                            Schließen
+                        </Button>
+                        {onDelete && itemId && fridgeId && (
+                            <Button
+                                onClick={() => onDelete(itemId, fridgeId)}
+                                className="flex-1 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/50 border-rose-200 dark:border-rose-900/50"
+                                variant="outline"
+                            >
+                                <Trash2 size={18} className="mr-2" />
+                                Löschen
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
