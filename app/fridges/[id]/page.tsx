@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, use, useMemo, useState } from 'react'
+import { use, useMemo, useState } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
 import { calculateHealthScore } from '../../../lib/healthScore'
 import { fridgeService } from '../../../lib/services/fridgeService'
@@ -45,7 +45,7 @@ export default function FridgeDetail({
 
     const healthScore = useMemo(() => calculateHealthScore(items), [items])
 
-    const handleShare = async (e: FormEvent<HTMLFormElement>) => {
+    const handleShare = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (
             !user ||

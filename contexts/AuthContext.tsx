@@ -7,7 +7,7 @@ import {
     useEffect,
     useState,
 } from 'react'
-import { onAuthStateChanged, User } from 'firebase/auth'
+import { onAuthStateChanged, signOut, User } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { userService } from '../lib/services/userService'
 
@@ -27,6 +27,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            const hasPasswordProvider =
+                user?.providerData.some(
+                    (provider) => provider.providerId === 'password'
+                ) ?? false
+
+            if (user && hasPasswordProvider && !user.emailVerified) {
+                await signOut(auth)
+                setUser(null)
+                setLoading(false)
+                return
+            }
+
             setUser(user)
 
             if (user) {

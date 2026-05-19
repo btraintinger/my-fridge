@@ -1,15 +1,20 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { useState } from 'react'
+import {
+    createUserWithEmailAndPassword,
+    sendEmailVerification,
+    signOut,
+    updateProfile,
+} from 'firebase/auth'
 import { auth } from '../../lib/firebase'
+import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
 import { useRouter } from 'next/navigation'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { GoogleSignInButton } from '../../components/ui/GoogleSignInButton'
 import { AuthLayout } from '../../components/auth/AuthLayout'
 import Link from 'next/link'
-import type { FirebaseError } from 'firebase/app'
 
 export default function Register() {
     const [name, setName] = useState('')
@@ -19,7 +24,7 @@ export default function Register() {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
 
-    const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
+    const handleRegister = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
         setLoading(true)
         setError('')
@@ -31,11 +36,11 @@ export default function Register() {
                 password
             )
             await updateProfile(userCredential.user, { displayName: name })
-            router.push('/fridges')
+            await sendEmailVerification(userCredential.user)
+            await signOut(auth)
+            router.push('/login?verification=sent')
         } catch (err: unknown) {
-            setError(
-                (err as FirebaseError).message || 'Failed to create an account.'
-            )
+            setError(getFirebaseAuthErrorMessage(err, 'Failed to create an account.'))
         } finally {
             setLoading(false)
         }

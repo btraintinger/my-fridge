@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { fridgeService } from '../../lib/services/fridgeService'
 import { useFridges } from '../../hooks/useFridges'
@@ -15,7 +15,7 @@ export default function Fridges() {
     const [showCreate, setShowCreate] = useState(false)
     const [newFridgeName, setNewFridgeName] = useState('')
 
-    const handleCreateFridge = async (e: FormEvent<HTMLFormElement>) => {
+    const handleCreateFridge = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (!user || !newFridgeName.trim()) return
 

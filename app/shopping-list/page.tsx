@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { fridgeService, productService } from '@/lib/services/fridgeService'
 import { useFridges } from '@/hooks/useFridges'
@@ -60,7 +60,7 @@ export default function ShoppingList() {
         return () => unsubscribe()
     }, [user, selectedFridge])
 
-    const handleAddItem = async (e: FormEvent<HTMLFormElement>) => {
+    const handleAddItem = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (!user || !newItem.trim() || !selectedFridge) return
 
