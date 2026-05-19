@@ -117,7 +117,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
 
     if (loading) {
         return (
-            <div className="flex-1 flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
+            <div className="flex-1 flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 lg:pl-20 xl:pl-56">
                 <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
             </div>
         )
@@ -125,7 +125,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
 
     if (error || !fridge) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-6 text-center">
+            <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-6 text-center lg:pl-20 xl:pl-56">
                 <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mb-6 shadow-inner">
                     <AlertCircle size={40} strokeWidth={1.5} />
                 </div>
@@ -143,7 +143,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
     }
 
     return (
-        <div className="flex-1 min-h-screen bg-gradient-to-b from-slate-50 via-white to-emerald-50/40 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/10 pb-20">
+        <div className="flex-1 min-h-screen bg-gradient-to-b from-slate-50 via-white to-emerald-50/40 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/10 pb-20 lg:pl-20 xl:pl-56">
             <div className="sticky top-0 z-10 border-b border-white/70 dark:border-slate-800 bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl">
             <div className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
                     <Link

@@ -34,7 +34,7 @@ export const ThemePreferenceCard = ({
                 aria-checked={darkMode}
                 onClick={onToggle}
                 className={cn(
-                    'relative h-8 w-14 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+                    'relative h-8 w-14 flex-none overflow-hidden rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 min-h-0',
                     darkMode
                         ? 'bg-emerald-500'
                         : 'bg-slate-200 dark:bg-slate-800'

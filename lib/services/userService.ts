@@ -43,14 +43,20 @@ class UserService extends BaseService {
 
     subscribeToUserPreferences(
         userId: string,
-        callback: (prefs: Partial<UserPreferences>) => void,
+        callback: (
+            prefs: Partial<UserPreferences>,
+            metadata: { hasPendingWrites: boolean }
+        ) => void,
         onError?: (error: FirestoreError) => void
     ) {
         return onSnapshot(
             doc(db, COLLECTIONS.USERS, userId),
+            { includeMetadataChanges: true },
             (docSnap) => {
                 if (docSnap.exists()) {
-                    callback(docSnap.data() as Partial<UserPreferences>)
+                    callback(docSnap.data() as Partial<UserPreferences>, {
+                        hasPendingWrites: docSnap.metadata.hasPendingWrites,
+                    })
                 }
             },
             onError

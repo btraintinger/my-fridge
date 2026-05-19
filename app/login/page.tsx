@@ -21,11 +21,19 @@ import { loginSchema, type LoginFormData } from '../../lib/validations'
 import Link from 'next/link'
 
 export default function Login() {
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
+    const {
+        register,
+        handleSubmit,
+        getValues,
+        formState: { errors, isSubmitting },
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema),
+        mode: 'onBlur',
+        defaultValues: { email: '', password: '' },
+    })
+
     const [error, setError] = useState('')
     const [message, setMessage] = useState('')
-    const [loading, setLoading] = useState(false)
     const [verificationLoading, setVerificationLoading] = useState(false)
     const [resetLoading, setResetLoading] = useState(false)
     const [attemptedUnverifiedLogin, setAttemptedUnverifiedLogin] = useState(false)
@@ -34,9 +42,7 @@ export default function Login() {
     const searchParams = useSearchParams()
     const showVerificationSent = searchParams.get('verification') === 'sent'
 
-    const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        setLoading(true)
+    const onSubmit = async (data: LoginFormData) => {
         setError('')
         setMessage('')
 
@@ -46,8 +52,8 @@ export default function Login() {
         try {
             const userCredential = await signInWithEmailAndPassword(
                 auth,
-                email,
-                password
+                data.email,
+                data.password
             )
 
             const hasPasswordProvider = userCredential.user.providerData.some(
@@ -57,7 +63,9 @@ export default function Login() {
             if (hasPasswordProvider && !userCredential.user.emailVerified) {
                 setAttemptedUnverifiedLogin(true)
                 await signOut(auth)
-                setError('Please verify your email before signing in. Resend verification email if needed.')
+                setError(
+                    'Please verify your email before signing in. Resend verification email if needed.'
+                )
                 return
             }
 
@@ -76,8 +84,6 @@ export default function Login() {
             }
 
             setError(getFirebaseAuthErrorMessage(err, 'Failed to login. Please try again.'))
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -86,7 +92,9 @@ export default function Login() {
         setError('')
         setMessage('')
 
-        if (!email.trim() || !password) {
+        const { email, password } = getValues()
+
+        if (!email?.trim() || !password) {
             setError('Enter your email and password to resend the verification email.')
             setVerificationLoading(false)
             return
@@ -99,7 +107,11 @@ export default function Login() {
                 password
             )
 
-            if (userCredential.user.providerData.some((provider) => provider.providerId === 'password')) {
+            if (
+                userCredential.user.providerData.some(
+                    (provider) => provider.providerId === 'password'
+                )
+            ) {
                 if (!userCredential.user.emailVerified) {
                     await sendEmailVerification(userCredential.user)
                     setMessage('Verification email sent. Check your inbox, then sign in again.')
@@ -128,7 +140,9 @@ export default function Login() {
         setError('')
         setMessage('')
 
-        if (!email.trim()) {
+        const { email } = getValues()
+
+        if (!email?.trim()) {
             setError('Enter your email address to receive a password reset email.')
             setResetLoading(false)
             return
@@ -154,7 +168,7 @@ export default function Login() {
             title="Welcome Back"
             subtitle="Enter your details to access your fridges."
         >
-            <form onSubmit={handleLogin} className="w-full space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
                 {showVerificationSent && (
                     <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 rounded-2xl text-sm font-semibold border border-emerald-100 dark:border-emerald-900/50">
                         Verification email sent. Check your inbox before signing in.
@@ -169,7 +183,7 @@ export default function Login() {
 
                 {error && (
                     <div className="p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-semibold border border-red-100 dark:border-red-900/50 animate-in shake-in duration-300">
-                        {serverError}
+                        {error}
                     </div>
                 )}
 
@@ -196,7 +210,7 @@ export default function Login() {
                                 variant="outline"
                                 className="flex-1 h-12 rounded-2xl"
                                 onClick={handleResendVerification}
-                                disabled={loading || verificationLoading || resetLoading}
+                                disabled={isSubmitting || verificationLoading || resetLoading}
                             >
                                 {verificationLoading
                                     ? 'Sending verification...'
@@ -210,18 +224,18 @@ export default function Login() {
                                 variant="outline"
                                 className="flex-1 h-12 rounded-2xl"
                                 onClick={handleForgotPassword}
-                                disabled={loading || verificationLoading || resetLoading}
+                                disabled={isSubmitting || verificationLoading || resetLoading}
                             >
                                 {resetLoading ? 'Sending reset email...' : 'Forgot password?'}
                             </Button>
                         )}
                     </div>
-                </div>
+                </FormField>
 
                 <Button
                     type="submit"
                     className="w-full mt-4 h-14 rounded-2xl text-lg shadow-lg"
-                    disabled={loading || verificationLoading || resetLoading}
+                    disabled={isSubmitting || verificationLoading || resetLoading}
                 >
                     {isSubmitting ? 'Signing in...' : 'Sign In'}
                 </Button>

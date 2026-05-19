@@ -49,8 +49,7 @@ export default function Register() {
             toast.success('Konto erfolgreich erstellt!')
             router.push('/fridges')
         } catch (err: unknown) {
-            const message =
-                (err as FirebaseError).message || 'Konto konnte nicht erstellt werden.'
+            const message = getFirebaseAuthErrorMessage(err, 'Konto konnte nicht erstellt werden.')
             setServerError(message)
             toast.error(message)
         }

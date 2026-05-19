@@ -59,7 +59,7 @@ export default function Settings() {
     if (loading || !user) return null
 
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
+        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 lg:pl-20 xl:pl-56">
             <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-6 pb-5 pt-12 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
                 <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
