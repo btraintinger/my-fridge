@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -20,7 +20,7 @@ import { AuthLayout } from '../../components/auth/AuthLayout'
 import { loginSchema, type LoginFormData } from '../../lib/validations'
 import Link from 'next/link'
 
-export default function Login() {
+function LoginForm() {
     const {
         register,
         handleSubmit,
@@ -164,82 +164,95 @@ export default function Login() {
     }
 
     return (
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
+            {showVerificationSent && (
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 rounded-2xl text-sm font-semibold border border-emerald-100 dark:border-emerald-900/50">
+                    Verification email sent. Check your inbox before signing in.
+                </div>
+            )}
+
+            {message && (
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 rounded-2xl text-sm font-semibold border border-emerald-100 dark:border-emerald-900/50 animate-in fade-in duration-200">
+                    {message}
+                </div>
+            )}
+
+            {error && (
+                <div className="p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-semibold border border-red-100 dark:border-red-900/50 animate-in shake-in duration-300">
+                    {error}
+                </div>
+            )}
+
+            <FormField label="Email" required error={errors.email?.message}>
+                <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    error={!!errors.email}
+                    {...register('email')}
+                />
+            </FormField>
+
+            <FormField label="Password" required error={errors.password?.message}>
+                <Input
+                    type="password"
+                    placeholder="••••••••"
+                    error={!!errors.password}
+                    {...register('password')}
+                />
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    {(attemptedUnverifiedLogin || showVerificationSent) && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1 h-12 rounded-2xl"
+                            onClick={handleResendVerification}
+                            disabled={isSubmitting || verificationLoading || resetLoading}
+                        >
+                            {verificationLoading
+                                ? 'Sending verification...'
+                                : 'Resend verification email'}
+                        </Button>
+                    )}
+
+                    {attemptedWrongCredentials && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1 h-12 rounded-2xl"
+                            onClick={handleForgotPassword}
+                            disabled={isSubmitting || verificationLoading || resetLoading}
+                        >
+                            {resetLoading ? 'Sending reset email...' : 'Forgot password?'}
+                        </Button>
+                    )}
+                </div>
+            </FormField>
+
+            <Button
+                type="submit"
+                className="w-full mt-4 h-14 rounded-2xl text-lg shadow-lg"
+                disabled={isSubmitting || verificationLoading || resetLoading}
+            >
+                {isSubmitting ? 'Signing in...' : 'Sign In'}
+            </Button>
+        </form>
+    )
+}
+
+export default function Login() {
+
+    return (
         <AuthLayout
             title="Welcome Back"
             subtitle="Enter your details to access your fridges."
         >
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
-                {showVerificationSent && (
-                    <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 rounded-2xl text-sm font-semibold border border-emerald-100 dark:border-emerald-900/50">
-                        Verification email sent. Check your inbox before signing in.
-                    </div>
-                )}
-
-                {message && (
-                    <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 rounded-2xl text-sm font-semibold border border-emerald-100 dark:border-emerald-900/50 animate-in fade-in duration-200">
-                        {message}
-                    </div>
-                )}
-
-                {error && (
-                    <div className="p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-semibold border border-red-100 dark:border-red-900/50 animate-in shake-in duration-300">
-                        {error}
-                    </div>
-                )}
-
-                <FormField label="Email" required error={errors.email?.message}>
-                    <Input
-                        type="email"
-                        placeholder="you@example.com"
-                        error={!!errors.email}
-                        {...register('email')}
-                    />
-                </FormField>
-
-                <FormField label="Password" required error={errors.password?.message}>
-                    <Input
-                        type="password"
-                        placeholder="••••••••"
-                        error={!!errors.password}
-                        {...register('password')}
-                    />
-                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                        {(attemptedUnverifiedLogin || showVerificationSent) && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="flex-1 h-12 rounded-2xl"
-                                onClick={handleResendVerification}
-                                disabled={isSubmitting || verificationLoading || resetLoading}
-                            >
-                                {verificationLoading
-                                    ? 'Sending verification...'
-                                    : 'Resend verification email'}
-                            </Button>
-                        )}
-
-                        {attemptedWrongCredentials && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="flex-1 h-12 rounded-2xl"
-                                onClick={handleForgotPassword}
-                                disabled={isSubmitting || verificationLoading || resetLoading}
-                            >
-                                {resetLoading ? 'Sending reset email...' : 'Forgot password?'}
-                            </Button>
-                        )}
-                    </div>
-                </FormField>
-
-                <Button
-                    type="submit"
-                    className="w-full mt-4 h-14 rounded-2xl text-lg shadow-lg"
-                    disabled={isSubmitting || verificationLoading || resetLoading}
-                >
-                    {isSubmitting ? 'Signing in...' : 'Sign In'}
-                </Button>
-            </form>
+            <Suspense fallback={
+                <div className="w-full flex items-center justify-center p-8">
+                    <div className="w-8 h-8 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                </div>
+            }>
+                <LoginForm />
+            </Suspense>
 
             <div className="w-full flex items-center gap-4 my-8">
                 <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
