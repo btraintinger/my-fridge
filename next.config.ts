@@ -9,32 +9,15 @@ const nextConfig: NextConfig = {
             },
         ],
     },
-    allowedDevOrigins: [
-        'localhost:3000',
-        '192.168.178.28',
-        '192.168.178.28:3000',
-        '0.0.0.0',
-        '0.0.0.0:3000',
-        'https://localhost:3000',
-        'https://192.168.178.28:3000',
-        'https://0.0.0.0:3000'
-    ],
+    // Server Actions allowed origins allows cross-device requests to mutate data without CSRF errors
     experimental: {
         serverActions: {
             allowedOrigins: [
                 'localhost:3000',
-                '192.168.178.28:3000',
-                '192.168.178.28'
+                '192.168.0.175:3000',
+                '192.168.0.175'
             ]
-        },
-        allowedDevOrigins: [
-            'localhost:3000',
-            '192.168.178.28',
-            '192.168.178.28:3000',
-            '0.0.0.0:3000',
-            'https://localhost:3000',
-            'https://192.168.178.28:3000'
-        ]
+        }
     }
 }
 

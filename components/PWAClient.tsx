@@ -59,16 +59,17 @@ export function PWAClient() {
             if (!('serviceWorker' in navigator)) return
 
             try {
-                await navigator.serviceWorker.register('/sw.js')
-            } catch (error) {
-                if (error instanceof Error && error.name === 'SecurityError') {
-                    console.warn(
-                        'PWA: Service Worker registration failed. This is expected on local IP with self-signed SSL certificates. Features like Offline-Mode and Install-Button might not work on mobile devices during development.',
-                        error.message
-                    )
-                } else {
-                    console.warn('Service worker registration failed:', error)
+                // PWA Service Worker deactivated as requested by user
+                // await navigator.serviceWorker.register('/sw.js')
+                
+                // Unregister any existing service workers to ensure it's fully disabled
+                const registrations = await navigator.serviceWorker.getRegistrations()
+                for (const registration of registrations) {
+                    await registration.unregister()
+                    console.log('Unregistered existing service worker')
                 }
+            } catch (error) {
+                console.warn('Service worker unregistration failed:', error)
             }
         }
 
