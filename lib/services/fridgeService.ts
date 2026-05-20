@@ -25,19 +25,8 @@ import type {
     ShoppingListItem as ShoppingListItemType,
 } from '../types'
 import { COLLECTIONS } from '../constants'
-import { enqueueOfflineMutation } from '../offlineQueue'
 import { BaseService } from './base'
 import { fetchProductByBarcode } from '../openFoodFacts'
-
-function trackOfflineMutation(
-    type: Parameters<typeof enqueueOfflineMutation>[0]['type'],
-    payload: Record<string, unknown>,
-    dedupeKey?: string
-) {
-    if (typeof navigator === 'undefined' || navigator.onLine) return
-
-    enqueueOfflineMutation({ type, payload, dedupeKey })
-}
 
 class FridgeService extends BaseService {
     // Subscribe to all fridges user has access to
@@ -170,11 +159,6 @@ class FridgeService extends BaseService {
             this.config?.notifyError('Fridge name cannot be empty')
             return
         }
-        trackOfflineMutation(
-            'createFridge',
-            { userId, name: name.trim() },
-            `createFridge:${userId}:${name.trim().toLowerCase()}`
-        )
         return this.handleAction(
             async () =>
                 addDoc(collection(db, COLLECTIONS.FRIDGES), {
@@ -192,11 +176,6 @@ class FridgeService extends BaseService {
             this.config?.notifyError('Email cannot be empty')
             return
         }
-        trackOfflineMutation(
-            'shareFridge',
-            { fridgeId, email: email.trim().toLowerCase() },
-            `shareFridge:${fridgeId}:${email.trim().toLowerCase()}`
-        )
         const docRef = doc(db, COLLECTIONS.FRIDGES, fridgeId)
         return this.handleAction(
             async () =>
@@ -209,11 +188,6 @@ class FridgeService extends BaseService {
 
     // Unshare fridge
     async unshareFridge(fridgeId: string, email: string) {
-        trackOfflineMutation(
-            'unshareFridge',
-            { fridgeId, email: email.trim().toLowerCase() },
-            `unshareFridge:${fridgeId}:${email.trim().toLowerCase()}`
-        )
         const docRef = doc(db, COLLECTIONS.FRIDGES, fridgeId)
         return this.handleAction(
             async () =>
@@ -226,11 +200,6 @@ class FridgeService extends BaseService {
 
     // Delete item from fridge
     async deleteItem(fridgeId: string, itemId: string) {
-        trackOfflineMutation(
-            'deleteItem',
-            { fridgeId, itemId },
-            `deleteItem:${fridgeId}:${itemId}`
-        )
         return this.handleAction(
             async () =>
                 deleteDoc(
@@ -252,15 +221,6 @@ class FridgeService extends BaseService {
         product: Product,
         options: { quantity?: number; expiryDate?: string; notes?: string } = {}
     ) {
-        trackOfflineMutation(
-            'addItemToFridge',
-            {
-                fridgeId,
-                product,
-                options,
-            },
-            `addItemToFridge:${fridgeId}:${product.barcode}:${options.expiryDate || ''}:${options.notes || ''}`
-        )
         return this.handleAction(
             async () =>
                 addDoc(
@@ -284,11 +244,6 @@ class FridgeService extends BaseService {
 
     // Shopping List Operations
     async addShoppingItem(fridgeId: string, userId: string, name: string) {
-        trackOfflineMutation(
-            'addShoppingItem',
-            { fridgeId, userId, name: name.trim() },
-            `addShoppingItem:${fridgeId}:${name.trim().toLowerCase()}`
-        )
         return this.handleAction(
             async () =>
                 addDoc(
@@ -314,11 +269,6 @@ class FridgeService extends BaseService {
         itemId: string,
         currentChecked: boolean
     ) {
-        trackOfflineMutation(
-            'toggleShoppingItem',
-            { fridgeId, itemId, currentChecked: !currentChecked },
-            `toggleShoppingItem:${fridgeId}:${itemId}`
-        )
         return this.handleAction(async () =>
             updateDoc(
                 doc(
@@ -336,11 +286,6 @@ class FridgeService extends BaseService {
     }
 
     async deleteShoppingItem(fridgeId: string, itemId: string) {
-        trackOfflineMutation(
-            'deleteShoppingItem',
-            { fridgeId, itemId },
-            `deleteShoppingItem:${fridgeId}:${itemId}`
-        )
         return this.handleAction(
             async () =>
                 deleteDoc(
@@ -361,11 +306,6 @@ class FridgeService extends BaseService {
         itemId: string,
         product: Product
     ) {
-        trackOfflineMutation(
-            'moveShoppingItemToFridge',
-            { fridgeId, itemId, product },
-            `moveShoppingItemToFridge:${fridgeId}:${itemId}`
-        )
         return this.handleAction(async () => {
             try {
                 const batch = writeBatch(db)
@@ -413,12 +353,6 @@ class FridgeService extends BaseService {
             this.config?.notifyError('Quantity must be at least 1')
             return
         }
-
-        trackOfflineMutation(
-            'updateItemQuantity',
-            { fridgeId, itemId, quantity: normalizedQuantity },
-            `updateItemQuantity:${fridgeId}:${itemId}`
-        )
 
         return this.handleAction(
             async () =>

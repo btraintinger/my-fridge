@@ -1,11 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Download, RefreshCw, WifiOff } from 'lucide-react'
-import {
-    flushOfflineMutations,
-    getOfflineMutationCount,
-} from '@/lib/offlineQueue'
+import { Download, WifiOff } from 'lucide-react'
 import { Button } from './ui/Button'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -13,47 +9,20 @@ interface BeforeInstallPromptEvent extends Event {
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
 }
 
-interface SyncableServiceWorkerRegistration extends ServiceWorkerRegistration {
-    sync?: {
-        register(tag: string): Promise<void>
-    }
-}
-
 export function PWAClient() {
     const [deferredPrompt, setDeferredPrompt] =
         useState<BeforeInstallPromptEvent | null>(null)
     const [isStandalone, setIsStandalone] = useState(false)
     const [online, setOnline] = useState(true)
-    const [pendingMutations, setPendingMutations] = useState(0)
 
     useEffect(() => {
         if (typeof window === 'undefined') return
 
-        // Initialize state after mount to avoid hydration mismatch
         setIsStandalone(
             window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator as Navigator & { standalone?: boolean }).standalone === true
         )
         setOnline(navigator.onLine)
-        setPendingMutations(getOfflineMutationCount())
-
-        const updatePendingCount = () => {
-            setPendingMutations(getOfflineMutationCount())
-        }
-
-        const requestBackgroundSync = async () => {
-            if (!('serviceWorker' in navigator)) return
-
-            try {
-                const registration = (await navigator.serviceWorker.ready) as SyncableServiceWorkerRegistration
-                await registration.sync?.register('offline-changes')
-                if (!registration.sync) {
-                    return
-                }
-            } catch (error) {
-                console.warn('Background sync registration failed:', error)
-            }
-        }
 
         const registerServiceWorker = async () => {
             if (!('serviceWorker' in navigator)) return
@@ -73,30 +42,13 @@ export function PWAClient() {
             }
         }
 
-        const handleOnline = () => {
-            setOnline(true)
-            void flushOfflineMutations().then(() => {
-                updatePendingCount()
-                void requestBackgroundSync()
-            })
-        }
-
+        const handleOnline = () => setOnline(true)
         const handleOffline = () => setOnline(false)
         const handleBeforeInstallPrompt = (event: Event) => {
             event.preventDefault()
             setDeferredPrompt(event as BeforeInstallPromptEvent)
         }
-
         const handleAppInstalled = () => setDeferredPrompt(null)
-        const handleQueueUpdate = () => updatePendingCount()
-        const handleSwMessage = (event: MessageEvent) => {
-            if (event.data?.type === 'SYNC_OFFLINE_MUTATIONS') {
-                void flushOfflineMutations().then(() => {
-                    updatePendingCount()
-                    void requestBackgroundSync()
-                })
-            }
-        }
 
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)
@@ -105,11 +57,6 @@ export function PWAClient() {
             handleBeforeInstallPrompt as EventListener
         )
         window.addEventListener('appinstalled', handleAppInstalled)
-        window.addEventListener(
-            'myfridge-offline-mutations-updated',
-            handleQueueUpdate
-        )
-        navigator.serviceWorker?.addEventListener('message', handleSwMessage)
 
         void registerServiceWorker()
 
@@ -121,14 +68,6 @@ export function PWAClient() {
                 handleBeforeInstallPrompt as EventListener
             )
             window.removeEventListener('appinstalled', handleAppInstalled)
-            window.removeEventListener(
-                'myfridge-offline-mutations-updated',
-                handleQueueUpdate
-            )
-            navigator.serviceWorker?.removeEventListener(
-                'message',
-                handleSwMessage
-            )
         }
     }, [])
 
@@ -142,65 +81,37 @@ export function PWAClient() {
         }
     }
 
-    const handleSyncNow = async () => {
-        await flushOfflineMutations()
-        setPendingMutations(0)
-        if ('serviceWorker' in navigator) {
-            const registration = (await navigator.serviceWorker.ready) as SyncableServiceWorkerRegistration
-            if (registration.sync) {
-                try {
-                    await registration.sync.register('offline-changes')
-                } catch (error) {
-                    console.warn('Background sync registration failed:', error)
-                }
-            }
-        }
-    }
-
-    const showControls = !isStandalone || !online || pendingMutations > 0
-    if (!showControls) return null
+    const showInstallButton = deferredPrompt && !isStandalone
 
     return (
-        <div className="fixed right-4 bottom-24 z-50 flex flex-col items-end gap-3 max-w-[calc(100vw-2rem)]">
+        <>
             {!online && (
-                <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800 shadow-lg dark:border-amber-900/60 dark:bg-amber-950/90 dark:text-amber-200">
-                    <WifiOff size={16} />
-                    <span className="text-xs font-semibold uppercase tracking-[0.18em]">
-                        Offline
-                    </span>
+                <div
+                    role="status"
+                    aria-live="polite"
+                    className="fixed left-1/2 top-0 z-50 -translate-x-1/2 pt-safe pointer-events-none"
+                >
+                    <div className="mt-2 flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1.5 text-amber-800 shadow-md backdrop-blur dark:border-amber-900/60 dark:bg-amber-950/90 dark:text-amber-200">
+                        <WifiOff size={14} />
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">
+                            Offline
+                        </span>
+                    </div>
                 </div>
             )}
 
-            {pendingMutations > 0 && (
-                <button
-                    type="button"
-                    onClick={handleSyncNow}
-                    className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-left shadow-xl dark:border-emerald-900/60 dark:bg-slate-900"
-                >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-white">
-                        <RefreshCw size={18} />
-                    </div>
-                    <div>
-                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                            {pendingMutations} Änderungen warten auf Sync
-                        </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Sobald wieder Verbindung besteht, werden sie mit Firestore abgeglichen.
-                        </p>
-                    </div>
-                </button>
+            {showInstallButton && (
+                <div className="fixed right-4 bottom-24 z-50 max-w-[calc(100vw-2rem)]">
+                    <Button
+                        type="button"
+                        onClick={handleInstall}
+                        className="shadow-xl"
+                    >
+                        <Download size={18} className="mr-2" />
+                        Add to Home Screen
+                    </Button>
+                </div>
             )}
-
-            {deferredPrompt && !isStandalone && (
-                <Button
-                    type="button"
-                    onClick={handleInstall}
-                    className="shadow-xl"
-                >
-                    <Download size={18} className="mr-2" />
-                    Add to Home Screen
-                </Button>
-            )}
-        </div>
+        </>
     )
 }
