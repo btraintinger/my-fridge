@@ -57,6 +57,7 @@ export function PWAClient() {
 
         const registerServiceWorker = async () => {
             if (!('serviceWorker' in navigator)) return
+            if (process.env.NODE_ENV !== 'production') return
 
             try {
                 await navigator.serviceWorker.register('/sw.js')

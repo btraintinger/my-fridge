@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { useRouter } from 'next/navigation'
+import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth'
 import { Button } from './Button'
 import { auth } from '@/lib/firebase'
 import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
@@ -17,25 +16,14 @@ export function GoogleSignInButton({
 }) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
-    const router = useRouter()
 
     const handleGoogleSignIn = async () => {
         setLoading(true)
         setError('')
-
-        const provider = new GoogleAuthProvider()
         try {
-            await signInWithPopup(auth, provider)
-            router.push('/fridges')
+            await signInWithRedirect(auth, new GoogleAuthProvider())
         } catch (err: unknown) {
-            console.error('Google sign in error:', err)
-            setError(
-                getFirebaseAuthErrorMessage(
-                    err,
-                    'Failed to sign in with Google.'
-                )
-            )
-        } finally {
+            setError(getFirebaseAuthErrorMessage(err, 'Failed to sign in with Google.'))
             setLoading(false)
         }
     }

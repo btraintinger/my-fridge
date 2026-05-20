@@ -96,7 +96,7 @@ export function DeleteAccountModal({
                 )}
                 {!usesPasswordProvider && (
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                        You will confirm this action in a Google popup.
+                        You will be redirected to Google to confirm this action.
                     </p>
                 )}
                 {deleteState.status && (

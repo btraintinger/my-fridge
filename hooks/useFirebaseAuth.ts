@@ -4,7 +4,7 @@ import {
     EmailAuthProvider,
     GoogleAuthProvider,
     reauthenticateWithCredential,
-    reauthenticateWithPopup,
+    reauthenticateWithRedirect,
     updatePassword,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
@@ -12,11 +12,6 @@ import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
 
 const PASSWORD_PROVIDER_ID = 'password'
 
-/**
- * Custom hook for Firebase authentication operations
- * Can be used in any component - parent or subcomponent
- * Handles reauthentication and password/account operations
- */
 export function useFirebaseAuth() {
     const reauthenticateUser = useCallback(async (password?: string) => {
         const currentUser = auth.currentUser
@@ -43,7 +38,7 @@ export function useFirebaseAuth() {
             return currentUser
         }
 
-        await reauthenticateWithPopup(currentUser, new GoogleAuthProvider())
+        await reauthenticateWithRedirect(currentUser, new GoogleAuthProvider())
         return currentUser
     }, [])
 

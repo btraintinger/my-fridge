@@ -7,7 +7,7 @@ import {
     useEffect,
     useState,
 } from 'react'
-import { onAuthStateChanged, signOut, User } from 'firebase/auth'
+import { getRedirectResult, onAuthStateChanged, signOut, User } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { userService } from '../lib/services/userService'
 
@@ -26,6 +26,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        getRedirectResult(auth).catch(console.error)
+
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             const hasPasswordProvider =
                 user?.providerData.some(
