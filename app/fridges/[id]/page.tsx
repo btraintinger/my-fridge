@@ -364,7 +364,7 @@ export default function FridgeDetail({
                 <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed">
                     {error || 'Fridge not found'}
                 </p>
-                <Link href="/fridges">
+                <Link href="/fridges?list=1">
                     <Button variant="outline">Back to Fridges</Button>
                 </Link>
             </div>
@@ -376,7 +376,7 @@ export default function FridgeDetail({
             <div className="pt-safe">
                 <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 flex items-center gap-3 sm:gap-4 shadow-sm">
                     <Link
-                        href="/fridges"
+                        href="/fridges?list=1"
                         className="p-2.5 -ml-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center"
                     >
                         <ArrowLeft size={24} />

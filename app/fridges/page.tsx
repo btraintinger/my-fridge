@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuth } from '../../contexts/AuthContext'
@@ -18,6 +19,15 @@ export default function Fridges() {
     const { user } = useAuth()
     const { fridges, fridgeScores, loading } = useFridges()
     const [showCreate, setShowCreate] = useState(false)
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const skipAutoSelect = searchParams.get('list') === '1'
+
+    useEffect(() => {
+        if (!skipAutoSelect && !loading && fridges.length === 1) {
+            router.replace(`/fridges/${fridges[0].id}`)
+        }
+    }, [skipAutoSelect, loading, fridges, router])
 
     const {
         register,
@@ -43,7 +53,7 @@ export default function Fridges() {
         }
     }
 
-    if (loading) {
+    if (loading || (!skipAutoSelect && fridges.length === 1)) {
         return (
             <div className="flex-1 flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
                 <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
@@ -129,7 +139,7 @@ export default function Fridges() {
                         </Button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                         {fridges.map((fridge) => (
                             <FridgeCard
                                 key={fridge.id}
