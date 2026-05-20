@@ -1,11 +1,13 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { X } from 'lucide-react'
 import { Button } from './ui/Button'
 import { Input } from './ui/Input'
 import { FormField } from './ui/FormField'
+import { Select } from './ui/Select'
+import { DatePicker } from './ui/DatePicker'
 import { manualProductSchema, type ManualProductFormData } from '../lib/validations'
 import type { Product } from '../lib/types'
 import toast from 'react-hot-toast'
@@ -32,6 +34,7 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
     const {
         register,
         handleSubmit,
+        control,
         formState: { errors, isSubmitting, isValid },
     } = useForm<ManualProductFormData>({
         resolver: zodResolver(manualProductSchema),
@@ -116,25 +119,32 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
                             />
                         </FormField>
                         <FormField label="Kategorie" error={errors.category?.message}>
-                            <select
-                                className={`w-full h-12 rounded-xl border-2 bg-white px-4 text-sm font-medium transition-all focus:outline-none focus:ring-0 dark:bg-slate-950 dark:text-slate-100 ${errors.category
-                                        ? 'border-red-500'
-                                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500'
-                                    }`}
-                                {...register('category')}
-                            >
-                                {CATEGORIES.map((c) => (
-                                    <option key={c} value={c}>{c}</option>
-                                ))}
-                            </select>
+                            <Controller
+                                control={control}
+                                name="category"
+                                render={({ field }) => (
+                                    <Select
+                                        value={field.value ?? ''}
+                                        onChange={field.onChange}
+                                        options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                                        error={!!errors.category}
+                                    />
+                                )}
+                            />
                         </FormField>
                     </div>
 
                     <FormField label="Ablaufdatum" error={errors.expiryDate?.message}>
-                        <Input
-                            type="date"
-                            className="h-12"
-                            {...register('expiryDate')}
+                        <Controller
+                            control={control}
+                            name="expiryDate"
+                            render={({ field }) => (
+                                <DatePicker
+                                    value={field.value ?? ''}
+                                    onChange={field.onChange}
+                                    error={!!errors.expiryDate}
+                                />
+                            )}
                         />
                     </FormField>
 

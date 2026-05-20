@@ -6,6 +6,7 @@ import { fridgeService } from '../../../lib/services/fridgeService'
 import { useFridge } from '../../../hooks/useFridges'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
+import { Select } from '../../../components/ui/Select'
 import {
     NutriScoreBadge,
 } from '../../../components/fridge-details/NutriScoreComponents'
@@ -516,37 +517,37 @@ export default function FridgeDetail({
                             />
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3">
-                            <div className="flex-1 relative">
-                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                                <select
-                                    value={filterCategory}
-                                    onChange={(e) => setFilterCategory(e.target.value)}
-                                    className="w-full appearance-none rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 outline-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500"
-                                >
-                                    <option value="all">Alle Kategorien</option>
-                                    <option value="dairy">Milchprodukte</option>
-                                    <option value="meat">Fleisch & Wurst</option>
-                                    <option value="veg">Gemüse</option>
-                                    <option value="fruit">Obst</option>
-                                    <option value="drinks">Getränke</option>
-                                </select>
-                            </div>
-                            <div className="flex-1 relative">
-                                <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="w-full appearance-none rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 outline-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500"
-                                >
-                                    <option value="name-asc">Name (A-Z)</option>
-                                    <option value="name-desc">Name (Z-A)</option>
-                                    <option value="quantity-asc">Menge (Aufsteigend)</option>
-                                    <option value="quantity-desc">Menge (Absteigend)</option>
-                                    <option value="nutri-asc">Nutri-Score (Aufsteigend)</option>
-                                    <option value="nutri-desc">Nutri-Score (Absteigend)</option>
-                                    <option value="expiry-asc">Ablaufdatum (Bald ablaufen zuerst)</option>
-                                </select>
-                            </div>
+                            <Select
+                                size="sm"
+                                className="flex-1"
+                                value={filterCategory}
+                                onChange={setFilterCategory}
+                                icon={<Filter size={16} />}
+                                options={[
+                                    { value: 'all', label: 'Alle Kategorien' },
+                                    { value: 'dairy', label: 'Milchprodukte' },
+                                    { value: 'meat', label: 'Fleisch & Wurst' },
+                                    { value: 'veg', label: 'Gemüse' },
+                                    { value: 'fruit', label: 'Obst' },
+                                    { value: 'drinks', label: 'Getränke' },
+                                ]}
+                            />
+                            <Select
+                                size="sm"
+                                className="flex-1"
+                                value={sortBy}
+                                onChange={setSortBy}
+                                icon={<ArrowUpDown size={16} />}
+                                options={[
+                                    { value: 'name-asc', label: 'Name (A-Z)' },
+                                    { value: 'name-desc', label: 'Name (Z-A)' },
+                                    { value: 'quantity-asc', label: 'Menge (Aufsteigend)' },
+                                    { value: 'quantity-desc', label: 'Menge (Absteigend)' },
+                                    { value: 'nutri-asc', label: 'Nutri-Score (Aufsteigend)' },
+                                    { value: 'nutri-desc', label: 'Nutri-Score (Absteigend)' },
+                                    { value: 'expiry-asc', label: 'Ablaufdatum (Bald ablaufen zuerst)' },
+                                ]}
+                            />
                         </div>
                     </div>
 
