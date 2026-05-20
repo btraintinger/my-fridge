@@ -145,22 +145,25 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
     return (
         <div className="flex-1 min-h-screen bg-gradient-to-b from-slate-50 via-white to-emerald-50/40 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/10 pb-20 lg:pl-20 xl:pl-56">
             <div className="sticky top-0 z-10 border-b border-white/70 dark:border-slate-800 bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl pt-safe">
-            <div className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3">
+            <div className="pt-12 px-4 sm:px-6 pb-5 flex items-center gap-3">
                     <Link
                         href={`/fridges/${id}`}
-                        className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400"
+                        className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400 shrink-0"
                     >
                         <ArrowLeft size={24} />
                     </Link>
-                    <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
-                            Analysis
-                        </p>
-                        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-50 truncate">
-                            {fridge.name}
-                        </h1>
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <BarChart3 size={22} />
                     </div>
-                    <Link href="/scanner">
+                    <div className="min-w-0 flex-1">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 leading-tight">
+                            Analysis
+                        </h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                            {fridge.name}
+                        </p>
+                    </div>
+                    <Link href="/scanner" className="shrink-0">
                         <Button size="sm" className="rounded-xl">
                             <ScanLine size={18} className="mr-1" /> Add
                         </Button>

@@ -149,13 +149,20 @@ export default function Scanner() {
     return (
         <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
             <div className="pt-safe">
-            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50">
-                    Scan Product
-                </h1>
-                <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
-                    Scan a barcode or search manually
-                </p>
+            <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 sm:px-6 lg:px-8 pb-5 pt-12 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <Camera size={22} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                            Scan Product
+                        </h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Scan a barcode or search manually.
+                        </p>
+                    </div>
+                </div>
             </div>
             </div>
 

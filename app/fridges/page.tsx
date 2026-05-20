@@ -54,15 +54,25 @@ export default function Fridges() {
     return (
         <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
             <div className="pt-safe">
-            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-                        My Fridges
-                    </h1>
+            <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 sm:px-6 lg:px-8 pb-5 pt-12 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                <div className="flex justify-between items-center gap-3 mb-6">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
+                            <Refrigerator size={22} />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                                My Fridges
+                            </h1>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Track your groceries and reduce waste.
+                            </p>
+                        </div>
+                    </div>
                     <Button
                         size="sm"
                         onClick={() => setShowCreate(!showCreate)}
-                        className="rounded-xl"
+                        className="rounded-xl shrink-0"
                     >
                         <Plus size={20} className="mr-1" />
                         New
