@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuth } from '../../contexts/AuthContext'
-import { fridgeService } from '../../lib/services/fridgeService'
+import { createFridge } from '../../lib/services/fridgeService'
 import { useFridges } from '../../hooks/useFridges'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -13,7 +13,6 @@ import { FormField } from '../../components/ui/FormField'
 import { Plus, Refrigerator } from 'lucide-react'
 import { FridgeCard } from '../../components/fridges/FridgeCard'
 import { createFridgeSchema, type CreateFridgeFormData } from '../../lib/validations'
-import toast from 'react-hot-toast'
 
 export default function Fridges() {
     const { user } = useAuth()
@@ -44,12 +43,10 @@ export default function Fridges() {
         if (!user) return
 
         try {
-            await fridgeService.createFridge(user.uid, data.name)
-            toast.success(`"${data.name}" wurde erstellt!`)
+            await createFridge(user.uid, data.name)
             reset()
             setShowCreate(false)
         } catch {
-            toast.error('Kühlschrank konnte nicht erstellt werden.')
         }
     }
 

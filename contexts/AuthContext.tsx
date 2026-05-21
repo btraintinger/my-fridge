@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { getRedirectResult, onAuthStateChanged, signOut, User } from 'firebase/auth'
 import { auth } from '../lib/firebase'
-import { userService } from '../lib/services/userService'
+import { ensureUserPreferencesDocument } from '../lib/services/userService'
 
 interface AuthContextType {
     user: User | null
@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (user) {
                 try {
-                    await userService.ensureUserPreferencesDocument(user.uid)
+                    await ensureUserPreferencesDocument(user.uid)
                 } catch (error) {
                     console.error(
                         'Failed to initialize user preferences document:',

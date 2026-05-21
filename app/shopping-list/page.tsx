@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { fridgeService, productService } from '@/lib/services/fridgeService'
+import { addItemToFridge } from '@/lib/services/fridgeService'
+import {
+    addShoppingItem,
+    deleteShoppingItem,
+    moveShoppingItemToFridge,
+    subscribeToShoppingList,
+    toggleShoppingItem,
+} from '@/lib/services/shoppingListService'
+import { cacheProduct, getCachedProduct } from '@/lib/services/productService'
 import { useFridges } from '@/hooks/useFridges'
 import { fetchProductByBarcode } from '@/lib/openFoodFacts'
 import { ShoppingCart } from 'lucide-react'
@@ -15,6 +23,8 @@ import type {
     Product,
     ShoppingListItem as ShoppingListItemType,
 } from '../../lib/types'
+import { shoppingItemSchema } from '../../lib/validations'
+import { notify } from '../../lib/notify'
 
 export default function ShoppingList() {
     const { user } = useAuth()
@@ -44,7 +54,7 @@ export default function ShoppingList() {
         }
 
         setLoading(true)
-        const unsubscribe = fridgeService.subscribeToShoppingList(
+        const unsubscribe = subscribeToShoppingList(
             selectedFridge,
             (data) => {
                 setItems(data)
@@ -62,18 +72,24 @@ export default function ShoppingList() {
 
     const handleAddItem = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (!user || !newItem.trim() || !selectedFridge) return
+        if (!user || !selectedFridge) return
 
-        await fridgeService.addShoppingItem(selectedFridge, user.uid, newItem)
+        const parsed = shoppingItemSchema.safeParse({ name: newItem })
+        if (!parsed.success) {
+            notify.error(parsed.error.issues[0].message)
+            return
+        }
+
+        await addShoppingItem(selectedFridge, user.uid, parsed.data.name)
         setNewItem('')
     }
 
     const toggleItem = async (itemId: string, checked: boolean) => {
-        await fridgeService.toggleShoppingItem(selectedFridge, itemId, checked)
+        await toggleShoppingItem(selectedFridge, itemId, checked)
     }
 
     const deleteItem = async (itemId: string) => {
-        await fridgeService.deleteShoppingItem(selectedFridge, itemId)
+        await deleteShoppingItem(selectedFridge, itemId)
     }
 
     const handleScan = async (barcode: string) => {
@@ -85,7 +101,7 @@ export default function ShoppingList() {
             let product: Product | null = null
 
             // Check cache first
-            product = await productService.getCachedProduct(barcode)
+            product = await getCachedProduct(barcode)
 
             if (!product && isOffline) {
                 return
@@ -95,7 +111,7 @@ export default function ShoppingList() {
                 product = await fetchProductByBarcode(barcode)
                 if (product) {
                     // Save to cache
-                    await productService.cacheProduct(barcode, product)
+                    await cacheProduct(barcode, product)
                 }
             }
 
@@ -105,7 +121,7 @@ export default function ShoppingList() {
 
             // Move item to fridge
             if (scanningItemId) {
-                await fridgeService.moveShoppingItemToFridge(
+                await moveShoppingItemToFridge(
                     selectedFridge,
                     scanningItemId,
                     product
@@ -121,14 +137,14 @@ export default function ShoppingList() {
                             .includes(i.name.toLowerCase())
                 )
                 if (match) {
-                    await fridgeService.moveShoppingItemToFridge(
+                    await moveShoppingItemToFridge(
                         selectedFridge,
                         match.id,
                         product
                     )
                 } else {
                     // Just add it to the fridge anyway
-                    await fridgeService.addItemToFridge(selectedFridge, product)
+                    await addItemToFridge(selectedFridge, product)
                 }
             }
 

@@ -10,7 +10,6 @@ import { Select } from './ui/Select'
 import { DatePicker } from './ui/DatePicker'
 import { manualProductSchema, type ManualProductFormData } from '../lib/validations'
 import type { Product } from '../lib/types'
-import toast from 'react-hot-toast'
 
 const CATEGORIES = [
     'Milchprodukte',
@@ -81,11 +80,9 @@ export function ManualProductModal({ onClose, onSubmit }: ManualProductModalProp
                 expiryDate: data.expiryDate || undefined,
                 notes: data.notes?.trim() || undefined,
             })
-            toast.success(`"${data.name}" hinzugefügt!`)
             onClose()
         } catch (error) {
             console.error('Failed to add manual product', error)
-            toast.error('Produkt konnte nicht hinzugefügt werden.')
         }
     }
 

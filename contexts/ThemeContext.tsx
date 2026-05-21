@@ -9,7 +9,10 @@ import {
     useState,
 } from 'react'
 import { useAuth } from './AuthContext'
-import { userService } from '../lib/services/userService'
+import {
+    subscribeToUserPreferences,
+    updateUserPreferences,
+} from '../lib/services/userService'
 
 interface ThemeContextType {
     darkMode: boolean
@@ -49,7 +52,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
             if (user) {
                 // Background update
-                void userService.updateUserPreferences(user.uid, {
+                void updateUserPreferences(user.uid, {
                     darkMode: newValue,
                 }).catch((error) => {
                     console.error('Failed to update dark mode preference:', error)
@@ -64,7 +67,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         if (loading || !user) return
 
         // Subscribe to user preferences in Firestore
-        const unsubscribe = userService.subscribeToUserPreferences(
+        const unsubscribe = subscribeToUserPreferences(
             user.uid,
             (prefs, metadata) => {
                 // Skip if we have pending local writes to avoid flicker/revert

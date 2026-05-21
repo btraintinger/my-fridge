@@ -46,6 +46,38 @@ export const createFridgeSchema = z.object({
 
 export type CreateFridgeFormData = z.infer<typeof createFridgeSchema>
 
+// ── Share Fridge ────────────────────────────────────────────────────────────
+export const shareFridgeSchema = z.object({
+    email: z
+        .string()
+        .min(1, 'E-Mail ist erforderlich.')
+        .email('Bitte gib eine gültige E-Mail-Adresse ein.')
+        .trim(),
+})
+
+export type ShareFridgeFormData = z.infer<typeof shareFridgeSchema>
+
+// ── Shopping List Item ──────────────────────────────────────────────────────
+export const shoppingItemSchema = z.object({
+    name: z
+        .string()
+        .min(1, 'Bitte gib einen Eintrag an.')
+        .max(120, 'Eintrag darf maximal 120 Zeichen lang sein.')
+        .trim(),
+})
+
+export type ShoppingItemFormData = z.infer<typeof shoppingItemSchema>
+
+// ── Item Quantity ───────────────────────────────────────────────────────────
+export const itemQuantitySchema = z.object({
+    quantity: z
+        .number({ error: 'Menge muss eine Zahl sein.' })
+        .int('Menge muss eine ganze Zahl sein.')
+        .min(1, 'Menge muss mindestens 1 sein.'),
+})
+
+export type ItemQuantityFormData = z.infer<typeof itemQuantitySchema>
+
 // ── Manual Product ──────────────────────────────────────────────────────────
 export const manualProductSchema = z.object({
     name: z

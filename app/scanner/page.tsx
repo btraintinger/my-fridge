@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { fridgeService, productService } from '../../lib/services/fridgeService'
+import { addItemToFridge } from '../../lib/services/fridgeService'
+import {
+    cacheProduct,
+    getCachedProduct,
+} from '../../lib/services/productService'
 import { useFridges } from '../../hooks/useFridges'
 import { fetchProductByBarcode } from '../../lib/openFoodFacts'
 import { Button } from '../../components/ui/Button'
@@ -15,7 +19,7 @@ import type { Product } from '../../lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import Image from 'next/image'
-import { toast } from 'react-hot-toast'
+import { notify } from '../../lib/notify'
 
 function FlagChip({
     label,
@@ -93,7 +97,7 @@ export default function Scanner() {
         const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
         // Check cache first
-        const cached = await productService.getCachedProduct(code.trim())
+        const cached = await getCachedProduct(code.trim())
         if (cached) {
             setProduct(cached)
             setSearching(false)
@@ -101,7 +105,7 @@ export default function Scanner() {
         }
 
         if (isOffline) {
-            toast.error('Offline sind nur bereits gespeicherte Produkte verfügbar.')
+            notify.error('Offline sind nur bereits gespeicherte Produkte verfügbar.')
             setSearching(false)
             return
         }
@@ -110,14 +114,14 @@ export default function Scanner() {
             const result = await fetchProductByBarcode(code.trim())
             if (result) {
                 setProduct(result)
-                await productService.cacheProduct(code.trim(), result)
+                await cacheProduct(code.trim(), result)
             } else {
-                toast.error('Produkt nicht gefunden. Bitte manuell anlegen.')
+                notify.error('Produkt nicht gefunden. Bitte manuell anlegen.')
                 setBarcode(code.trim()) // Barcode im Feld lassen für manuelle Suche
             }
         } catch (err) {
             console.error('Search error:', err)
-            toast.error('Fehler bei der Produktsuche.')
+            notify.error('Fehler bei der Produktsuche.')
         } finally {
             setSearching(false)
         }
@@ -126,7 +130,7 @@ export default function Scanner() {
     const handleAddToFridge = async () => {
         if (!user || !product || !selectedFridge) return
 
-        await fridgeService.addItemToFridge(selectedFridge, product)
+        await addItemToFridge(selectedFridge, product)
         setAdded(true)
     }
 
@@ -137,10 +141,10 @@ export default function Scanner() {
         if (!user || !selectedFridge) return
 
         // Cache the dummy product so it can be resolved by the join in subscribeToFridgeItems
-        await productService.cacheProduct(manualProduct.barcode, manualProduct)
+        await cacheProduct(manualProduct.barcode, manualProduct)
 
         // Add to fridge with all details
-        await fridgeService.addItemToFridge(selectedFridge, manualProduct, options)
+        await addItemToFridge(selectedFridge, manualProduct, options)
         
         setProduct(manualProduct)
         setAdded(true)

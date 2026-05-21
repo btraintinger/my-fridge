@@ -127,9 +127,15 @@ export async function GET(
             return NextResponse.json({ product: null }, { status: 400 })
         }
 
-        const { data, error } = await off.getProductV2(normalizedBarcode, {
-            fields: OFF_FIELDS,
-        })
+        const { data, error } = await off.apiv2.client.GET(
+            '/api/v2/product/{code}',
+            {
+                params: {
+                    path: { code: normalizedBarcode },
+                    query: { fields: OFF_FIELDS },
+                },
+            }
+        )
 
         if (error) {
             console.error('Open Food Facts SDK error:', error)

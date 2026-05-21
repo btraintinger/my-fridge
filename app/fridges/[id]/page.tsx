@@ -2,7 +2,12 @@
 
 import { use, useMemo, useRef, useState, useEffect } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
-import { fridgeService } from '../../../lib/services/fridgeService'
+import {
+    deleteItem,
+    shareFridge,
+    unshareFridge,
+    updateItemQuantity,
+} from '../../../lib/services/fridgeService'
 import { useFridge } from '../../../hooks/useFridges'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
@@ -33,6 +38,11 @@ import {
 } from 'lucide-react'
 import type { FridgeItem } from '../../../lib/types'
 import { modalNutriScore } from '../../../lib/utils'
+import {
+    itemQuantitySchema,
+    shareFridgeSchema,
+} from '../../../lib/validations'
+import { notify } from '../../../lib/notify'
 
 export default function FridgeDetail({
     params,
@@ -193,17 +203,17 @@ export default function FridgeDetail({
 
     const handleShare = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (
-            !user ||
-            !shareEmail.trim() ||
-            !fridge ||
-            fridge.userId !== user.uid
-        )
+        if (!user || !fridge || fridge.userId !== user.uid) return
+
+        const parsed = shareFridgeSchema.safeParse({ email: shareEmail })
+        if (!parsed.success) {
+            notify.error(parsed.error.issues[0].message)
             return
+        }
 
         setSharing(true)
         try {
-            await fridgeService.shareFridge(id, shareEmail)
+            await shareFridge(id, parsed.data.email)
             setShareEmail('')
             setShowShare(false)
         } finally {
@@ -213,7 +223,7 @@ export default function FridgeDetail({
 
     const handleUnshare = async (email: string) => {
         if (!user || !fridge || fridge.userId !== user.uid) return
-        await fridgeService.unshareFridge(id, email)
+        await unshareFridge(id, email)
     }
 
     const startQuantityEdit = (item: FridgeItem) => {
@@ -222,12 +232,21 @@ export default function FridgeDetail({
     }
 
     const saveQuantity = async (itemId: string) => {
-        const parsed = Number.parseInt(quantityDraft, 10)
-        if (!Number.isFinite(parsed) || parsed < 1) return
+        const parsed = itemQuantitySchema.safeParse({
+            quantity: Number.parseInt(quantityDraft, 10),
+        })
+        if (!parsed.success) {
+            notify.error(parsed.error.issues[0].message)
+            return
+        }
 
         setSavingQuantityItemId(itemId)
         try {
-            await fridgeService.updateItemQuantity(id, itemId, parsed)
+            await updateItemQuantity(
+                id,
+                itemId,
+                parsed.data.quantity
+            )
             setEditingQuantityItemId(null)
         } finally {
             setSavingQuantityItemId(null)
@@ -235,7 +254,7 @@ export default function FridgeDetail({
     }
 
     const deleteFridgeItem = async (itemId: string) => {
-        await fridgeService.deleteItem(id, itemId)
+        await deleteItem(id, itemId)
         if (selectedItem?.id === itemId) {
             setSelectedItem(null)
         }
@@ -801,7 +820,7 @@ export default function FridgeDetail({
                     itemId={selectedItem.id}
                     fridgeId={id}
                     onQuantityChange={async (itemId, fridgeId, quantity) => {
-                        await fridgeService.updateItemQuantity(fridgeId, itemId, quantity)
+                        await updateItemQuantity(fridgeId, itemId, quantity)
                     }}
                     onDelete={async (itemId, fridgeId) => {
                         setSelectedItem(null)
