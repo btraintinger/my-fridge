@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { fridgeService } from '../lib/services/fridgeService'
+import {
+    subscribeToFridge,
+    subscribeToFridgeItems,
+    subscribeToFridges,
+} from '../lib/services/fridgeService'
 import { modalNutriScore } from '../lib/utils'
 import type { Fridge, FridgeItem } from '../lib/types'
 
@@ -15,7 +19,7 @@ export function useFridges() {
     useEffect(() => {
         if (!user) return
 
-        const unsubscribe = fridgeService.subscribeToFridges(
+        const unsubscribe = subscribeToFridges(
             { uid: user.uid, email: user.email },
             (data) => {
                 setFridges(data)
@@ -42,7 +46,7 @@ export function useFridges() {
         const unsubscribes: (() => void)[] = []
 
         fridges.forEach((fridge) => {
-            const unsub = fridgeService.subscribeToFridgeItems(
+            const unsub = subscribeToFridgeItems(
                 fridge.id,
                 (items) => {
                     const grades = items.map(
@@ -87,7 +91,7 @@ export function useFridge(id: string) {
     useEffect(() => {
         if (!user || !id) return
 
-        const unsubscribeFridge = fridgeService.subscribeToFridge(
+        const unsubscribeFridge = subscribeToFridge(
             id,
             (data) => {
                 if (!data) {
@@ -120,7 +124,7 @@ export function useFridge(id: string) {
             }
         )
 
-        const unsubscribeItems = fridgeService.subscribeToFridgeItems(
+        const unsubscribeItems = subscribeToFridgeItems(
             id,
             (data) => {
                 setItems(data)

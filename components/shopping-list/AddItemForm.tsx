@@ -1,14 +1,13 @@
-import { FormEvent } from 'react'
 import { Plus, ScanLine } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 
 interface AddItemFormProps {
-    newItem: string
-    setNewItem: (value: string) => void
-    onAdd: (e: FormEvent<HTMLFormElement>) => void
-    onOpenScanner: () => void
-}
+     newItem: string
+     setNewItem: (value: string) => void
+     onAdd: (e: React.SubmitEvent<HTMLFormElement>) => void
+     onOpenScanner: () => void
+ }
 
 export function AddItemForm({
     newItem,

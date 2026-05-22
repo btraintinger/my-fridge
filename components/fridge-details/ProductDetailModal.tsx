@@ -7,6 +7,8 @@ import { Input } from '../ui/Input'
 import { NutriScoreBadge } from './NutriScoreComponents'
 import type { Product } from '../../lib/types'
 import { getNutrimentWarnings } from '../../lib/nutrimentWarnings'
+import { itemQuantitySchema } from '../../lib/validations'
+import { notify } from '../../lib/notify'
 import Image from 'next/image'
 
 interface ProductDetailModalProps {
@@ -58,12 +60,19 @@ export function ProductDetailModal({
     const [savingQuantity, setSavingQuantity] = useState(false)
 
     const saveQuantity = async () => {
-        const parsed = Number.parseInt(quantityDraft, 10)
-        if (!Number.isFinite(parsed) || parsed < 1 || !itemId || !fridgeId) return
+        if (!itemId || !fridgeId) return
+
+        const parsed = itemQuantitySchema.safeParse({
+            quantity: Number.parseInt(quantityDraft, 10),
+        })
+        if (!parsed.success) {
+            notify.error(parsed.error.issues[0].message)
+            return
+        }
 
         setSavingQuantity(true)
         try {
-            await onQuantityChange?.(itemId, fridgeId, parsed)
+            await onQuantityChange?.(itemId, fridgeId, parsed.data.quantity)
             setEditingQuantity(false)
         } finally {
             setSavingQuantity(false)

@@ -3,8 +3,14 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import {
+    createUserWithEmailAndPassword,
+    sendEmailVerification,
+    signOut,
+    updateProfile,
+} from 'firebase/auth'
 import { auth } from '../../lib/firebase'
+import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
 import { useRouter } from 'next/navigation'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -13,7 +19,7 @@ import { GoogleSignInButton } from '../../components/ui/GoogleSignInButton'
 import { AuthLayout } from '../../components/auth/AuthLayout'
 import { registerSchema, type RegisterFormData } from '../../lib/validations'
 import Link from 'next/link'
-import toast from 'react-hot-toast'
+import { notify } from '@/lib/notify'
 import type { FirebaseError } from 'firebase/app'
 
 export default function Register() {
@@ -40,13 +46,12 @@ export default function Register() {
                 data.password
             )
             await updateProfile(userCredential.user, { displayName: data.name })
-            toast.success('Konto erfolgreich erstellt!')
+            notify.success('Konto erfolgreich erstellt!')
             router.push('/fridges')
         } catch (err: unknown) {
-            const message =
-                (err as FirebaseError).message || 'Konto konnte nicht erstellt werden.'
+            const message = getFirebaseAuthErrorMessage(err, 'Konto konnte nicht erstellt werden.')
             setServerError(message)
-            toast.error(message)
+            notify.error(message)
         }
     }
 

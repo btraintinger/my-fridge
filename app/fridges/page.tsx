@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuth } from '../../contexts/AuthContext'
-import { fridgeService } from '../../lib/services/fridgeService'
+import { createFridge } from '../../lib/services/fridgeService'
 import { useFridges } from '../../hooks/useFridges'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -12,12 +13,20 @@ import { FormField } from '../../components/ui/FormField'
 import { Plus, Refrigerator } from 'lucide-react'
 import { FridgeCard } from '../../components/fridges/FridgeCard'
 import { createFridgeSchema, type CreateFridgeFormData } from '../../lib/validations'
-import toast from 'react-hot-toast'
 
 export default function Fridges() {
     const { user } = useAuth()
     const { fridges, fridgeScores, loading } = useFridges()
     const [showCreate, setShowCreate] = useState(false)
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const skipAutoSelect = searchParams.get('list') === '1'
+
+    useEffect(() => {
+        if (!skipAutoSelect && !loading && fridges.length === 1) {
+            router.replace(`/fridges/${fridges[0].id}`)
+        }
+    }, [skipAutoSelect, loading, fridges, router])
 
     const {
         register,
@@ -34,16 +43,14 @@ export default function Fridges() {
         if (!user) return
 
         try {
-            await fridgeService.createFridge(user.uid, data.name)
-            toast.success(`"${data.name}" wurde erstellt!`)
+            await createFridge(user.uid, data.name)
             reset()
             setShowCreate(false)
         } catch {
-            toast.error('Kühlschrank konnte nicht erstellt werden.')
         }
     }
 
-    if (loading) {
+    if (loading || (!skipAutoSelect && fridges.length === 1)) {
         return (
             <div className="flex-1 flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
                 <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
@@ -54,15 +61,25 @@ export default function Fridges() {
     return (
         <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
             <div className="pt-safe">
-            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-                        My Fridges
-                    </h1>
+            <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 sm:px-6 lg:px-8 pb-5 pt-12 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                <div className="flex justify-between items-center gap-3 mb-6">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
+                            <Refrigerator size={22} />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                                My Fridges
+                            </h1>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Track your groceries and reduce waste.
+                            </p>
+                        </div>
+                    </div>
                     <Button
                         size="sm"
                         onClick={() => setShowCreate(!showCreate)}
-                        className="rounded-xl"
+                        className="rounded-xl shrink-0"
                     >
                         <Plus size={20} className="mr-1" />
                         New
@@ -119,7 +136,7 @@ export default function Fridges() {
                         </Button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                         {fridges.map((fridge) => (
                             <FridgeCard
                                 key={fridge.id}

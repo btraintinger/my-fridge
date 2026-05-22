@@ -1,5 +1,4 @@
 import {
-    doc,
     getDoc,
     onSnapshot,
     serverTimestamp,
@@ -7,86 +6,85 @@ import {
     updateDoc,
 } from 'firebase/firestore'
 import type { FirestoreError } from 'firebase/firestore'
-import { db } from '../firebase'
-import { COLLECTIONS } from '../constants'
 import { UserPreferences } from '../types'
-import { BaseService } from './base'
+import { runFirebaseAction, subscriptionErrorHandler } from './firebaseAction'
+import { userDoc } from './refs'
 
-class UserService extends BaseService {
-    async ensureUserPreferencesDocument(userId: string) {
-        return this.handleAction(async () => {
-            const userRef = doc(db, COLLECTIONS.USERS, userId)
-            const userDoc = await getDoc(userRef)
+const DEFAULT_PREFERENCES: Partial<UserPreferences> = {
+    darkMode: false,
+}
 
-            if (!userDoc.exists()) {
-                await setDoc(userRef, {
-                    userId,
-                    darkMode: false,
-                    updatedAt: serverTimestamp(),
-                })
-            }
-        })
-    }
-
-    async getUserPreferences(userId: string): Promise<UserPreferences | null> {
-        try {
-            const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, userId))
-            if (userDoc.exists()) {
-                return userDoc.data() as UserPreferences
-            }
-            return null
-        } catch (error) {
-            console.error('Error fetching user preferences:', error)
-            return null
+export async function ensureUserPreferencesDocument(userId: string) {
+    return runFirebaseAction(async () => {
+        const ref = userDoc(userId)
+        const snap = await getDoc(ref)
+        if (!snap.exists()) {
+            await setDoc(ref, {
+                userId,
+                ...DEFAULT_PREFERENCES,
+                updatedAt: serverTimestamp(),
+            })
         }
-    }
+    })
+}
 
-    subscribeToUserPreferences(
-        userId: string,
-        callback: (prefs: Partial<UserPreferences>) => void,
-        onError?: (error: FirestoreError) => void
-    ) {
-        return onSnapshot(
-            doc(db, COLLECTIONS.USERS, userId),
-            (docSnap) => {
-                if (docSnap.exists()) {
-                    callback(docSnap.data() as Partial<UserPreferences>)
-                }
-            },
-            onError
-        )
-    }
-
-    async updateUserPreferences(
-        userId: string,
-        updates: Partial<UserPreferences>
-    ) {
-        return this.handleAction(async () => {
-            const userRef = doc(db, COLLECTIONS.USERS, userId)
-            const userDoc = await getDoc(userRef)
-
-            if (!userDoc.exists()) {
-                // Create with defaults if doesn't exist
-                await setDoc(userRef, {
-                    userId,
-                    darkMode: false,
-                    ...updates,
-                    updatedAt: serverTimestamp(),
-                })
-            } else {
-                await updateDoc(userRef, {
-                    ...updates,
-                    updatedAt: serverTimestamp(),
-                })
-            }
-        })
-    }
-
-    async toggleDarkMode(userId: string, currentDarkMode: boolean) {
-        return this.updateUserPreferences(userId, {
-            darkMode: !currentDarkMode,
-        })
+export async function getUserPreferences(
+    userId: string
+): Promise<UserPreferences | null> {
+    try {
+        const snap = await getDoc(userDoc(userId))
+        return snap.exists() ? (snap.data() as UserPreferences) : null
+    } catch (error) {
+        console.error('Error fetching user preferences:', error)
+        return null
     }
 }
 
-export const userService = new UserService()
+export function subscribeToUserPreferences(
+    userId: string,
+    callback: (
+        prefs: Partial<UserPreferences>,
+        metadata: { hasPendingWrites: boolean }
+    ) => void,
+    onError?: (error: FirestoreError) => void
+) {
+    return onSnapshot(
+        userDoc(userId),
+        { includeMetadataChanges: true },
+        (docSnap) => {
+            if (docSnap.exists()) {
+                callback(docSnap.data() as Partial<UserPreferences>, {
+                    hasPendingWrites: docSnap.metadata.hasPendingWrites,
+                })
+            }
+        },
+        subscriptionErrorHandler(onError)
+    )
+}
+
+export async function updateUserPreferences(
+    userId: string,
+    updates: Partial<UserPreferences>
+) {
+    return runFirebaseAction(async () => {
+        const ref = userDoc(userId)
+        const snap = await getDoc(ref)
+        const payload = { ...updates, updatedAt: serverTimestamp() }
+        if (snap.exists()) {
+            await updateDoc(ref, payload)
+        } else {
+            await setDoc(ref, {
+                userId,
+                ...DEFAULT_PREFERENCES,
+                ...payload,
+            })
+        }
+    })
+}
+
+export async function toggleDarkMode(
+    userId: string,
+    currentDarkMode: boolean
+) {
+    return updateUserPreferences(userId, { darkMode: !currentDarkMode })
+}

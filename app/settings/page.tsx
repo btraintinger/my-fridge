@@ -1,29 +1,56 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+import { useEffect, useMemo } from 'react'
+import type { ReactNode } from 'react'
+import { signOut } from 'firebase/auth'
+import {
+    ChevronRight,
+    KeyRound,
+    type LucideIcon,
+    LogOut,
+    Settings as SettingsIcon,
+    ShieldAlert,
+    Trash2,
+} from 'lucide-react'
+
+import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
+import { PasswordChangeModal } from '@/components/settings/PasswordChangeModal'
+import { ProfileSummaryCard } from '@/components/settings/ProfileSummaryCard'
+import { ThemePreferenceCard } from '@/components/settings/ThemePreferenceCard'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { auth } from '@/lib/firebase'
-import { signOut } from 'firebase/auth'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
-import { LogOut, Moon, Sun, User as UserIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { useSettingsStore } from '@/stores/settingsStore'
+import { cn } from '@/components/ui/Button'
+
+const PASSWORD_PROVIDER_ID = 'password'
 
 export default function Settings() {
     const { user, loading } = useAuth()
     const { darkMode, toggleDarkMode } = useTheme()
     const router = useRouter()
 
+    const openDialog = useSettingsStore((state) => state.openDialog)
+
+    const usesPasswordProvider = useMemo(
+        () =>
+            user?.providerData.some(
+                (provider) => provider.providerId === PASSWORD_PROVIDER_ID
+            ) ?? false,
+        [user]
+    )
+
     useEffect(() => {
         if (!loading && !user) {
-            router.push('/login')
+            router.replace('/login')
         }
     }, [user, loading, router])
 
     const handleSignOut = async () => {
         try {
             await signOut(auth)
-            router.push('/')
+            router.replace('/')
         } catch (error) {
             console.error('Error signing out:', error)
         }
@@ -32,71 +59,195 @@ export default function Settings() {
     if (loading || !user) return null
 
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
+        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 lg:pl-20 xl:pl-56">
             <div className="pt-safe">
-            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50">
-                    Settings
-                </h1>
-            </div>
-            </div>
-
-            <div className="p-4 sm:p-6 lg:p-8">
-                <div className="content-container max-w-2xl">
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex items-center gap-4 mb-6 sm:mb-8">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-100 dark:bg-emerald-950/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
-                            <UserIcon size={28} className="sm:w-8 sm:h-8" />
-                        </div>
-                        <div className="min-w-0">
-                            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-50 truncate">
-                                {user.displayName || 'User'}
-                            </h2>
-                            <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 truncate">
-                                {user.email}
-                            </p>
-                        </div>
+            <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-6 pb-5 pt-12 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <SettingsIcon size={22} />
                     </div>
-
-                    <div className="space-y-4">
-                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-400">
-                                    {darkMode ? (
-                                        <Moon size={20} />
-                                    ) : (
-                                        <Sun size={20} />
-                                    )}
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900 dark:text-slate-50">
-                                        Dark Mode
-                                    </h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                                        {darkMode ? 'On' : 'Off'}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={toggleDarkMode}
-                                className={`w-14 h-8 rounded-full transition-colors relative flex-shrink-0 ${darkMode ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-800'}`}
-                            >
-                                <div
-                                    className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform shadow-sm ${darkMode ? 'translate-x-6' : 'translate-x-0'}`}
-                                />
-                            </button>
-                        </div>
-
-                        <Button
-                            variant="outline"
-                            className="w-full flex items-center justify-between text-red-600 dark:text-red-400 border-red-100 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-200 dark:hover:border-red-900"
-                            onClick={handleSignOut}
-                        >
-                            <span>Sign Out</span>
-                            <LogOut size={20} />
-                        </Button>
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                            Settings
+                        </h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Manage your account and app preferences.
+                        </p>
                     </div>
                 </div>
             </div>
+            </div>
+
+            <div className="mx-auto w-full max-w-3xl space-y-8 p-6">
+                <section className="space-y-3">
+                    <SectionHeading
+                        title="Account"
+                        description="Your profile and sign-in details."
+                    />
+                    <ProfileSummaryCard user={user} />
+                </section>
+
+                <section className="space-y-3">
+                    <SectionHeading
+                        title="Preferences"
+                        description="Adjust how the app looks on this device."
+                    />
+                    <ThemePreferenceCard
+                        darkMode={darkMode}
+                        onToggle={() => void toggleDarkMode()}
+                    />
+                </section>
+
+                <section className="space-y-3">
+                    <SectionHeading
+                        title="Security"
+                        description="Keep access to your account under control."
+                    />
+
+                    <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        {usesPasswordProvider && (
+                            <SettingsActionRow
+                                icon={KeyRound}
+                                title="Change password"
+                                description="Update the password used for email sign-in."
+                                onClick={() => openDialog('password')}
+                            />
+                        )}
+                        <SettingsActionRow
+                            icon={LogOut}
+                            title="Sign out"
+                            description="End this session on the current device."
+                            onClick={handleSignOut}
+                        />
+                        <SettingsActionRow
+                            icon={Trash2}
+                            title="Delete account"
+                            description="Permanently remove your account and saved access."
+                            danger
+                            onClick={() => openDialog('delete')}
+                        />
+                    </div>
+
+                    <SettingsStatusMessages />
+                </section>
+            </div>
+
+            {usesPasswordProvider && <PasswordChangeModal />}
+
+            <DeleteAccountModal usesPasswordProvider={usesPasswordProvider} />
         </div>
+    )
+}
+
+function SectionHeading({
+    title,
+    description,
+}: {
+    title: string
+    description: string
+}) {
+    return (
+        <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-50">
+                {title}
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+                {description}
+            </p>
+        </div>
+    )
+}
+
+function SettingsActionRow({
+    icon: Icon,
+    title,
+    description,
+    danger = false,
+    onClick,
+}: {
+    icon: LucideIcon
+    title: string
+    description: string
+    danger?: boolean
+    onClick: () => void
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={cn(
+                'group flex w-full items-center gap-4 border-b border-slate-100 p-4 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500 dark:border-slate-800 dark:hover:bg-slate-800/60 sm:p-5',
+                danger && 'hover:bg-red-50 dark:hover:bg-red-950/20'
+            )}
+        >
+            <span
+                className={cn(
+                    'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+                    danger &&
+                        'bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400'
+                )}
+            >
+                <Icon size={20} />
+            </span>
+            <span className="min-w-0 flex-1">
+                <span
+                    className={cn(
+                        'block font-semibold text-slate-900 dark:text-slate-50',
+                        danger && 'text-red-600 dark:text-red-400'
+                    )}
+                >
+                    {title}
+                </span>
+                <span className="mt-0.5 block text-sm text-slate-500 dark:text-slate-400">
+                    {description}
+                </span>
+            </span>
+            <ChevronRight
+                size={19}
+                className={cn(
+                    'shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5 dark:text-slate-600',
+                    danger && 'text-red-300 dark:text-red-800'
+                )}
+            />
+        </button>
+    )
+}
+
+function SettingsStatusMessages() {
+    const activeDialog = useSettingsStore((state) => state.activeDialog)
+    const passwordStatus = useSettingsStore((state) => state.password.status)
+    const deleteStatus = useSettingsStore((state) => state.deleteAccount.status)
+
+    return (
+        <>
+            {passwordStatus && activeDialog !== 'password' && (
+                <StatusMessage>{passwordStatus}</StatusMessage>
+            )}
+
+            {deleteStatus && activeDialog !== 'delete' && (
+                <StatusMessage danger>{deleteStatus}</StatusMessage>
+            )}
+        </>
+    )
+}
+
+function StatusMessage({
+    children,
+    danger = false,
+}: {
+    children: ReactNode
+    danger?: boolean
+}) {
+    return (
+        <p
+            className={cn(
+                'flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300',
+                danger &&
+                    'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'
+            )}
+        >
+            {danger && <ShieldAlert size={16} />}
+            {children}
+        </p>
     )
 }
