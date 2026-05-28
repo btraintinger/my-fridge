@@ -1,0 +1,542 @@
+{
+    "common": {
+        "appName": "MyFridge",
+        "appTagline": "Digital fridge management application",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "close": "Close",
+        "back": "Back",
+        "loading": "Loading...",
+        "saving": "Saving...",
+        "retry": "Retry",
+        "yes": "Yes",
+        "no": "No",
+        "none": "-",
+        "search": "Search",
+        "add": "Add",
+        "create": "Create",
+        "invite": "Invite",
+        "share": "Share",
+        "remove": "Remove",
+        "edit": "Edit",
+        "oops": "Oops",
+        "today": "Today"
+    },
+    "nav": {
+        "fridges": "Fridges",
+        "scan": "Scan",
+        "list": "List",
+        "settings": "Settings"
+    },
+    "home": {
+        "tagline": "The smartest way to manage your groceries and reduce food waste.",
+        "getStarted": "Get Started",
+        "signIn": "Sign In"
+    },
+    "auth": {
+        "login": {
+            "title": "Welcome Back",
+            "subtitle": "Enter your details to access your fridges.",
+            "submit": "Sign In",
+            "submitting": "Signing in...",
+            "socialDivider": "Social login",
+            "googleButton": "Sign in with Google",
+            "noAccount": "Don't have an account?",
+            "signUpLink": "Sign up",
+            "verificationSentBanner": "Verification email sent. Check your inbox before signing in.",
+            "verifyEmailFirst": "Please verify your email before signing in. Resend verification email if needed.",
+            "missingEmailPasswordForResend": "Enter your email and password to resend the verification email.",
+            "verificationResent": "Verification email sent. Check your inbox, then sign in again.",
+            "alreadyVerified": "This account is already verified. You can sign in normally.",
+            "sendingVerification": "Sending verification...",
+            "resendVerification": "Resend verification email",
+            "missingEmailForReset": "Enter your email address to receive a password reset email.",
+            "passwordResetSent": "Password reset email sent. Check your inbox.",
+            "sendingResetEmail": "Sending reset email...",
+            "forgotPassword": "Forgot password?",
+            "loginFailed": "Failed to login. Please try again.",
+            "resendVerificationFailed": "Could not resend verification email. Please try again.",
+            "resetEmailFailed": "Could not send password reset email. Please try again."
+        },
+        "register": {
+            "title": "Create Account",
+            "subtitle": "Start managing your fridge waste-free.",
+            "name": "Name",
+            "namePlaceholder": "Your name",
+            "submit": "Sign Up",
+            "submitting": "Creating account...",
+            "passwordRules": "Min. 8 chars, 1 uppercase, 1 digit, 1 symbol",
+            "socialDivider": "Social login",
+            "googleButton": "Sign up with Google",
+            "haveAccount": "Already have an account?",
+            "signInLink": "Sign in",
+            "accountCreated": "Account created successfully!",
+            "accountCreationFailed": "Account could not be created."
+        },
+        "fields": {
+            "email": "Email",
+            "emailPlaceholder": "you@example.com",
+            "password": "Password",
+            "passwordPlaceholder": "••••••••"
+        },
+        "google": {
+            "default": "Sign in with Google",
+            "connecting": "Connecting...",
+            "failed": "Failed to sign in with Google."
+        },
+        "firebaseErrors": {
+            "auth/cancelled-popup-request": "Sign-in request was cancelled. Please try again.",
+            "auth/email-already-in-use": "This email is already in use.",
+            "auth/invalid-credential": "Please verify your credentials and try again.",
+            "auth/invalid-email": "Please enter a valid email address.",
+            "auth/invalid-login-credentials": "Invalid email or password.",
+            "auth/network-request-failed": "Network error. Please check your connection.",
+            "auth/operation-not-allowed": "This sign-in method is not currently available.",
+            "auth/popup-blocked": "Pop-up was blocked. Please allow pop-ups and try again.",
+            "auth/popup-closed-by-user": "Sign-in was cancelled. Please try again.",
+            "auth/requires-recent-login": "For security, sign in again and repeat this action.",
+            "auth/too-many-requests": "Too many attempts. Please wait and retry.",
+            "auth/user-disabled": "This account has been disabled.",
+            "auth/user-not-found": "No account found for this email.",
+            "auth/weak-password": "Choose a stronger password (at least 6 characters).",
+            "auth/wrong-password": "Current password is incorrect."
+        }
+    },
+    "validation": {
+        "name": {
+            "min": "Name must be at least {min} characters.",
+            "max": "Name must be at most {max} characters."
+        },
+        "email": {
+            "required": "Email is required.",
+            "invalid": "Please enter a valid email address."
+        },
+        "password": {
+            "min": "Password must be at least {min} characters.",
+            "uppercase": "Password must contain at least one uppercase letter.",
+            "digit": "Password must contain at least one digit.",
+            "symbol": "Password must contain at least one special character.",
+            "required": "Password is required."
+        },
+        "fridgeName": {
+            "min": "Fridge name must be at least {min} characters.",
+            "max": "Fridge name must be at most {max} characters."
+        },
+        "shoppingItem": {
+            "required": "Please enter an item.",
+            "max": "Item must be at most {max} characters."
+        },
+        "quantity": {
+            "type": "Quantity must be a number.",
+            "int": "Quantity must be a whole number.",
+            "min": "Quantity must be at least {min}."
+        },
+        "product": {
+            "nameRequired": "Product name is required.",
+            "nameMax": "Product name must be at most {max} characters.",
+            "categoryRequired": "Category is required.",
+            "notesMax": "Notes must be at most {max} characters."
+        }
+    },
+    "fridges": {
+        "list": {
+            "title": "My Fridges",
+            "subtitle": "Track your groceries and reduce waste.",
+            "newButton": "New",
+            "namePlaceholder": "e.g. Kitchen, Office",
+            "createSubmit": "Create",
+            "creating": "...",
+            "emptyTitle": "No fridges yet",
+            "emptyMessage": "Create your first fridge to start tracking your groceries and reducing waste.",
+            "createCta": "Create a Fridge"
+        },
+        "card": {
+            "viewInventory": "View inventory",
+            "mostCommonNutriScore": "Most common Nutri-Score: {grade}"
+        },
+        "detail": {
+            "shareTitle": "Share Fridge",
+            "shareHeading": "Share Access",
+            "shareEmailPlaceholder": "Collaborator's email",
+            "sharedWith": "Shared with",
+            "noOneYet": "No one yet",
+            "removeAccess": "Remove access",
+            "nutriScoreLabel": "Nutri-Score",
+            "productsCount": "{count, plural, =0 {No products} one {# product} other {# products}}",
+            "moreAnalysis": "More analysis",
+            "searchPlaceholder": "Search products...",
+            "addButton": "Add",
+            "inventory": "Inventory",
+            "emptyFridge": "Your fridge is empty. Scan items to fill it up!",
+            "noResults": "No products match your filters.",
+            "startScanning": "Start Scanning",
+            "fridgeNotFound": "Fridge not found",
+            "backToFridges": "Back to Fridges",
+            "deleteProductTitle": "Delete product",
+            "deleteProductConfirm": "Do you really want to remove {name} from this fridge?",
+            "swipeDelete": "Delete",
+            "deleteProductTooltip": "Delete product",
+            "saveQuantity": "Save",
+            "cancelQuantity": "Cancel",
+            "quantityLabel": "Q: {count}",
+            "veganBadge": "Vegan",
+            "manualBadge": "Manual",
+            "filters": {
+                "allCategories": "All categories",
+                "dairy": "Dairy",
+                "meat": "Meat & Sausage",
+                "veg": "Vegetables",
+                "fruit": "Fruit",
+                "drinks": "Drinks"
+            },
+            "sort": {
+                "nameAsc": "Name (A-Z)",
+                "nameDesc": "Name (Z-A)",
+                "quantityAsc": "Quantity (Asc)",
+                "quantityDesc": "Quantity (Desc)",
+                "nutriAsc": "Nutri-Score (Asc)",
+                "nutriDesc": "Nutri-Score (Desc)",
+                "expiryAsc": "Expiry (Soonest first)"
+            },
+            "categories": {
+                "dairy": "Dairy",
+                "meatFish": "Meat & Fish",
+                "vegFruit": "Vegetables & Fruit",
+                "drinks": "Drinks",
+                "snacks": "Snacks & Sweets",
+                "frozen": "Frozen",
+                "other": "Other"
+            }
+        },
+        "analysis": {
+            "title": "Analysis",
+            "overallHealth": "Overall health",
+            "headline": "What is inside your fridge, and how healthy it looks.",
+            "subheadline": "A quick overview of product balance, scores, quantities, and nutritional averages.",
+            "modalNutriScore": "Modal Nutri-Score",
+            "stats": {
+                "items": "Items",
+                "totalQuantity": "Total quantity",
+                "avgQuantity": "Avg. quantity",
+                "expiringSoon": "Expiring soon"
+            },
+            "warnings": {
+                "title": "Warnings",
+                "subtitle": "Products with high or medium nutritional warnings.",
+                "products": "Products",
+                "high": "High",
+                "medium": "Medium"
+            },
+            "dataCoverage": {
+                "title": "Data coverage",
+                "subtitle": "How much product data is available for analysis.",
+                "nutriScore": "Nutri-Score",
+                "nutriments": "Nutriments"
+            },
+            "quickSignal": {
+                "title": "Quick signal",
+                "subtitle": "At-a-glance quality trend in your fridge.",
+                "highWarnings": "Some products need attention due to high warning levels.",
+                "ok": "No high warning products detected right now."
+            },
+            "nutriSpread": {
+                "title": "Nutri-Score spread",
+                "subtitle": "How the grades are distributed across your fridge."
+            },
+            "dietary": {
+                "title": "Dietary flags",
+                "subtitle": "Presence of vegan, vegetarian, and palm-oil-free items.",
+                "vegan": "Vegan",
+                "vegetarian": "Vegetarian",
+                "palmOilFree": "Palm oil free"
+            },
+            "avgNutrition": {
+                "title": "Average nutrition",
+                "subtitle": "Average values from products with nutrition data.",
+                "per100g": "per 100g"
+            },
+            "best": {
+                "title": "Best products",
+                "subtitle": "Products that currently look healthiest in your fridge.",
+                "empty": "No products available yet."
+            },
+            "needsAttention": {
+                "title": "Needs attention",
+                "subtitle": "Products with low scores or high warning levels.",
+                "empty": "No risk products detected."
+            },
+            "warningDetails": {
+                "title": "Warning details",
+                "subtitle": "Specific warning signals for products that need attention.",
+                "lowNutri": "Low Nutri-Score detected."
+            },
+            "topBrands": {
+                "title": "Top brands",
+                "subtitle": "Most common brands in this fridge.",
+                "empty": "No brand data available."
+            },
+            "recommendation": {
+                "title": "Recommendation",
+                "subtitle": "Based on the current distribution.",
+                "addProducts": "Add products to your fridge to get a health score.",
+                "reduceDE": "Try to reduce products with Nutri-Score D or E.",
+                "addAB": "Add more products with Nutri-Score A or B.",
+                "great": "Great balance! Keep it up."
+            },
+            "backToFridge": "Back to fridge",
+            "warningCount": "{count, plural, one {# warning} other {# warnings}}"
+        }
+    },
+    "scanner": {
+        "title": "Scan Product",
+        "subtitle": "Scan a barcode or search manually.",
+        "barcodePlaceholder": "Enter barcode (e.g. 9012501000053)",
+        "cameraScanner": "Camera Scanner",
+        "addManually": "Add Manually",
+        "origin": "Origin: {country}",
+        "nutriScore": "Nutri-Score",
+        "labels": "Labels",
+        "flags": {
+            "vegan": "Vegan",
+            "vegetarian": "Vegetarian",
+            "palmOilFree": "Palm oil free"
+        },
+        "nutritionTitle": "Nutritional Values (per 100g)",
+        "nutritionWarningsTitle": "Nutrition warnings (per 100g)",
+        "allergens": "Allergens",
+        "addToFridge": "Add to Fridge",
+        "addedToFridge": "Added to fridge!",
+        "createFridgeFirst": "Create a fridge first to add products.",
+        "energy": "Energy",
+        "fat": "Fat",
+        "saturatedFat": "Saturated Fat",
+        "carbohydrates": "Carbohydrates",
+        "sugars": "Sugars",
+        "proteins": "Proteins",
+        "salt": "Salt",
+        "fiber": "Fiber",
+        "errors": {
+            "offline": "Only previously saved products are available offline.",
+            "notFound": "Product not found. Please add manually.",
+            "searchFailed": "Error searching product."
+        },
+        "modal": {
+            "title": "Scanner",
+            "cameraNotFound": "No camera found",
+            "scannerAreaNotFound": "Scanner area not found",
+            "starting": "Camera starting...",
+            "initializing": "Initializing camera...",
+            "optimizingLens": "Optimizing lens...",
+            "focusing": "Focusing...",
+            "flashOn": "Flash on",
+            "flashOff": "Flash off",
+            "switchLens": "Switch lens",
+            "cancel": "Cancel"
+        }
+    },
+    "manualProduct": {
+        "title": "Add product manually",
+        "nameLabel": "Product name",
+        "namePlaceholder": "e.g. Apples from market",
+        "quantityLabel": "Quantity",
+        "categoryLabel": "Category",
+        "expiryLabel": "Expiry date",
+        "notesLabel": "Notes",
+        "notesPlaceholder": "Other details about this product...",
+        "submitting": "Adding...",
+        "submit": "Add to Fridge",
+        "manualLabel": "Manual",
+        "categories": {
+            "dairy": "Dairy",
+            "meatFish": "Meat & Fish",
+            "vegFruit": "Vegetables & Fruit",
+            "snacks": "Snacks & Sweets",
+            "drinks": "Drinks",
+            "frozen": "Frozen",
+            "other": "Other"
+        }
+    },
+    "productModal": {
+        "noImage": "No image available",
+        "origin": "Origin: {country}",
+        "inventory": "Inventory",
+        "quantity": "Quantity: {count}",
+        "productInfo": "Product Info",
+        "flags": {
+            "vegan": "Vegan",
+            "vegetarian": "Vegetarian",
+            "palmOilFree": "Palm oil free"
+        },
+        "nutritionWarnings": "Nutrition warnings (per 100g)",
+        "nutriScore": "Nutri-Score",
+        "ecoScore": "Eco-Score",
+        "nutritionTitle": "Nutritional Values (per 100g)",
+        "energy": "Energy",
+        "fat": "Fat",
+        "saturatedFat": "Saturated Fat",
+        "sugars": "Sugars",
+        "proteins": "Proteins",
+        "fiber": "Fiber",
+        "salt": "Salt",
+        "allergens": "Allergens",
+        "noAllergens": "None reported",
+        "ingredients": "Ingredients"
+    },
+    "shoppingList": {
+        "title": "Shopping List",
+        "subtitle": "Plan what to buy next.",
+        "selectFridge": "Select Fridge",
+        "quickAdd": "Quick Add",
+        "movingToFridge": "Moving to fridge...",
+        "emptyTitle": "List is empty",
+        "emptyMessage": "Add items you need to buy above.",
+        "toBuy": "To Buy",
+        "recentlyAdded": "Recently Added",
+        "addPlaceholder": "Add an item...",
+        "scanTooltip": "Scan product and move to fridge",
+        "itemScanTooltip": "Scan to move to fridge"
+    },
+    "settings": {
+        "title": "Settings",
+        "subtitle": "Manage your account and app preferences.",
+        "sections": {
+            "account": {
+                "title": "Account",
+                "description": "Your profile and sign-in details."
+            },
+            "preferences": {
+                "title": "Preferences",
+                "description": "Adjust how the app looks on this device."
+            },
+            "security": {
+                "title": "Security",
+                "description": "Keep access to your account under control."
+            },
+            "language": {
+                "title": "Language",
+                "description": "Choose the display language for the app."
+            }
+        },
+        "profile": {
+            "verified": "Verified",
+            "signInMethod": "Sign-in method",
+            "memberSince": "Member since",
+            "notAvailable": "Not available",
+            "providers": {
+                "google": "Google account",
+                "password": "Email and password",
+                "other": "Connected account"
+            },
+            "fallbackName": "User",
+            "profileImageAlt": "Profile"
+        },
+        "theme": {
+            "title": "Dark Mode",
+            "on": "On",
+            "off": "Off",
+            "turnOn": "Turn dark mode on",
+            "turnOff": "Turn dark mode off"
+        },
+        "language": {
+            "title": "Language",
+            "en": "English",
+            "de": "German",
+            "switchAria": "Change language"
+        },
+        "actions": {
+            "changePassword": {
+                "title": "Change password",
+                "description": "Update the password used for email sign-in."
+            },
+            "signOut": {
+                "title": "Sign out",
+                "description": "End this session on the current device."
+            },
+            "deleteAccount": {
+                "title": "Delete account",
+                "description": "Permanently remove your account and saved access."
+            }
+        },
+        "password": {
+            "title": "Change Password",
+            "newPlaceholder": "New password",
+            "confirmPlaceholder": "Confirm new password",
+            "currentPlaceholder": "Current password",
+            "submit": "Change Password",
+            "submitting": "Updating password...",
+            "mismatch": "Passwords must match.",
+            "tooShort": "Your new password must be at least 6 characters.",
+            "updated": "Password updated successfully.",
+            "updateFailed": "Could not update password. Please try again."
+        },
+        "delete": {
+            "title": "Delete Account",
+            "confirmText": "DELETE",
+            "warning": "This action is permanent. Type DELETE to confirm.",
+            "currentPasswordPlaceholder": "Current password",
+            "googleNote": "You will be redirected to Google to confirm this action.",
+            "submit": "Delete Account",
+            "submitting": "Deleting account...",
+            "typeDelete": "Type DELETE to confirm account deletion.",
+            "deleteFailed": "Could not delete account. Please try again."
+        },
+        "modal": {
+            "closeAria": "Close dialog"
+        }
+    },
+    "offline": {
+        "title": "You are offline",
+        "message": "MyFridge can still display cached fridge data and saved products. Once you are back online, changes will sync automatically.",
+        "retry": "Retry",
+        "openScanner": "Open scanner",
+        "offlineBadge": "Offline",
+        "installCta": "Add to Home Screen"
+    },
+    "debug": {
+        "title": "Debug Tools",
+        "description": "This page resets test data during development.",
+        "mustBeLoggedIn": "You must be signed in to delete your data.",
+        "confirm": "Do you really want to delete ALL your fridges, products, and shopping lists? This cannot be undone.",
+        "deleteStarted": "Deletion started...",
+        "deleteSuccess": "Database cleared successfully. {count} of your fridges were deleted.",
+        "deleteButton": "Clear database now",
+        "backToApp": "Back to app",
+        "retry": "Retry",
+        "permissionDenied": "Permission denied. Make sure you are signed in or temporarily open the security rules in the Firebase console.",
+        "genericFailure": "Deletion failed: {message}",
+        "unknownError": "Unknown error",
+        "cancel": "Cancel and go back",
+        "cacheWarn": "Product cache could not be cleared (possibly missing permission):"
+    },
+    "nutrimentWarnings": {
+        "sugar": {
+            "label": "Sugar",
+            "high": "Very high sugar content (per 100g).",
+            "medium": "Moderately high sugar content (per 100g)."
+        },
+        "salt": {
+            "label": "Salt",
+            "high": "Very high salt content (per 100g).",
+            "medium": "Moderately high salt content (per 100g)."
+        },
+        "fat": {
+            "label": "Fat",
+            "high": "Very high fat content (per 100g).",
+            "medium": "Moderately high fat content (per 100g)."
+        },
+        "saturated_fat": {
+            "label": "Saturated fat",
+            "high": "Very high saturated fat content (per 100g).",
+            "medium": "Moderately high saturated fat content (per 100g)."
+        },
+        "energy": {
+            "label": "Energy",
+            "high": "Very energy-dense (per 100g).",
+            "medium": "Moderately energy-dense (per 100g)."
+        }
+    },
+    "toast": {
+        "genericError": "Something went wrong. Please try again."
+    }
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import type { FormEvent } from 'react'
+import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -10,6 +11,8 @@ import { useFirebaseAuth } from '@/hooks/useFirebaseAuth'
 import { useSettingsStore } from '@/stores/settingsStore'
 
 export const PasswordChangeModal = () => {
+    const t = useTranslations('settings')
+    const tCommon = useTranslations('common')
     const isOpen = useSettingsStore(
         (state) => state.activeDialog === 'password'
     )
@@ -30,14 +33,12 @@ export const PasswordChangeModal = () => {
         setPasswordStatus('')
 
         if (passwordState.newPassword !== passwordState.confirmNewPassword) {
-            setPasswordStatus('Passwords must match.')
+            setPasswordStatus(t('password.mismatch'))
             return
         }
 
         if (passwordState.newPassword.length < 6) {
-            setPasswordStatus(
-                'Your new password must be at least 6 characters.'
-            )
+            setPasswordStatus(t('password.tooShort'))
             return
         }
 
@@ -48,14 +49,11 @@ export const PasswordChangeModal = () => {
                 passwordState.currentPassword,
                 passwordState.newPassword
             )
-            resetPassword('Password updated successfully.')
+            resetPassword(t('password.updated'))
             closeDialog()
         } catch (error) {
             setPasswordStatus(
-                formatAuthError(
-                    error,
-                    'Could not update password. Please try again.'
-                )
+                formatAuthError(error, t('password.updateFailed'))
             )
         } finally {
             setPasswordLoading(false)
@@ -66,7 +64,7 @@ export const PasswordChangeModal = () => {
         <SettingsActionModal
             isOpen={isOpen}
             onClose={closeDialog}
-            title="Change Password"
+            title={t('password.title')}
         >
             <SettingsActionForm onSubmit={handleSubmit} className="space-y-4">
                 <Input
@@ -75,7 +73,7 @@ export const PasswordChangeModal = () => {
                     onChange={(event) =>
                         setPasswordField('newPassword', event.target.value)
                     }
-                    placeholder="New password"
+                    placeholder={t('password.newPlaceholder')}
                     required
                     minLength={6}
                 />
@@ -88,7 +86,7 @@ export const PasswordChangeModal = () => {
                             event.target.value
                         )
                     }
-                    placeholder="Confirm new password"
+                    placeholder={t('password.confirmPlaceholder')}
                     required
                     minLength={6}
                 />
@@ -98,7 +96,7 @@ export const PasswordChangeModal = () => {
                     onChange={(event) =>
                         setPasswordField('currentPassword', event.target.value)
                     }
-                    placeholder="Current password"
+                    placeholder={t('password.currentPlaceholder')}
                     required
                 />
                 {passwordState.status && (
@@ -113,7 +111,7 @@ export const PasswordChangeModal = () => {
                         className="flex-1"
                         onClick={closeDialog}
                     >
-                        Cancel
+                        {tCommon('cancel')}
                     </Button>
                     <Button
                         type="submit"
@@ -121,8 +119,8 @@ export const PasswordChangeModal = () => {
                         disabled={passwordState.loading}
                     >
                         {passwordState.loading
-                            ? 'Updating password...'
-                            : 'Change Password'}
+                            ? t('password.submitting')
+                            : t('password.submit')}
                     </Button>
                 </div>
             </SettingsActionForm>

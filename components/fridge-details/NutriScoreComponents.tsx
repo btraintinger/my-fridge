@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl'
 import { NUTRI_GRADES } from '@/lib/constants'
 import type { FridgeItem } from '@/lib/types'
 
@@ -27,6 +28,7 @@ export function NutriScoreBadge({
 }
 
 export function NutriScoreDistribution({ items }: { items: FridgeItem[] }) {
+    const t = useTranslations('fridges.analysis.nutriSpread')
     const withScore = items.filter((i) => i.product?.nutriscore_grade)
     if (withScore.length === 0) return null
 
@@ -40,7 +42,7 @@ export function NutriScoreDistribution({ items }: { items: FridgeItem[] }) {
     return (
         <div className="mt-4">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                Nutri-Score Verteilung
+                {t('title')}
             </p>
             <div className="flex gap-1 h-8 rounded-xl overflow-hidden">
                 {counts.map((g) =>

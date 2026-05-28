@@ -1,6 +1,7 @@
 import { Plus, ScanLine } from 'lucide-react'
-import { Button } from '../ui/Button'
-import { Input } from '../ui/Input'
+import { useTranslations } from 'next-intl'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 
 interface AddItemFormProps {
      newItem: string
@@ -15,11 +16,13 @@ export function AddItemForm({
     onAdd,
     onOpenScanner,
 }: AddItemFormProps) {
+    const t = useTranslations('shoppingList')
+
     return (
         <div className="flex gap-2">
             <form onSubmit={onAdd} className="flex-1 flex gap-2">
                 <Input
-                    placeholder="Add an item..."
+                    placeholder={t('addPlaceholder')}
                     value={newItem}
                     onChange={(e) => setNewItem(e.target.value)}
                     className="flex-1"
@@ -31,7 +34,7 @@ export function AddItemForm({
             <Button
                 variant="secondary"
                 onClick={onOpenScanner}
-                title="Scan product and move to fridge"
+                title={t('scanTooltip')}
             >
                 <ScanLine size={20} />
             </Button>

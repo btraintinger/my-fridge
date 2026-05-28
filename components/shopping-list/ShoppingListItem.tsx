@@ -1,5 +1,6 @@
 import { ScanLine, Trash2 } from 'lucide-react'
-import type { ShoppingListItem as ShoppingListItemType } from '../../lib/types'
+import { useTranslations } from 'next-intl'
+import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
 
 interface ShoppingListItemProps {
     item: ShoppingListItemType
@@ -14,6 +15,8 @@ export function ShoppingListItem({
     onScan,
     onDelete,
 }: ShoppingListItemProps) {
+    const t = useTranslations('shoppingList')
+
     if (item.checked) {
         return (
             <div className="flex items-center gap-3 bg-white/60 dark:bg-slate-900/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 animate-in fade-in duration-300">
@@ -60,7 +63,7 @@ export function ShoppingListItem({
             <button
                 onClick={() => onScan(item.id)}
                 className="text-emerald-500 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 p-2 rounded-xl transition-all active:scale-95"
-                title="Scan to move to fridge"
+                title={t('itemScanTooltip')}
             >
                 <ScanLine size={18} />
             </button>

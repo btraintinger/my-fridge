@@ -1,97 +1,116 @@
 import { z } from 'zod'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Translator = (key: any, values?: any) => string
 
 // ── Registration ────────────────────────────────────────────────────────────
-export const registerSchema = z.object({
-    name: z
-        .string()
-        .min(2, 'Name muss mindestens 2 Zeichen lang sein.')
-        .max(50, 'Name darf maximal 50 Zeichen lang sein.')
-        .trim(),
-    email: z
-        .string()
-        .min(1, 'E-Mail ist erforderlich.')
-        .email('Bitte gib eine gültige E-Mail-Adresse ein.'),
-    password: z
-        .string()
-        .min(8, 'Passwort muss mindestens 8 Zeichen lang sein.')
-        .regex(/[A-Z]/, 'Passwort muss mindestens einen Großbuchstaben enthalten.')
-        .regex(/[0-9]/, 'Passwort muss mindestens eine Zahl enthalten.')
-        .regex(
-            /[^A-Za-z0-9]/,
-            'Passwort muss mindestens ein Sonderzeichen enthalten.'
-        ),
-})
+export const createRegisterSchema = (t: Translator) =>
+    z.object({
+        name: z
+            .string()
+            .min(2, t('validation.name.min', { min: 2 }))
+            .max(50, t('validation.name.max', { max: 50 }))
+            .trim(),
+        email: z
+            .string()
+            .min(1, t('validation.email.required'))
+            .email(t('validation.email.invalid')),
+        password: z
+            .string()
+            .min(8, t('validation.password.min', { min: 8 }))
+            .regex(/[A-Z]/, t('validation.password.uppercase'))
+            .regex(/[0-9]/, t('validation.password.digit'))
+            .regex(/[^A-Za-z0-9]/, t('validation.password.symbol')),
+    })
 
-export type RegisterFormData = z.infer<typeof registerSchema>
+export type RegisterFormData = z.infer<ReturnType<typeof createRegisterSchema>>
 
 // ── Login ───────────────────────────────────────────────────────────────────
-export const loginSchema = z.object({
-    email: z
-        .string()
-        .min(1, 'E-Mail ist erforderlich.')
-        .email('Bitte gib eine gültige E-Mail-Adresse ein.'),
-    password: z.string().min(1, 'Passwort ist erforderlich.'),
-})
+export const createLoginSchema = (t: Translator) =>
+    z.object({
+        email: z
+            .string()
+            .min(1, t('validation.email.required'))
+            .email(t('validation.email.invalid')),
+        password: z.string().min(1, t('validation.password.required')),
+    })
 
-export type LoginFormData = z.infer<typeof loginSchema>
+export type LoginFormData = z.infer<ReturnType<typeof createLoginSchema>>
 
 // ── Create Fridge ───────────────────────────────────────────────────────────
-export const createFridgeSchema = z.object({
-    name: z
-        .string()
-        .min(2, 'Kühlschrank-Name muss mindestens 2 Zeichen lang sein.')
-        .max(60, 'Kühlschrank-Name darf maximal 60 Zeichen lang sein.')
-        .trim(),
-})
+export const createCreateFridgeSchema = (t: Translator) =>
+    z.object({
+        name: z
+            .string()
+            .min(2, t('validation.fridgeName.min', { min: 2 }))
+            .max(60, t('validation.fridgeName.max', { max: 60 }))
+            .trim(),
+    })
 
-export type CreateFridgeFormData = z.infer<typeof createFridgeSchema>
+export type CreateFridgeFormData = z.infer<
+    ReturnType<typeof createCreateFridgeSchema>
+>
 
 // ── Share Fridge ────────────────────────────────────────────────────────────
-export const shareFridgeSchema = z.object({
-    email: z
-        .string()
-        .min(1, 'E-Mail ist erforderlich.')
-        .email('Bitte gib eine gültige E-Mail-Adresse ein.')
-        .trim(),
-})
+export const createShareFridgeSchema = (t: Translator) =>
+    z.object({
+        email: z
+            .string()
+            .min(1, t('validation.email.required'))
+            .email(t('validation.email.invalid'))
+            .trim(),
+    })
 
-export type ShareFridgeFormData = z.infer<typeof shareFridgeSchema>
+export type ShareFridgeFormData = z.infer<
+    ReturnType<typeof createShareFridgeSchema>
+>
 
 // ── Shopping List Item ──────────────────────────────────────────────────────
-export const shoppingItemSchema = z.object({
-    name: z
-        .string()
-        .min(1, 'Bitte gib einen Eintrag an.')
-        .max(120, 'Eintrag darf maximal 120 Zeichen lang sein.')
-        .trim(),
-})
+export const createShoppingItemSchema = (t: Translator) =>
+    z.object({
+        name: z
+            .string()
+            .min(1, t('validation.shoppingItem.required'))
+            .max(120, t('validation.shoppingItem.max', { max: 120 }))
+            .trim(),
+    })
 
-export type ShoppingItemFormData = z.infer<typeof shoppingItemSchema>
+export type ShoppingItemFormData = z.infer<
+    ReturnType<typeof createShoppingItemSchema>
+>
 
 // ── Item Quantity ───────────────────────────────────────────────────────────
-export const itemQuantitySchema = z.object({
-    quantity: z
-        .number({ error: 'Menge muss eine Zahl sein.' })
-        .int('Menge muss eine ganze Zahl sein.')
-        .min(1, 'Menge muss mindestens 1 sein.'),
-})
+export const createItemQuantitySchema = (t: Translator) =>
+    z.object({
+        quantity: z
+            .number({ error: t('validation.quantity.type') })
+            .int(t('validation.quantity.int'))
+            .min(1, t('validation.quantity.min', { min: 1 })),
+    })
 
-export type ItemQuantityFormData = z.infer<typeof itemQuantitySchema>
+export type ItemQuantityFormData = z.infer<
+    ReturnType<typeof createItemQuantitySchema>
+>
 
 // ── Manual Product ──────────────────────────────────────────────────────────
-export const manualProductSchema = z.object({
-    name: z
-        .string()
-        .min(1, 'Produktname ist erforderlich.')
-        .max(120, 'Produktname darf maximal 120 Zeichen lang sein.')
-        .trim(),
-    quantity: z
-        .number({ error: 'Menge muss eine Zahl sein.' })
-        .int('Menge muss eine ganze Zahl sein.')
-        .min(1, 'Menge muss mindestens 1 sein.'),
-    category: z.string().min(1, 'Kategorie ist erforderlich.'),
-    expiryDate: z.string().optional(),
-    notes: z.string().max(500, 'Notizen dürfen maximal 500 Zeichen lang sein.').optional(),
-})
+export const createManualProductSchema = (t: Translator) =>
+    z.object({
+        name: z
+            .string()
+            .min(1, t('validation.product.nameRequired'))
+            .max(120, t('validation.product.nameMax', { max: 120 }))
+            .trim(),
+        quantity: z
+            .number({ error: t('validation.quantity.type') })
+            .int(t('validation.quantity.int'))
+            .min(1, t('validation.quantity.min', { min: 1 })),
+        category: z.string().min(1, t('validation.product.categoryRequired')),
+        expiryDate: z.string().optional(),
+        notes: z
+            .string()
+            .max(500, t('validation.product.notesMax', { max: 500 }))
+            .optional(),
+    })
 
-export type ManualProductFormData = z.infer<typeof manualProductSchema>
+export type ManualProductFormData = z.infer<
+    ReturnType<typeof createManualProductSchema>
+>

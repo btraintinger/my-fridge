@@ -1,7 +1,8 @@
 'use client'
 
 import { use, useMemo } from 'react'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import {
     AlertCircle,
     ArrowLeft,
@@ -9,23 +10,23 @@ import {
     ChartNoAxesCombined,
     CircleAlert,
     Flame,
-    Leaf,
     ScanLine,
     ShieldAlert,
     Sparkles,
     TrendingDown,
     TrendingUp,
 } from 'lucide-react'
-import { useFridge } from '../../../../hooks/useFridges'
-import { Button } from '../../../../components/ui/Button'
-import { HealthScoreRing } from '../../../../components/fridge-details/HealthScoreRing'
-import { NutriScoreBadge, NutriScoreDistribution } from '../../../../components/fridge-details/NutriScoreComponents'
-import { calculateHealthScore } from '../../../../lib/healthScore'
-import { analyzeFridge } from '../../../../lib/fridgeAnalytics'
-import { getNutrimentWarnings } from '../../../../lib/nutrimentWarnings'
+import { useFridge } from '@/hooks/useFridges'
+import { Button } from '@/components/ui/Button'
+import { HealthScoreRing } from '@/components/fridge-details/HealthScoreRing'
+import { NutriScoreBadge, NutriScoreDistribution } from '@/components/fridge-details/NutriScoreComponents'
+import { calculateHealthScore } from '@/lib/healthScore'
+import { analyzeFridge } from '@/lib/fridgeAnalytics'
+import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 
 export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params)
+    const t = useTranslations()
     const { fridge, items, loading, error } = useFridge(id)
 
     const healthScore = calculateHealthScore(items)
@@ -130,13 +131,13 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                     <AlertCircle size={40} strokeWidth={1.5} />
                 </div>
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
-                    Oops
+                    {t('common.oops')}
                 </h2>
                 <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed">
-                    {error || 'Fridge not found'}
+                    {error || t('fridges.detail.fridgeNotFound')}
                 </p>
                 <Link href="/fridges">
-                    <Button variant="outline">Back to Fridges</Button>
+                    <Button variant="outline">{t('fridges.detail.backToFridges')}</Button>
                 </Link>
             </div>
         )
@@ -157,7 +158,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                     </div>
                     <div className="min-w-0 flex-1">
                         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50 leading-tight">
-                            Analysis
+                            {t('fridges.analysis.title')}
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
                             {fridge.name}
@@ -165,7 +166,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                     </div>
                     <Link href="/scanner" className="shrink-0">
                         <Button size="sm" className="rounded-xl">
-                            <ScanLine size={18} className="mr-1" /> Add
+                            <ScanLine size={18} className="mr-1" /> {t('fridges.detail.addButton')}
                         </Button>
                     </Link>
                 </div>
@@ -177,13 +178,13 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                     <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                         <div>
                             <p className="text-xs font-bold uppercase tracking-[0.25em] text-emerald-300/80 mb-2">
-                                Overall health
+                                {t('fridges.analysis.overallHealth')}
                             </p>
                             <h2 className="text-2xl sm:text-3xl font-black leading-tight max-w-lg">
-                                What is inside your fridge, and how healthy it looks.
+                                {t('fridges.analysis.headline')}
                             </h2>
                             <p className="text-sm text-slate-300 mt-3 max-w-xl">
-                                A quick overview of product balance, scores, quantities, and nutritional averages.
+                                {t('fridges.analysis.subheadline')}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -191,7 +192,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                             <div className="flex flex-col gap-2 items-start">
                                 <NutriScoreBadge grade={analytics.nutriScore} />
                                 <div className="text-xs text-slate-300">
-                                    Modal Nutri-Score
+                                    {t('fridges.analysis.modalNutriScore')}
                                 </div>
                             </div>
                         </div>
@@ -199,36 +200,36 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                 </div>
 
                 <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
-                    <StatCard icon={<BarChart3 size={18} />} label="Items" value={String(analytics.totalItems)} />
-                    <StatCard icon={<Sparkles size={18} />} label="Total quantity" value={String(analytics.totalQuantity)} />
-                    <StatCard icon={<TrendingUp size={18} />} label="Avg. quantity" value={analytics.averageQuantity.toFixed(1)} />
-                    <StatCard icon={<Flame size={18} />} label="Expiring soon" value={String(analytics.expiringSoonCount)} />
+                    <StatCard icon={<BarChart3 size={18} />} label={t('fridges.analysis.stats.items')} value={String(analytics.totalItems)} />
+                    <StatCard icon={<Sparkles size={18} />} label={t('fridges.analysis.stats.totalQuantity')} value={String(analytics.totalQuantity)} />
+                    <StatCard icon={<TrendingUp size={18} />} label={t('fridges.analysis.stats.avgQuantity')} value={analytics.averageQuantity.toFixed(1)} />
+                    <StatCard icon={<Flame size={18} />} label={t('fridges.analysis.stats.expiringSoon')} value={String(analytics.expiringSoonCount)} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                     <SectionCard
-                        title="Warnings"
-                        subtitle="Products with high or medium nutritional warnings."
+                        title={t('fridges.analysis.warnings.title')}
+                        subtitle={t('fridges.analysis.warnings.subtitle')}
                     >
                         <div className="grid grid-cols-3 gap-2">
-                            <MiniStat label="Products" value={productInsights.warningStats.products} />
-                            <MiniStat label="High" value={productInsights.warningStats.high} tone="rose" />
-                            <MiniStat label="Medium" value={productInsights.warningStats.medium} tone="amber" />
+                            <MiniStat label={t('fridges.analysis.warnings.products')} value={productInsights.warningStats.products} />
+                            <MiniStat label={t('fridges.analysis.warnings.high')} value={productInsights.warningStats.high} tone="rose" />
+                            <MiniStat label={t('fridges.analysis.warnings.medium')} value={productInsights.warningStats.medium} tone="amber" />
                         </div>
                     </SectionCard>
 
                     <SectionCard
-                        title="Data coverage"
-                        subtitle="How much product data is available for analysis."
+                        title={t('fridges.analysis.dataCoverage.title')}
+                        subtitle={t('fridges.analysis.dataCoverage.subtitle')}
                     >
                         <div className="space-y-2">
                             <CoverageRow
-                                label="Nutri-Score"
+                                label={t('fridges.analysis.dataCoverage.nutriScore')}
                                 value={productInsights.dataCoverage.withNutriScore}
                                 total={items.length}
                             />
                             <CoverageRow
-                                label="Nutriments"
+                                label={t('fridges.analysis.dataCoverage.nutriments')}
                                 value={productInsights.dataCoverage.withNutriments}
                                 total={items.length}
                             />
@@ -236,8 +237,8 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                     </SectionCard>
 
                     <SectionCard
-                        title="Quick signal"
-                        subtitle="At-a-glance quality trend in your fridge."
+                        title={t('fridges.analysis.quickSignal.title')}
+                        subtitle={t('fridges.analysis.quickSignal.subtitle')}
                     >
                         <div className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 bg-white/90 dark:bg-slate-900/70">
                             {productInsights.warningStats.high > 0 ? (
@@ -247,28 +248,28 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                             )}
                             <p className="text-sm text-slate-700 dark:text-slate-200">
                                 {productInsights.warningStats.high > 0
-                                    ? 'Some products need attention due to high warning levels.'
-                                    : 'No high warning products detected right now.'}
+                                    ? t('fridges.analysis.quickSignal.highWarnings')
+                                    : t('fridges.analysis.quickSignal.ok')}
                             </p>
                         </div>
                     </SectionCard>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <SectionCard title="Nutri-Score spread" subtitle="How the grades are distributed across your fridge.">
+                    <SectionCard title={t('fridges.analysis.nutriSpread.title')} subtitle={t('fridges.analysis.nutriSpread.subtitle')}>
                         <NutriScoreDistribution items={items} />
                     </SectionCard>
 
-                    <SectionCard title="Dietary flags" subtitle="Presence of vegan, vegetarian, and palm-oil-free items.">
+                    <SectionCard title={t('fridges.analysis.dietary.title')} subtitle={t('fridges.analysis.dietary.subtitle')}>
                         <div className="grid grid-cols-3 gap-3">
-                            <MiniStat label="Vegan" value={analytics.veganCount} />
-                            <MiniStat label="Vegetarian" value={analytics.vegetarianCount} />
-                            <MiniStat label="Palm oil free" value={analytics.palmOilFreeCount} />
+                            <MiniStat label={t('fridges.analysis.dietary.vegan')} value={analytics.veganCount} />
+                            <MiniStat label={t('fridges.analysis.dietary.vegetarian')} value={analytics.vegetarianCount} />
+                            <MiniStat label={t('fridges.analysis.dietary.palmOilFree')} value={analytics.palmOilFreeCount} />
                         </div>
                     </SectionCard>
                 </div>
 
-                <SectionCard title="Average nutrition" subtitle="Average values from products with nutrition data.">
+                <SectionCard title={t('fridges.analysis.avgNutrition.title')} subtitle={t('fridges.analysis.avgNutrition.subtitle')}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                         {analytics.averageNutriments.map((entry) => (
                             <div key={entry.key} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 p-4">
@@ -278,7 +279,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                                 <p className="text-2xl font-black text-slate-900 dark:text-slate-50">
                                     {entry.value === null ? '-' : entry.value.toFixed(1)}
                                 </p>
-                                <p className="text-xs text-slate-400 mt-1">per 100g</p>
+                                <p className="text-xs text-slate-400 mt-1">{t('fridges.analysis.avgNutrition.per100g')}</p>
                             </div>
                         ))}
                     </div>
@@ -286,11 +287,11 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
                     <SectionCard
-                        title="Best products"
-                        subtitle="Products that currently look healthiest in your fridge."
+                        title={t('fridges.analysis.best.title')}
+                        subtitle={t('fridges.analysis.best.subtitle')}
                     >
                         {productInsights.bestProducts.length === 0 ? (
-                            <p className="text-sm text-slate-500 dark:text-slate-400">No products available yet.</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{t('fridges.analysis.best.empty')}</p>
                         ) : (
                             <div className="space-y-2">
                                 {productInsights.bestProducts.map((entry) => (
@@ -300,6 +301,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                                         brand={entry.item.product.brands}
                                         grade={entry.item.product.nutriscore_grade}
                                         warnings={entry.warnings.length}
+                                        warningLabel={t('fridges.analysis.warningCount', { count: entry.warnings.length })}
                                         trend="up"
                                     />
                                 ))}
@@ -308,11 +310,11 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                     </SectionCard>
 
                     <SectionCard
-                        title="Needs attention"
-                        subtitle="Products with low scores or high warning levels."
+                        title={t('fridges.analysis.needsAttention.title')}
+                        subtitle={t('fridges.analysis.needsAttention.subtitle')}
                     >
                         {productInsights.riskProducts.length === 0 ? (
-                            <p className="text-sm text-slate-500 dark:text-slate-400">No risk products detected.</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{t('fridges.analysis.needsAttention.empty')}</p>
                         ) : (
                             <div className="space-y-2">
                                 {productInsights.riskProducts.map((entry) => (
@@ -322,6 +324,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                                         brand={entry.item.product.brands}
                                         grade={entry.item.product.nutriscore_grade}
                                         warnings={entry.warnings.length}
+                                        warningLabel={t('fridges.analysis.warningCount', { count: entry.warnings.length })}
                                         trend="down"
                                     />
                                 ))}
@@ -332,8 +335,8 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
 
                 {productInsights.riskProducts.length > 0 && (
                     <SectionCard
-                        title="Warning details"
-                        subtitle="Specific warning signals for products that need attention."
+                        title={t('fridges.analysis.warningDetails.title')}
+                        subtitle={t('fridges.analysis.warningDetails.subtitle')}
                     >
                         <div className="space-y-3">
                             {productInsights.riskProducts.map((entry) => (
@@ -343,7 +346,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                                     </p>
                                     {entry.warnings.length === 0 ? (
                                         <p className="text-xs text-rose-700/80 dark:text-rose-300/80 mt-1">
-                                            Low Nutri-Score detected.
+                                            {t('fridges.analysis.warningDetails.lowNutri')}
                                         </p>
                                     ) : (
                                         <div className="mt-1 space-y-1">
@@ -353,7 +356,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                                                     className="text-xs text-rose-700 dark:text-rose-300"
                                                 >
                                                     <CircleAlert size={12} className="inline mr-1" />
-                                                    {warning.label}: {warning.value.toFixed(1)} {warning.unit} - {warning.message}
+                                                    {t(`nutrimentWarnings.${warning.id}.label` as never)}: {warning.value.toFixed(1)} {warning.unit} - {t(`nutrimentWarnings.${warning.id}.${warning.severity}` as never)}
                                                 </p>
                                             ))}
                                         </div>
@@ -364,9 +367,9 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                     </SectionCard>
                 )}
 
-                <SectionCard title="Top brands" subtitle="Most common brands in this fridge.">
+                <SectionCard title={t('fridges.analysis.topBrands.title')} subtitle={t('fridges.analysis.topBrands.subtitle')}>
                     {analytics.topBrands.length === 0 ? (
-                        <p className="text-sm text-slate-500 dark:text-slate-400">No brand data available.</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{t('fridges.analysis.topBrands.empty')}</p>
                     ) : (
                         <div className="space-y-2">
                             {analytics.topBrands.map((brand) => (
@@ -379,10 +382,10 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                     )}
                 </SectionCard>
 
-                <SectionCard title="Recommendation" subtitle="Based on the current distribution.">
+                <SectionCard title={t('fridges.analysis.recommendation.title')} subtitle={t('fridges.analysis.recommendation.subtitle')}>
                     <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-950/25 border border-emerald-200/70 dark:border-emerald-900/50 p-4">
                         <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
-                            {healthScore.recommendations[0]}
+                            {t(healthScore.recommendations[0] as never)}
                         </p>
                     </div>
                 </SectionCard>
@@ -390,7 +393,7 @@ export default function FridgeAnalysisPage({ params }: { params: Promise<{ id: s
                 <div className="flex justify-end">
                     <Link href={`/fridges/${id}`}>
                         <Button variant="outline" className="rounded-xl">
-                            Back to fridge
+                            {t('fridges.analysis.backToFridge')}
                         </Button>
                     </Link>
                 </div>
@@ -505,12 +508,14 @@ function ProductInsightRow({
     brand,
     grade,
     warnings,
+    warningLabel,
     trend,
 }: {
     name: string
     brand?: string
     grade?: string | null
     warnings: number
+    warningLabel: string
     trend: 'up' | 'down'
 }) {
     return (
@@ -522,7 +527,7 @@ function ProductInsightRow({
             <div className="flex items-center gap-2 flex-shrink-0">
                 {warnings > 0 && (
                     <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                        {warnings} warning{warnings > 1 ? 's' : ''}
+                        {warningLabel}
                     </span>
                 )}
                 <NutriScoreBadge grade={grade ?? '-'} size="sm" />

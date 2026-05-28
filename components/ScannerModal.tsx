@@ -6,6 +6,7 @@ import {
     Html5QrcodeResult,
     Html5QrcodeSupportedFormats,
 } from 'html5-qrcode'
+import { useTranslations } from 'next-intl'
 import { Camera, X, Loader2 } from 'lucide-react'
 import { Button } from './ui/Button'
 
@@ -15,7 +16,6 @@ interface ScannerModalProps {
     onScan: (barcode: string) => void
 }
 
-// Wir nutzen memo, damit die UI-Komponenten nicht unnötig neu rendern
 const ScannerContainer = memo(() => (
     <div
         id="scanner-modal-container"
@@ -33,6 +33,7 @@ function normalizeDigits(value: string): string {
 }
 
 export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
+    const t = useTranslations('scanner.modal')
     const [scannerReady, setScannerReady] = useState(false)
     const [error, setError] = useState('')
     const [torchSupported, setTorchSupported] = useState(false)
@@ -47,7 +48,6 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
     const currentIdxRef = useRef(0)
     const hasScannedRef = useRef(false)
 
-    // Refs für Props (verhindert Re-Renders)
     const onScanRef = useRef(onScan)
     const onCloseRef = useRef(onClose)
     useEffect(() => { onScanRef.current = onScan }, [onScan])
@@ -63,8 +63,6 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     if (scanner.isScanning) {
                         await scanner.stop()
                     }
-                    // WICHTIG: Wir rufen NICHT scanner.clear() auf, da dies den removeChild Fehler verursacht.
-                    // Stattdessen räumen wir den DOM-Knoten manuell leer.
                     const container = document.getElementById('scanner-modal-container')
                     if (container) {
                         container.innerHTML = ''
@@ -73,7 +71,6 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                 }
             } catch (e) {
                 console.debug('Safe stop error:', e)
-                // Fallback: DOM trotzdem leeren
                 const container = document.getElementById('scanner-modal-container')
                 if (container) container.innerHTML = ''
             } finally {
@@ -103,9 +100,8 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                 setScannerReady(false)
                 hasScannedRef.current = false
 
-                // DOM Container Check
                 const container = document.getElementById('scanner-modal-container')
-                if (!container) throw new Error('Scanner-Bereich nicht gefunden')
+                if (!container) throw new Error(t('scannerAreaNotFound'))
                 container.innerHTML = ''
 
                 const scanner = new Html5Qrcode('scanner-modal-container', {
@@ -123,11 +119,10 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     camerasRef.current = await Html5Qrcode.getCameras()
                 }
 
-                if (camerasRef.current.length === 0) throw new Error('Keine Kamera gefunden')
+                if (camerasRef.current.length === 0) throw new Error(t('cameraNotFound'))
 
-                // Back-Kamera Logik
                 if (idxOverride === undefined && currentIdxRef.current === 0) {
-                    const backIdx = camerasRef.current.findLastIndex(d =>
+                    const backIdx = camerasRef.current.findLastIndex((d: { label: string }) =>
                         /back|rück|rear|0/i.test(d.label)
                     )
                     if (backIdx !== -1) currentIdxRef.current = backIdx
@@ -150,7 +145,6 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                         if (hasScannedRef.current) return
                         hasScannedRef.current = true
 
-                        // ERST Hardware stoppen, DANN navigieren (verhindert removeChild Fehler)
                         stopScanner().then(() => {
                             onCloseRef.current()
                             setTimeout(() => onScanRef.current(normalizeDigits(text)), 100)
@@ -159,7 +153,6 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     () => { }
                 )
 
-                // Makro-Zoom für Samsung
                 try {
                     const track = (scanner as any)._videoTrack
                     if (track) {
@@ -174,23 +167,22 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                 setScannerReady(true)
             } catch (err: any) {
                 console.error('Start failed:', err)
-                setError('Kamera startet...')
+                setError(t('starting'))
                 isInitializedRef.current = false
-                // Auto-Retry
                 setTimeout(() => {
                     if (isOpen && !hasScannedRef.current) switchCamera()
                 }, 3000)
             }
         })()
-    }, [isOpen, stopScanner])
+    }, [isOpen, stopScanner, t])
 
     const switchCamera = useCallback(() => {
         if (camerasRef.current.length <= 1) return
         currentIdxRef.current = (currentIdxRef.current + 1) % camerasRef.current.length
-        setOptimizationState('Optimiere Linse...')
+        setOptimizationState(t('optimizingLens'))
         isInitializedRef.current = false
         stopScanner().then(() => startScanner(currentIdxRef.current))
-    }, [stopScanner, startScanner])
+    }, [stopScanner, startScanner, t])
 
     const toggleTorch = useCallback(async () => {
         if (!scannerRef.current || torchBusy) return
@@ -222,17 +214,16 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
         return () => { stopScanner() }
     }, [isOpen, startScanner, stopScanner])
 
-    // Fokus-Intervall
     useEffect(() => {
         if (isOpen && scannerReady && !hasScannedRef.current) {
             const timer = setInterval(() => {
                 if (hasScannedRef.current || !isOpen) return
-                setOptimizationState('Fokussiere...')
+                setOptimizationState(t('focusing'))
                 setTimeout(() => setOptimizationState(''), 1500)
             }, 5000)
             return () => clearInterval(timer)
         }
-    }, [isOpen, scannerReady])
+    }, [isOpen, scannerReady, t])
 
     if (!isOpen) return null
 
@@ -242,7 +233,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                 <div className="p-4 flex items-center justify-between border-b dark:border-slate-800">
                     <h3 className="text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <Camera size={20} className="text-emerald-500" />
-                        Scanner
+                        {t('title')}
                     </h3>
                     <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
                         <X size={24} />
@@ -257,7 +248,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     {!scannerReady && !error && (
                         <div className="flex flex-col items-center gap-2 py-4">
                             <Loader2 className="animate-spin text-emerald-500" size={32} />
-                            <p className="text-slate-500 text-xs">Initialisiere Kamera...</p>
+                            <p className="text-slate-500 text-xs">{t('initializing')}</p>
                         </div>
                     )}
 
@@ -272,16 +263,16 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     <div className="flex gap-2">
                         {torchSupported && (
                             <Button variant="outline" className="flex-1" onClick={toggleTorch} disabled={torchBusy}>
-                                {torchEnabled ? 'Blitz Aus' : 'Blitz An'}
+                                {torchEnabled ? t('flashOff') : t('flashOn')}
                             </Button>
                         )}
                         <Button variant="secondary" className="flex-1" onClick={switchCamera}>
-                            Linse wechseln
+                            {t('switchLens')}
                         </Button>
                     </div>
 
                     <Button variant="ghost" className="w-full text-slate-400 text-xs" onClick={onClose}>
-                        Abbrechen
+                        {t('cancel')}
                     </Button>
                 </div>
             </div>

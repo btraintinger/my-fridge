@@ -2,20 +2,24 @@
 
 import { useState } from 'react'
 import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth'
+import { useTranslations } from 'next-intl'
 import { Button } from './Button'
 import { auth } from '@/lib/firebase'
 import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
 import { FcGoogle } from 'react-icons/fc'
 
 export function GoogleSignInButton({
-    text = 'Sign in with Google',
+    text,
     className = '',
 }: {
     text?: string
     className?: string
 }) {
+    const t = useTranslations()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+
+    const label = text ?? t('auth.google.default')
 
     const handleGoogleSignIn = async () => {
         setLoading(true)
@@ -23,7 +27,9 @@ export function GoogleSignInButton({
         try {
             await signInWithRedirect(auth, new GoogleAuthProvider())
         } catch (err: unknown) {
-            setError(getFirebaseAuthErrorMessage(err, 'Failed to sign in with Google.'))
+            setError(
+                getFirebaseAuthErrorMessage(err, t('auth.google.failed'), t)
+            )
             setLoading(false)
         }
     }
@@ -43,7 +49,7 @@ export function GoogleSignInButton({
                 disabled={loading}
             >
                 <FcGoogle aria-hidden="true" className="h-4.5 w-4.5" />
-                {loading ? 'Connecting...' : text}
+                {loading ? t('auth.google.connecting') : label}
             </Button>
         </div>
     )

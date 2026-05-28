@@ -1,41 +1,42 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { db } from '@/lib/firebase'
-import { 
-    collection, 
-    getDocs, 
-    doc, 
+import {
+    collection,
+    getDocs,
+    doc,
     query,
     where,
-    deleteDoc 
+    deleteDoc
 } from 'firebase/firestore'
 import { useAuth } from '@/contexts/AuthContext'
 import { COLLECTIONS } from '@/lib/constants'
 import { Button } from '@/components/ui/Button'
 import { Trash2, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 
 export default function DebugPage() {
     const { user } = useAuth()
+    const t = useTranslations('debug')
     const [status, setStatus] = useState<'idle' | 'deleting' | 'success' | 'error'>('idle')
     const [message, setMessage] = useState('')
 
     const clearDatabase = async () => {
         if (!user) {
-            alert('Du musst eingeloggt sein, um deine Daten zu löschen.')
+            alert(t('mustBeLoggedIn'))
             return
         }
 
-        if (!confirm('Möchtest du wirklich ALLE DEINE Kühlschränke, Produkte und Einkaufslisten löschen? Dies kann nicht rückgängig gemacht werden.')) {
+        if (!confirm(t('confirm'))) {
             return
         }
 
         setStatus('deleting')
-        setMessage('Löschvorgang gestartet...')
+        setMessage(t('deleteStarted'))
 
         try {
-            // 1. NUR Kühlschränke des aktuellen Users abrufen (wegen Security Rules)
             const q = query(collection(db, COLLECTIONS.FRIDGES), where('userId', '==', user.uid))
             const fridgesSnap = await getDocs(q)
             const fridgeDocs = fridgesSnap.docs
@@ -44,44 +45,39 @@ export default function DebugPage() {
 
             for (const fridgeDoc of fridgeDocs) {
                 const fridgeId = fridgeDoc.id
-                
-                // 1a. Items im Kühlschrank löschen
+
                 const itemsSnap = await getDocs(collection(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.ITEMS))
                 for (const itemDoc of itemsSnap.docs) {
                     await deleteDoc(doc(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.ITEMS, itemDoc.id))
                 }
 
-                // 1b. Einkaufsliste im Kühlschrank löschen
                 const shoppingSnap = await getDocs(collection(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.SHOPPING_LIST))
                 for (const shopDoc of shoppingSnap.docs) {
                     await deleteDoc(doc(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.SHOPPING_LIST, shopDoc.id))
                 }
 
-                // 1c. Kühlschrank selbst löschen
                 await deleteDoc(doc(db, COLLECTIONS.FRIDGES, fridgeId))
                 deletedCount++
             }
 
-            // 2. Produkt-Cache leeren (Globaler Cache)
-            // Hinweis: Dies könnte fehlschlagen, wenn die Rules kein 'delete' für products erlauben
             try {
                 const productsSnap = await getDocs(collection(db, COLLECTIONS.PRODUCTS))
                 for (const productDoc of productsSnap.docs) {
                     await deleteDoc(doc(db, COLLECTIONS.PRODUCTS, productDoc.id))
                 }
             } catch (cacheErr) {
-                console.warn('Produkt-Cache konnte nicht geleert werden (evtl. fehlende Berechtigung):', cacheErr)
+                console.warn(t('cacheWarn'), cacheErr)
             }
 
             setStatus('success')
-            setMessage(`Datenbank erfolgreich bereinigt. ${deletedCount} deiner Kühlschränke wurden gelöscht.`)
+            setMessage(t('deleteSuccess', { count: deletedCount }))
         } catch (err: any) {
             console.error(err)
             setStatus('error')
             if (err?.code === 'permission-denied') {
-                setMessage('Berechtigung verweigert. Stelle sicher, dass du eingeloggt bist oder öffne die Security Rules temporär in der Firebase Console.')
+                setMessage(t('permissionDenied'))
             } else {
-                setMessage(`Fehler beim Löschen: ${err?.message || 'Unbekannter Fehler'}`)
+                setMessage(t('genericFailure', { message: err?.message || t('unknownError') }))
             }
         }
     }
@@ -94,22 +90,22 @@ export default function DebugPage() {
                         <AlertTriangle size={32} />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-                        Debug Tools
+                        {t('title')}
                     </h1>
                 </div>
 
                 <p className="text-slate-500 dark:text-slate-400 mb-8">
-                    Diese Seite dient zum Zurücksetzen der Testdaten während der Entwicklung.
+                    {t('description')}
                 </p>
 
                 {status === 'idle' && (
-                    <Button 
-                        variant="primary" 
+                    <Button
+                        variant="primary"
                         className="w-full bg-red-500 hover:bg-red-600 shadow-red-500/20"
                         onClick={clearDatabase}
                     >
                         <Trash2 size={20} className="mr-2" />
-                        Datenbank jetzt leeren
+                        {t('deleteButton')}
                     </Button>
                 )}
 
@@ -130,7 +126,7 @@ export default function DebugPage() {
                         </p>
                         <Link href="/fridges" className="w-full">
                             <Button variant="outline" className="w-full">
-                                Zurück zur App
+                                {t('backToApp')}
                             </Button>
                         </Link>
                     </div>
@@ -143,14 +139,14 @@ export default function DebugPage() {
                             {message}
                         </p>
                         <Button variant="secondary" onClick={() => setStatus('idle')}>
-                            Erneut versuchen
+                            {t('retry')}
                         </Button>
                     </div>
                 )}
 
                 <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
                     <Link href="/fridges" className="text-sm text-slate-400 hover:text-emerald-500 transition-colors">
-                        &larr; Abbrechen und zurück
+                        &larr; {t('cancel')}
                     </Link>
                 </div>
             </div>

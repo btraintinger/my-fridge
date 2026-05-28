@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/contexts/AuthContext'
 import { addItemToFridge } from '@/lib/services/fridgeService'
 import {
@@ -18,17 +19,20 @@ import { ScannerModal } from '@/components/ScannerModal'
 import { ShoppingListItem } from '@/components/shopping-list/ShoppingListItem'
 import { FridgeSelector } from '@/components/shopping-list/FridgeSelector'
 import { AddItemForm } from '@/components/shopping-list/AddItemForm'
+import { createShoppingItemSchema } from '@/lib/validations'
+import { notify } from '@/lib/notify'
 import type {
     Fridge,
     Product,
     ShoppingListItem as ShoppingListItemType,
-} from '../../lib/types'
-import { shoppingItemSchema } from '../../lib/validations'
-import { notify } from '../../lib/notify'
+} from '@/lib/types'
 
 export default function ShoppingList() {
     const { user } = useAuth()
     const { fridges: userFridges } = useFridges()
+    const t = useTranslations('shoppingList')
+    const tAll = useTranslations()
+    const schema = useMemo(() => createShoppingItemSchema(tAll), [tAll])
     const [fridges, setFridges] = useState<Fridge[]>([])
     const [selectedFridge, setSelectedFridge] = useState('')
     const [items, setItems] = useState<ShoppingListItemType[]>([])
@@ -38,14 +42,12 @@ export default function ShoppingList() {
     const [scanningItemId, setScanningItemId] = useState<string | null>(null)
     const [movingItem, setMovingItem] = useState(false)
 
-    // Update fridges from hook
     useEffect(() => {
         setFridges(userFridges)
         if (userFridges.length > 0 && !selectedFridge)
             setSelectedFridge(userFridges[0].id)
     }, [userFridges, selectedFridge])
 
-    // Fetch shopping list items when fridge changes
     useEffect(() => {
         if (!user || !selectedFridge) {
             setLoading(false)
@@ -74,7 +76,7 @@ export default function ShoppingList() {
         e.preventDefault()
         if (!user || !selectedFridge) return
 
-        const parsed = shoppingItemSchema.safeParse({ name: newItem })
+        const parsed = schema.safeParse({ name: newItem })
         if (!parsed.success) {
             notify.error(parsed.error.issues[0].message)
             return
@@ -100,7 +102,6 @@ export default function ShoppingList() {
             const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
             let product: Product | null = null
 
-            // Check cache first
             product = await getCachedProduct(barcode)
 
             if (!product && isOffline) {
@@ -110,7 +111,6 @@ export default function ShoppingList() {
             if (!product) {
                 product = await fetchProductByBarcode(barcode)
                 if (product) {
-                    // Save to cache
                     await cacheProduct(barcode, product)
                 }
             }
@@ -119,7 +119,6 @@ export default function ShoppingList() {
                 return
             }
 
-            // Move item to fridge
             if (scanningItemId) {
                 await moveShoppingItemToFridge(
                     selectedFridge,
@@ -127,7 +126,6 @@ export default function ShoppingList() {
                     product
                 )
             } else {
-                // If it was a general scan, try to find a matching item by name
                 const match = items.find(
                     (i) =>
                         i.name.toLowerCase() ===
@@ -143,7 +141,6 @@ export default function ShoppingList() {
                         product
                     )
                 } else {
-                    // Just add it to the fridge anyway
                     await addItemToFridge(selectedFridge, product)
                 }
             }
@@ -167,10 +164,10 @@ export default function ShoppingList() {
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-                            Shopping List
+                            {t('title')}
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Plan what to buy next.
+                            {t('subtitle')}
                         </p>
                     </div>
                 </div>
@@ -179,22 +176,20 @@ export default function ShoppingList() {
 
             <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
                 <div className="content-container max-w-2xl space-y-6 sm:space-y-8">
-                {/* Moving Item Loading */}
                 {movingItem && (
                     <div className="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
                         <div className="bg-white dark:bg-slate-900 p-8 rounded-4xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-4 animate-in zoom-in-95 duration-300">
                             <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
                             <p className="text-slate-900 dark:text-slate-100 font-bold text-lg">
-                                Moving to fridge...
+                                {t('movingToFridge')}
                             </p>
                         </div>
                     </div>
                 )}
 
-                {/* Fridge Selector */}
                 <div className="space-y-3">
                     <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1">
-                        Select Fridge
+                        {t('selectFridge')}
                     </h3>
                     <FridgeSelector
                         fridges={fridges}
@@ -203,10 +198,9 @@ export default function ShoppingList() {
                     />
                 </div>
 
-                {/* Add Item */}
                 <div className="space-y-3">
                     <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1">
-                        Quick Add
+                        {t('quickAdd')}
                     </h3>
                     <AddItemForm
                         newItem={newItem}
@@ -229,19 +223,18 @@ export default function ShoppingList() {
                             <ShoppingCart size={48} strokeWidth={1.5} />
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
-                            List is empty
+                            {t('emptyTitle')}
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-                            Add items you need to buy above.
+                            {t('emptyMessage')}
                         </p>
                     </div>
                 ) : (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {/* Unchecked Items */}
                         {uncheckedItems.length > 0 && (
                             <div className="space-y-3">
                                 <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1">
-                                    To Buy
+                                    {t('toBuy')}
                                 </h3>
                                 <div className="grid gap-3">
                                     {uncheckedItems.map((item) => (
@@ -260,11 +253,10 @@ export default function ShoppingList() {
                             </div>
                         )}
 
-                        {/* Checked Items */}
                         {checkedItems.length > 0 && (
                             <div className="space-y-3">
                                 <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1">
-                                    Recently Added
+                                    {t('recentlyAdded')}
                                 </h3>
                                 <div className="grid gap-3 opacity-80">
                                     {checkedItems.map((item) => (

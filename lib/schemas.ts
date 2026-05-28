@@ -72,6 +72,7 @@ export const ShoppingListItemSchema = z.object({
 export const UserPreferencesSchema = z.object({
     userId: z.string(),
     darkMode: z.boolean().default(false),
+    locale: z.enum(['en', 'de']).optional(),
     updatedAt: z.any().optional(), // Firestore Timestamp
 })
 

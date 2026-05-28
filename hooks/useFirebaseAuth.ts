@@ -7,12 +7,15 @@ import {
     reauthenticateWithRedirect,
     updatePassword,
 } from 'firebase/auth'
+import { useTranslations } from 'next-intl'
 import { auth } from '@/lib/firebase'
 import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
 
 const PASSWORD_PROVIDER_ID = 'password'
 
 export function useFirebaseAuth() {
+    const t = useTranslations()
+
     const reauthenticateUser = useCallback(async (password?: string) => {
         const currentUser = auth.currentUser
 
@@ -60,9 +63,9 @@ export function useFirebaseAuth() {
 
     const formatAuthError = useCallback(
         (error: unknown, defaultMessage: string) => {
-            return getFirebaseAuthErrorMessage(error, defaultMessage)
+            return getFirebaseAuthErrorMessage(error, defaultMessage, t)
         },
-        []
+        [t]
     )
 
     return {

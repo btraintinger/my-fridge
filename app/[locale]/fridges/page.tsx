@@ -1,26 +1,29 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useMemo, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useAuth } from '../../contexts/AuthContext'
-import { createFridge } from '../../lib/services/fridgeService'
-import { useFridges } from '../../hooks/useFridges'
-import { Button } from '../../components/ui/Button'
-import { Input } from '../../components/ui/Input'
-import { FormField } from '../../components/ui/FormField'
+import { useAuth } from '@/contexts/AuthContext'
+import { createFridge } from '@/lib/services/fridgeService'
+import { useFridges } from '@/hooks/useFridges'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { Plus, Refrigerator } from 'lucide-react'
-import { FridgeCard } from '../../components/fridges/FridgeCard'
-import { createFridgeSchema, type CreateFridgeFormData } from '../../lib/validations'
+import { FridgeCard } from '@/components/fridges/FridgeCard'
+import { createCreateFridgeSchema, type CreateFridgeFormData } from '@/lib/validations'
+import { useRouter } from '@/i18n/navigation'
 
 export default function Fridges() {
+    const t = useTranslations()
     const { user } = useAuth()
     const { fridges, fridgeScores, loading } = useFridges()
     const [showCreate, setShowCreate] = useState(false)
     const router = useRouter()
     const searchParams = useSearchParams()
     const skipAutoSelect = searchParams.get('list') === '1'
+    const schema = useMemo(() => createCreateFridgeSchema(t), [t])
 
     useEffect(() => {
         if (!skipAutoSelect && !loading && fridges.length === 1) {
@@ -34,14 +37,13 @@ export default function Fridges() {
         reset,
         formState: { errors, isSubmitting, isValid },
     } = useForm<CreateFridgeFormData>({
-        resolver: zodResolver(createFridgeSchema),
+        resolver: zodResolver(schema),
         mode: 'onChange',
         defaultValues: { name: '' },
     })
 
     const onCreateFridge = async (data: CreateFridgeFormData) => {
         if (!user) return
-
         try {
             await createFridge(user.uid, data.name)
             reset()
@@ -69,10 +71,10 @@ export default function Fridges() {
                         </div>
                         <div className="min-w-0">
                             <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-                                My Fridges
+                                {t('fridges.list.title')}
                             </h1>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Track your groceries and reduce waste.
+                                {t('fridges.list.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -82,7 +84,7 @@ export default function Fridges() {
                         className="rounded-xl shrink-0"
                     >
                         <Plus size={20} className="mr-1" />
-                        New
+                        {t('fridges.list.newButton')}
                     </Button>
                 </div>
 
@@ -94,7 +96,7 @@ export default function Fridges() {
                         <div className="flex gap-2">
                             <div className="flex-1">
                                 <Input
-                                    placeholder="e.g. WG Kitchen, Office"
+                                    placeholder={t('fridges.list.namePlaceholder')}
                                     error={!!errors.name}
                                     autoFocus
                                     {...register('name')}
@@ -104,7 +106,7 @@ export default function Fridges() {
                                 type="submit"
                                 disabled={isSubmitting || !isValid}
                             >
-                                {isSubmitting ? '...' : 'Create'}
+                                {isSubmitting ? t('fridges.list.creating') : t('fridges.list.createSubmit')}
                             </Button>
                         </div>
                         {errors.name && (
@@ -125,14 +127,13 @@ export default function Fridges() {
                             <Refrigerator size={48} strokeWidth={1.5} />
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
-                            No fridges yet
+                            {t('fridges.list.emptyTitle')}
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed">
-                            Create your first fridge to start tracking your
-                            groceries and reducing waste.
+                            {t('fridges.list.emptyMessage')}
                         </p>
                         <Button onClick={() => setShowCreate(true)} size="lg">
-                            Create a Fridge
+                            {t('fridges.list.createCta')}
                         </Button>
                     </div>
                 ) : (

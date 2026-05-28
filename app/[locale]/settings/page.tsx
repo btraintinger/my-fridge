@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { signOut } from 'firebase/auth'
@@ -13,11 +13,13 @@ import {
     ShieldAlert,
     Trash2,
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
 import { PasswordChangeModal } from '@/components/settings/PasswordChangeModal'
 import { ProfileSummaryCard } from '@/components/settings/ProfileSummaryCard'
 import { ThemePreferenceCard } from '@/components/settings/ThemePreferenceCard'
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { auth } from '@/lib/firebase'
@@ -30,6 +32,7 @@ export default function Settings() {
     const { user, loading } = useAuth()
     const { darkMode, toggleDarkMode } = useTheme()
     const router = useRouter()
+    const t = useTranslations('settings')
 
     const openDialog = useSettingsStore((state) => state.openDialog)
 
@@ -68,10 +71,10 @@ export default function Settings() {
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-                            Settings
+                            {t('title')}
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Manage your account and app preferences.
+                            {t('subtitle')}
                         </p>
                     </div>
                 </div>
@@ -81,16 +84,16 @@ export default function Settings() {
             <div className="mx-auto w-full max-w-3xl space-y-8 p-6">
                 <section className="space-y-3">
                     <SectionHeading
-                        title="Account"
-                        description="Your profile and sign-in details."
+                        title={t('sections.account.title')}
+                        description={t('sections.account.description')}
                     />
                     <ProfileSummaryCard user={user} />
                 </section>
 
                 <section className="space-y-3">
                     <SectionHeading
-                        title="Preferences"
-                        description="Adjust how the app looks on this device."
+                        title={t('sections.preferences.title')}
+                        description={t('sections.preferences.description')}
                     />
                     <ThemePreferenceCard
                         darkMode={darkMode}
@@ -100,29 +103,37 @@ export default function Settings() {
 
                 <section className="space-y-3">
                     <SectionHeading
-                        title="Security"
-                        description="Keep access to your account under control."
+                        title={t('sections.language.title')}
+                        description={t('sections.language.description')}
+                    />
+                    <LanguageSwitcher />
+                </section>
+
+                <section className="space-y-3">
+                    <SectionHeading
+                        title={t('sections.security.title')}
+                        description={t('sections.security.description')}
                     />
 
                     <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
                         {usesPasswordProvider && (
                             <SettingsActionRow
                                 icon={KeyRound}
-                                title="Change password"
-                                description="Update the password used for email sign-in."
+                                title={t('actions.changePassword.title')}
+                                description={t('actions.changePassword.description')}
                                 onClick={() => openDialog('password')}
                             />
                         )}
                         <SettingsActionRow
                             icon={LogOut}
-                            title="Sign out"
-                            description="End this session on the current device."
+                            title={t('actions.signOut.title')}
+                            description={t('actions.signOut.description')}
                             onClick={handleSignOut}
                         />
                         <SettingsActionRow
                             icon={Trash2}
-                            title="Delete account"
-                            description="Permanently remove your account and saved access."
+                            title={t('actions.deleteAccount.title')}
+                            description={t('actions.deleteAccount.description')}
                             danger
                             onClick={() => openDialog('delete')}
                         />

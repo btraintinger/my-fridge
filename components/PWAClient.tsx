@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Download, WifiOff } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { Button } from './ui/Button'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -14,6 +15,7 @@ export function PWAClient() {
         useState<BeforeInstallPromptEvent | null>(null)
     const [isStandalone, setIsStandalone] = useState(false)
     const [online, setOnline] = useState(true)
+    const t = useTranslations('offline')
 
     useEffect(() => {
         if (typeof window === 'undefined') return
@@ -94,7 +96,7 @@ export function PWAClient() {
                     <div className="mt-2 flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50/95 px-3 py-1.5 text-amber-800 shadow-md backdrop-blur dark:border-amber-900/60 dark:bg-amber-950/90 dark:text-amber-200">
                         <WifiOff size={14} />
                         <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">
-                            Offline
+                            {t('offlineBadge')}
                         </span>
                     </div>
                 </div>
@@ -108,7 +110,7 @@ export function PWAClient() {
                         className="shadow-xl"
                     >
                         <Download size={18} className="mr-2" />
-                        Add to Home Screen
+                        {t('installCta')}
                     </Button>
                 </div>
             )}

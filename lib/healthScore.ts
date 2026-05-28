@@ -1,15 +1,14 @@
-/**
- * Calculates a Health Score (0–100) for a fridge based on its items.
- *
- * Factors:
- * - Nutri-Score distribution (A/B = good, D/E = bad)
- */
-
 import type { FridgeItem } from './types'
+
+export type HealthScoreRecommendationKey =
+    | 'fridges.analysis.recommendation.addProducts'
+    | 'fridges.analysis.recommendation.reduceDE'
+    | 'fridges.analysis.recommendation.addAB'
+    | 'fridges.analysis.recommendation.great'
 
 export interface HealthScoreResult {
     score: number
-    recommendations: string[]
+    recommendations: HealthScoreRecommendationKey[]
     breakdown: {
         nutriScorePoints: number
     }
@@ -19,16 +18,13 @@ export function calculateHealthScore(items: FridgeItem[]): HealthScoreResult {
     if (items.length === 0) {
         return {
             score: 0,
-            recommendations: [
-                'Add products to your fridge to get a health score.',
-            ],
+            recommendations: ['fridges.analysis.recommendation.addProducts'],
             breakdown: { nutriScorePoints: 0 },
         }
     }
 
-    const recommendations: string[] = []
+    const recommendations: HealthScoreRecommendationKey[] = []
 
-    // 1. Nutri-Score distribution (0–100 points)
     const nutriscoreWeights: Record<string, number> = {
         a: 100,
         b: 75,
@@ -37,7 +33,7 @@ export function calculateHealthScore(items: FridgeItem[]): HealthScoreResult {
         e: 0,
     }
     const itemsWithNutriscore = items.filter((i) => i.product.nutriscore_grade)
-    let nutriScorePoints = 50 // default if no data
+    let nutriScorePoints = 50
 
     if (itemsWithNutriscore.length > 0) {
         const totalNutriWeight = itemsWithNutriscore.reduce(
@@ -58,9 +54,7 @@ export function calculateHealthScore(items: FridgeItem[]): HealthScoreResult {
                 i.product.nutriscore_grade?.toLowerCase() === 'e'
         )
         if (badItems.length > itemsWithNutriscore.length * 0.3) {
-            recommendations.push(
-                'Try to reduce products with Nutri-Score D or E.'
-            )
+            recommendations.push('fridges.analysis.recommendation.reduceDE')
         }
 
         const goodItems = itemsWithNutriscore.filter(
@@ -69,12 +63,12 @@ export function calculateHealthScore(items: FridgeItem[]): HealthScoreResult {
                 i.product.nutriscore_grade?.toLowerCase() === 'b'
         )
         if (goodItems.length < itemsWithNutriscore.length * 0.3) {
-            recommendations.push('Add more products with Nutri-Score A or B.')
+            recommendations.push('fridges.analysis.recommendation.addAB')
         }
     }
 
     if (recommendations.length === 0) {
-        recommendations.push('Great balance! Keep it up. 🎉')
+        recommendations.push('fridges.analysis.recommendation.great')
     }
 
     const score = Math.min(100, Math.max(0, nutriScorePoints))

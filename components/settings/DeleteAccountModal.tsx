@@ -1,7 +1,8 @@
 'use client'
 
 import type { FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -9,8 +10,6 @@ import { SettingsActionForm } from '@/components/settings/SettingsActionForm'
 import { SettingsActionModal } from '@/components/settings/SettingsActionModal'
 import { useFirebaseAuth } from '@/hooks/useFirebaseAuth'
 import { useSettingsStore } from '@/stores/settingsStore'
-
-const DELETE_CONFIRMATION_TEXT = 'DELETE'
 
 interface DeleteAccountModalProps {
     usesPasswordProvider: boolean
@@ -20,6 +19,8 @@ export function DeleteAccountModal({
     usesPasswordProvider,
 }: DeleteAccountModalProps) {
     const router = useRouter()
+    const t = useTranslations('settings')
+    const tCommon = useTranslations('common')
     const isOpen = useSettingsStore((state) => state.activeDialog === 'delete')
     const deleteState = useSettingsStore((state) => state.deleteAccount)
     const closeDialog = useSettingsStore((state) => state.closeDialog)
@@ -32,8 +33,8 @@ export function DeleteAccountModal({
         event.preventDefault()
         setDeleteStatus('')
 
-        if (deleteState.confirmation !== DELETE_CONFIRMATION_TEXT) {
-            setDeleteStatus('Type DELETE to confirm account deletion.')
+        if (deleteState.confirmation !== t('delete.confirmText')) {
+            setDeleteStatus(t('delete.typeDelete'))
             return
         }
 
@@ -46,10 +47,7 @@ export function DeleteAccountModal({
             router.push('/register')
         } catch (error) {
             setDeleteStatus(
-                formatAuthError(
-                    error,
-                    'Could not delete account. Please try again.'
-                )
+                formatAuthError(error, t('delete.deleteFailed'))
             )
         } finally {
             setDeleteLoading(false)
@@ -60,7 +58,7 @@ export function DeleteAccountModal({
         <SettingsActionModal
             isOpen={isOpen}
             onClose={closeDialog}
-            title="Delete Account"
+            title={t('delete.title')}
             danger
         >
             <SettingsActionForm
@@ -69,7 +67,7 @@ export function DeleteAccountModal({
                 className="space-y-4"
             >
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                    This action is permanent. Type DELETE to confirm.
+                    {t('delete.warning')}
                 </p>
                 <Input
                     type="text"
@@ -77,7 +75,7 @@ export function DeleteAccountModal({
                     onChange={(event) =>
                         setDeleteField('confirmation', event.target.value)
                     }
-                    placeholder="DELETE"
+                    placeholder={t('delete.confirmText')}
                     required
                 />
                 {usesPasswordProvider && (
@@ -90,13 +88,13 @@ export function DeleteAccountModal({
                                 event.target.value
                             )
                         }
-                        placeholder="Current password"
+                        placeholder={t('delete.currentPasswordPlaceholder')}
                         required
                     />
                 )}
                 {!usesPasswordProvider && (
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                        You will be redirected to Google to confirm this action.
+                        {t('delete.googleNote')}
                     </p>
                 )}
                 {deleteState.status && (
@@ -111,7 +109,7 @@ export function DeleteAccountModal({
                         className="flex-1"
                         onClick={closeDialog}
                     >
-                        Cancel
+                        {tCommon('cancel')}
                     </Button>
                     <Button
                         type="submit"
@@ -120,8 +118,8 @@ export function DeleteAccountModal({
                         className="flex-1 border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
                     >
                         {deleteState.loading
-                            ? 'Deleting account...'
-                            : 'Delete Account'}
+                            ? t('delete.submitting')
+                            : t('delete.submit')}
                     </Button>
                 </div>
             </SettingsActionForm>

@@ -1,15 +1,16 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '../contexts/AuthContext'
-import { Button } from '../components/ui/Button'
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link, useRouter } from '@/i18n/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/Button'
 import { ScanLine } from 'lucide-react'
 
 export default function Home() {
     const { user, loading } = useAuth()
     const router = useRouter()
+    const t = useTranslations('home')
 
     useEffect(() => {
         if (!loading && user) {
@@ -43,8 +44,7 @@ export default function Home() {
                 </h1>
 
                 <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 leading-relaxed font-medium">
-                    The smartest way to manage your groceries and reduce food
-                    waste.
+                    {t('tagline')}
                 </p>
 
                 <div className="w-full flex flex-col gap-4">
@@ -53,7 +53,7 @@ export default function Home() {
                             size="lg"
                             className="w-full h-16 rounded-2xl text-xl shadow-lg"
                         >
-                            Get Started
+                            {t('getStarted')}
                         </Button>
                     </Link>
                     <Link href="/login" className="w-full">
@@ -62,7 +62,7 @@ export default function Home() {
                             variant="secondary"
                             className="w-full h-16 rounded-2xl text-xl"
                         >
-                            Sign In
+                            {t('signIn')}
                         </Button>
                     </Link>
                 </div>
