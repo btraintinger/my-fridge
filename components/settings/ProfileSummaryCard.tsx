@@ -3,18 +3,22 @@
 import Image from 'next/image'
 import { CheckCircle2, Mail, ShieldCheck, User as UserIcon } from 'lucide-react'
 import type { User as FirebaseUser } from 'firebase/auth'
+import { useTranslations } from 'next-intl'
 
 interface ProfileSummaryCardProps {
     user: FirebaseUser
 }
 
 export const ProfileSummaryCard = ({ user }: ProfileSummaryCardProps) => {
+    const t = useTranslations('settings')
+
     const providers = user.providerData.map((provider) => provider.providerId)
     const providerLabel = providers.includes('google.com')
-        ? 'Google account'
+        ? t('profile.providers.google')
         : providers.includes('password')
-          ? 'Email and password'
-          : 'Connected account'
+          ? t('profile.providers.password')
+          : t('profile.providers.other')
+
     const joinedDate = user.metadata.creationTime
         ? new Intl.DateTimeFormat(undefined, {
               month: 'short',
@@ -30,7 +34,7 @@ export const ProfileSummaryCard = ({ user }: ProfileSummaryCardProps) => {
                     {user.photoURL ? (
                         <Image
                             src={user.photoURL}
-                            alt={user.displayName || 'Profile'}
+                            alt={user.displayName || t('profile.profileImageAlt')}
                             width={64}
                             height={64}
                             className="h-full w-full object-cover"
@@ -43,12 +47,12 @@ export const ProfileSummaryCard = ({ user }: ProfileSummaryCardProps) => {
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <h2 className="truncate text-xl font-bold text-slate-900 dark:text-slate-50">
-                            {user.displayName || 'User'}
+                            {user.displayName || t('profile.fallbackName')}
                         </h2>
                         {user.emailVerified && (
                             <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                                 <CheckCircle2 size={13} />
-                                Verified
+                                {t('profile.verified')}
                             </span>
                         )}
                     </div>
@@ -62,7 +66,7 @@ export const ProfileSummaryCard = ({ user }: ProfileSummaryCardProps) => {
             <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/60">
                     <p className="text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">
-                        Sign-in method
+                        {t('profile.signInMethod')}
                     </p>
                     <p className="mt-1 flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-100">
                         <ShieldCheck size={17} className="text-emerald-500" />
@@ -71,10 +75,10 @@ export const ProfileSummaryCard = ({ user }: ProfileSummaryCardProps) => {
                 </div>
                 <div className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/60">
                     <p className="text-xs font-semibold uppercase text-slate-400 dark:text-slate-500">
-                        Member since
+                        {t('profile.memberSince')}
                     </p>
                     <p className="mt-1 font-semibold text-slate-800 dark:text-slate-100">
-                        {joinedDate ?? 'Not available'}
+                        {joinedDate ?? t('profile.notAvailable')}
                     </p>
                 </div>
             </div>

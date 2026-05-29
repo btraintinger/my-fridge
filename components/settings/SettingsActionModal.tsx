@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useId } from 'react'
 import { X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from '@/components/ui/Button'
 
 interface SettingsActionModalProps {
@@ -20,6 +21,7 @@ function SettingsActionModal({
     danger = false,
 }: SettingsActionModalProps) {
     const titleId = useId()
+    const t = useTranslations('settings.modal')
 
     useEffect(() => {
         if (!isOpen) return
@@ -74,7 +76,7 @@ function SettingsActionModal({
                         type="button"
                         onClick={onClose}
                         className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300"
-                        aria-label="Close dialog"
+                        aria-label={t('closeAria')}
                     >
                         <X size={20} />
                     </button>
@@ -88,5 +90,3 @@ function SettingsActionModal({
 export { SettingsActionModal }
 
 export default SettingsActionModal
-
-

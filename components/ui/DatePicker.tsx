@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { cn } from './Button'
 
 export interface DatePickerProps {
@@ -83,6 +84,7 @@ export function DatePicker({
     id,
     name,
 }: DatePickerProps) {
+    const tCommon = useTranslations('common')
     const [open, setOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
     const triggerRef = useRef<HTMLButtonElement>(null)
@@ -277,7 +279,7 @@ export function DatePicker({
                         setOpen(false)
                     }}
                 >
-                    Löschen
+                    {tCommon('delete')}
                 </button>
                 <button
                     type="button"
@@ -288,7 +290,7 @@ export function DatePicker({
                         setOpen(false)
                     }}
                 >
-                    Heute
+                    {tCommon('today')}
                 </button>
             </div>
         </div>

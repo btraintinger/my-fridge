@@ -8,6 +8,8 @@ import {
     useEffect,
     useState,
 } from 'react'
+import { useLocale } from 'next-intl'
+import { useRouter, usePathname } from '@/i18n/navigation'
 import { useAuth } from './AuthContext'
 import {
     subscribeToUserPreferences,
@@ -26,6 +28,10 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const { user, loading } = useAuth()
+    const locale = useLocale()
+    const router = useRouter()
+    const pathname = usePathname()
+
     const [darkMode, setDarkMode] = useState(() => {
         if (typeof window === 'undefined') return false
 
@@ -37,7 +43,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     })
 
     useEffect(() => {
-        // Update HTML class
         if (darkMode) {
             document.documentElement.classList.add('dark')
         } else {
@@ -51,7 +56,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             localStorage.setItem('darkMode', String(newValue))
 
             if (user) {
-                // Background update
                 void updateUserPreferences(user.uid, {
                     darkMode: newValue,
                 }).catch((error) => {
@@ -66,16 +70,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (loading || !user) return
 
-        // Subscribe to user preferences in Firestore
         const unsubscribe = subscribeToUserPreferences(
             user.uid,
             (prefs, metadata) => {
-                // Skip if we have pending local writes to avoid flicker/revert
                 if (metadata.hasPendingWrites) return
 
                 if (typeof prefs.darkMode === 'boolean') {
                     setDarkMode(prefs.darkMode)
                     localStorage.setItem('darkMode', String(prefs.darkMode))
+                }
+
+                if (prefs.locale && prefs.locale !== locale) {
+                    router.replace(pathname, { locale: prefs.locale })
                 }
             },
             (error) => {
@@ -84,6 +90,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         )
 
         return () => unsubscribe()
+    // pathname and router are stable refs; locale is intentionally excluded so
+    // we only redirect once on the initial subscription, not on every locale change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading, user])
 
     return (

@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from '@/i18n/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 
 const PUBLIC_ROUTES = new Set(['/login', '/register'])

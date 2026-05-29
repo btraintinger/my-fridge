@@ -1,14 +1,15 @@
 'use client'
 
 import { AlertCircle, ChefHat, Info, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { NutriScoreBadge } from './NutriScoreComponents'
-import type { Product } from '../../lib/types'
-import { getNutrimentWarnings } from '../../lib/nutrimentWarnings'
-import { itemQuantitySchema } from '../../lib/validations'
-import { notify } from '../../lib/notify'
+import type { Product } from '@/lib/types'
+import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
+import { createItemQuantitySchema } from '@/lib/validations'
+import { notify } from '@/lib/notify'
 import Image from 'next/image'
 
 interface ProductDetailModalProps {
@@ -28,7 +29,8 @@ function FlagBadge({
     label: string
     value: boolean | null | undefined
 }) {
-    const text = value === true ? 'Yes' : value === false ? 'No' : '-'
+    const t = useTranslations('common')
+    const text = value === true ? t('yes') : value === false ? t('no') : t('none')
     const tone =
         value === true
             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/40'
@@ -54,10 +56,12 @@ export function ProductDetailModal({
     onDelete,
     onClose,
 }: ProductDetailModalProps) {
+    const t = useTranslations()
     const warnings = getNutrimentWarnings(product)
     const [editingQuantity, setEditingQuantity] = useState(false)
     const [quantityDraft, setQuantityDraft] = useState(String(quantity))
     const [savingQuantity, setSavingQuantity] = useState(false)
+    const itemQuantitySchema = useMemo(() => createItemQuantitySchema(t), [t])
 
     const saveQuantity = async () => {
         if (!itemId || !fridgeId) return
@@ -93,7 +97,7 @@ export function ProductDetailModal({
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-400 dark:text-slate-500">
-                            No image available
+                            {t('productModal.noImage')}
                         </div>
                     )}
                     <button
@@ -114,7 +118,7 @@ export function ProductDetailModal({
                         </p>
                         {product.origin_country && (
                             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
-                                Origin: {product.origin_country}
+                                {t('productModal.origin', { country: product.origin_country })}
                             </p>
                         )}
                     </div>
@@ -122,7 +126,7 @@ export function ProductDetailModal({
                     {typeof quantity === 'number' && (
                         <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl p-4 border border-emerald-200/70 dark:border-emerald-900/50">
                             <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
-                                Inventory
+                                {t('productModal.inventory')}
                             </h3>
                             {editingQuantity ? (
                                 <div className="flex items-center gap-2">
@@ -146,7 +150,7 @@ export function ProductDetailModal({
                                         disabled={savingQuantity}
                                         onClick={saveQuantity}
                                     >
-                                        Save
+                                        {t('common.save')}
                                     </Button>
                                     <Button
                                         size="sm"
@@ -154,7 +158,7 @@ export function ProductDetailModal({
                                         className="h-8 px-3 text-xs"
                                         onClick={() => setEditingQuantity(false)}
                                     >
-                                        Cancel
+                                        {t('common.cancel')}
                                     </Button>
                                 </div>
                             ) : (
@@ -162,7 +166,7 @@ export function ProductDetailModal({
                                     className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 px-3 py-2 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-950/70 transition-colors"
                                     onClick={() => setEditingQuantity(true)}
                                 >
-                                    Quantity: {quantity}
+                                    {t('productModal.quantity', { count: quantity })}
                                 </button>
                             )}
                         </div>
@@ -170,19 +174,19 @@ export function ProductDetailModal({
 
                     <div className="space-y-2">
                         <h3 className="text-sm font-bold text-slate-900 dark:text-slate-50">
-                            Product Info
+                            {t('productModal.productInfo')}
                         </h3>
                         <div className="flex flex-wrap gap-2">
                             <FlagBadge
-                                label="Vegan"
+                                label={t('productModal.flags.vegan')}
                                 value={product.dietary_flags?.vegan}
                             />
                             <FlagBadge
-                                label="Vegetarian"
+                                label={t('productModal.flags.vegetarian')}
                                 value={product.dietary_flags?.vegetarian}
                             />
                             <FlagBadge
-                                label="Palm oil free"
+                                label={t('productModal.flags.palmOilFree')}
                                 value={product.dietary_flags?.palm_oil_free}
                             />
                         </div>
@@ -203,7 +207,7 @@ export function ProductDetailModal({
                     {warnings.length > 0 && (
                         <div className="space-y-2 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">
                             <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300">
-                                Nutrition warnings (per 100g)
+                                {t('productModal.nutritionWarnings')}
                             </h3>
                             <div className="space-y-2">
                                 {warnings.map((warning) => (
@@ -212,10 +216,10 @@ export function ProductDetailModal({
                                         className="text-sm text-amber-900 dark:text-amber-200"
                                     >
                                         <span className="font-semibold">
-                                            {warning.label}:
+                                            {t(`nutrimentWarnings.${warning.id}.label` as never)}:
                                         </span>{' '}
                                         {warning.value.toFixed(1)} {warning.unit}{' '}
-                                        - {warning.message}
+                                        - {t(`nutrimentWarnings.${warning.id}.${warning.severity}` as never)}
                                     </p>
                                 ))}
                             </div>
@@ -226,7 +230,7 @@ export function ProductDetailModal({
                         {product.nutriscore_grade && (
                             <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 flex-1 flex flex-col items-center">
                                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-                                    Nutri-Score
+                                    {t('productModal.nutriScore')}
                                 </span>
                                 <NutriScoreBadge
                                     grade={product.nutriscore_grade}
@@ -236,7 +240,7 @@ export function ProductDetailModal({
                         {product.ecoscore_grade && (
                             <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 flex-1 flex flex-col items-center">
                                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">
-                                    Eco-Score
+                                    {t('productModal.ecoScore')}
                                 </span>
                                 <div
                                     className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base uppercase shadow-sm ${
@@ -261,12 +265,12 @@ export function ProductDetailModal({
                         <div className="space-y-3">
                             <h3 className="text-sm font-bold text-slate-900 dark:text-slate-50 flex items-center gap-2">
                                 <Info size={16} className="text-emerald-500" />
-                                Nutritional Values (per 100g)
+                                {t('productModal.nutritionTitle')}
                             </h3>
                             <div className="grid grid-cols-2 gap-2 text-sm">
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
                                     <span className="text-slate-500 dark:text-slate-400">
-                                        Energy
+                                        {t('productModal.energy')}
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.energy_kcal} kcal
@@ -274,7 +278,7 @@ export function ProductDetailModal({
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
                                     <span className="text-slate-500 dark:text-slate-400">
-                                        Fat
+                                        {t('productModal.fat')}
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.fat}g
@@ -282,7 +286,7 @@ export function ProductDetailModal({
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
                                     <span className="text-slate-500 dark:text-slate-400">
-                                        Saturated Fat
+                                        {t('productModal.saturatedFat')}
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.saturated_fat}g
@@ -290,7 +294,7 @@ export function ProductDetailModal({
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
                                     <span className="text-slate-500 dark:text-slate-400">
-                                        Sugars
+                                        {t('productModal.sugars')}
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.sugars}g
@@ -298,7 +302,7 @@ export function ProductDetailModal({
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
                                     <span className="text-slate-500 dark:text-slate-400">
-                                        Proteins
+                                        {t('productModal.proteins')}
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.proteins}g
@@ -306,7 +310,7 @@ export function ProductDetailModal({
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
                                     <span className="text-slate-500 dark:text-slate-400">
-                                        Fiber
+                                        {t('productModal.fiber')}
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.fiber}g
@@ -314,7 +318,7 @@ export function ProductDetailModal({
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex justify-between">
                                     <span className="text-slate-500 dark:text-slate-400">
-                                        Salt
+                                        {t('productModal.salt')}
                                     </span>
                                     <span className="font-bold text-slate-900 dark:text-slate-50">
                                         {product.nutriments.salt}g
@@ -331,13 +335,13 @@ export function ProductDetailModal({
                                     size={16}
                                     className="text-amber-500"
                                 />
-                                Allergens
+                                {t('productModal.allergens')}
                             </h3>
                             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-amber-50/50 dark:bg-amber-950/20 p-3 rounded-xl border border-amber-100/50 dark:border-amber-900/30 italic">
                                 {product.allergens
                                     .split(',')
                                     .map((a) => a.replace('en:', ''))
-                                    .join(', ') || 'None reported'}
+                                    .join(', ') || t('productModal.noAllergens')}
                             </p>
                         </div>
                     )}
@@ -349,7 +353,7 @@ export function ProductDetailModal({
                                     size={16}
                                     className="text-emerald-500"
                                 />
-                                Ingredients
+                                {t('productModal.ingredients')}
                             </h3>
                             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                                 {product.ingredients}
@@ -363,7 +367,7 @@ export function ProductDetailModal({
                             className="flex-1 h-12 rounded-2xl"
                             variant="outline"
                         >
-                            Schließen
+                            {t('common.close')}
                         </Button>
                         {onDelete && itemId && fridgeId && (
                             <Button
@@ -372,7 +376,7 @@ export function ProductDetailModal({
                                 variant="outline"
                             >
                                 <Trash2 size={18} className="mr-2" />
-                                Löschen
+                                {t('common.delete')}
                             </Button>
                         )}
                     </div>

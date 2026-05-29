@@ -1,0 +1,542 @@
+{
+    "common": {
+        "appName": "MyFridge",
+        "appTagline": "Digitale Kühlschrank-Verwaltung",
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "delete": "Löschen",
+        "close": "Schließen",
+        "back": "Zurück",
+        "loading": "Lädt...",
+        "saving": "Speichert...",
+        "retry": "Erneut versuchen",
+        "yes": "Ja",
+        "no": "Nein",
+        "none": "-",
+        "search": "Suchen",
+        "add": "Hinzufügen",
+        "create": "Erstellen",
+        "invite": "Einladen",
+        "share": "Teilen",
+        "remove": "Entfernen",
+        "edit": "Bearbeiten",
+        "oops": "Hoppla",
+        "today": "Heute"
+    },
+    "nav": {
+        "fridges": "Kühlschränke",
+        "scan": "Scannen",
+        "list": "Liste",
+        "settings": "Einstellungen"
+    },
+    "home": {
+        "tagline": "Die smarteste Art, deine Lebensmittel zu verwalten und Verschwendung zu reduzieren.",
+        "getStarted": "Loslegen",
+        "signIn": "Anmelden"
+    },
+    "auth": {
+        "login": {
+            "title": "Willkommen zurück",
+            "subtitle": "Gib deine Daten ein, um auf deine Kühlschränke zuzugreifen.",
+            "submit": "Anmelden",
+            "submitting": "Anmeldung läuft...",
+            "socialDivider": "Soziale Anmeldung",
+            "googleButton": "Mit Google anmelden",
+            "noAccount": "Noch kein Konto?",
+            "signUpLink": "Registrieren",
+            "verificationSentBanner": "Verifizierungs-E-Mail gesendet. Prüfe dein Postfach, bevor du dich anmeldest.",
+            "verifyEmailFirst": "Bitte verifiziere deine E-Mail vor der Anmeldung. Verifizierungs-E-Mail bei Bedarf erneut senden.",
+            "missingEmailPasswordForResend": "Gib E-Mail und Passwort ein, um die Verifizierungs-E-Mail erneut zu senden.",
+            "verificationResent": "Verifizierungs-E-Mail gesendet. Prüfe dein Postfach und melde dich erneut an.",
+            "alreadyVerified": "Dieses Konto ist bereits verifiziert. Du kannst dich normal anmelden.",
+            "sendingVerification": "Sende Verifizierung...",
+            "resendVerification": "Verifizierungs-E-Mail erneut senden",
+            "missingEmailForReset": "Gib deine E-Mail-Adresse ein, um eine Passwort-Reset-E-Mail zu erhalten.",
+            "passwordResetSent": "Passwort-Reset-E-Mail gesendet. Prüfe dein Postfach.",
+            "sendingResetEmail": "Sende Reset-E-Mail...",
+            "forgotPassword": "Passwort vergessen?",
+            "loginFailed": "Anmeldung fehlgeschlagen. Bitte erneut versuchen.",
+            "resendVerificationFailed": "Verifizierungs-E-Mail konnte nicht erneut gesendet werden. Bitte erneut versuchen.",
+            "resetEmailFailed": "Passwort-Reset-E-Mail konnte nicht gesendet werden. Bitte erneut versuchen."
+        },
+        "register": {
+            "title": "Konto erstellen",
+            "subtitle": "Starte ohne Verschwendung mit der Verwaltung deines Kühlschranks.",
+            "name": "Name",
+            "namePlaceholder": "Dein Name",
+            "submit": "Registrieren",
+            "submitting": "Konto wird erstellt...",
+            "passwordRules": "Min. 8 Zeichen, 1 Großbuchstabe, 1 Zahl, 1 Sonderzeichen",
+            "socialDivider": "Soziale Anmeldung",
+            "googleButton": "Mit Google registrieren",
+            "haveAccount": "Bereits ein Konto?",
+            "signInLink": "Anmelden",
+            "accountCreated": "Konto erfolgreich erstellt!",
+            "accountCreationFailed": "Konto konnte nicht erstellt werden."
+        },
+        "fields": {
+            "email": "E-Mail",
+            "emailPlaceholder": "du@beispiel.com",
+            "password": "Passwort",
+            "passwordPlaceholder": "••••••••"
+        },
+        "google": {
+            "default": "Mit Google anmelden",
+            "connecting": "Verbinde...",
+            "failed": "Anmeldung mit Google fehlgeschlagen."
+        },
+        "firebaseErrors": {
+            "auth/cancelled-popup-request": "Anmelde-Anfrage wurde abgebrochen. Bitte erneut versuchen.",
+            "auth/email-already-in-use": "Diese E-Mail wird bereits verwendet.",
+            "auth/invalid-credential": "Bitte überprüfe deine Anmeldedaten und versuche es erneut.",
+            "auth/invalid-email": "Bitte gib eine gültige E-Mail-Adresse ein.",
+            "auth/invalid-login-credentials": "Ungültige E-Mail oder Passwort.",
+            "auth/network-request-failed": "Netzwerkfehler. Bitte prüfe deine Verbindung.",
+            "auth/operation-not-allowed": "Diese Anmelde-Methode ist derzeit nicht verfügbar.",
+            "auth/popup-blocked": "Pop-up wurde blockiert. Bitte erlaube Pop-ups und versuche es erneut.",
+            "auth/popup-closed-by-user": "Anmeldung wurde abgebrochen. Bitte erneut versuchen.",
+            "auth/requires-recent-login": "Aus Sicherheitsgründen melde dich erneut an und wiederhole die Aktion.",
+            "auth/too-many-requests": "Zu viele Versuche. Bitte warte und versuche es erneut.",
+            "auth/user-disabled": "Dieses Konto wurde deaktiviert.",
+            "auth/user-not-found": "Kein Konto für diese E-Mail gefunden.",
+            "auth/weak-password": "Wähle ein stärkeres Passwort (mindestens 6 Zeichen).",
+            "auth/wrong-password": "Das aktuelle Passwort ist falsch."
+        }
+    },
+    "validation": {
+        "name": {
+            "min": "Name muss mindestens {min} Zeichen lang sein.",
+            "max": "Name darf maximal {max} Zeichen lang sein."
+        },
+        "email": {
+            "required": "E-Mail ist erforderlich.",
+            "invalid": "Bitte gib eine gültige E-Mail-Adresse ein."
+        },
+        "password": {
+            "min": "Passwort muss mindestens {min} Zeichen lang sein.",
+            "uppercase": "Passwort muss mindestens einen Großbuchstaben enthalten.",
+            "digit": "Passwort muss mindestens eine Zahl enthalten.",
+            "symbol": "Passwort muss mindestens ein Sonderzeichen enthalten.",
+            "required": "Passwort ist erforderlich."
+        },
+        "fridgeName": {
+            "min": "Kühlschrank-Name muss mindestens {min} Zeichen lang sein.",
+            "max": "Kühlschrank-Name darf maximal {max} Zeichen lang sein."
+        },
+        "shoppingItem": {
+            "required": "Bitte gib einen Eintrag an.",
+            "max": "Eintrag darf maximal {max} Zeichen lang sein."
+        },
+        "quantity": {
+            "type": "Menge muss eine Zahl sein.",
+            "int": "Menge muss eine ganze Zahl sein.",
+            "min": "Menge muss mindestens {min} sein."
+        },
+        "product": {
+            "nameRequired": "Produktname ist erforderlich.",
+            "nameMax": "Produktname darf maximal {max} Zeichen lang sein.",
+            "categoryRequired": "Kategorie ist erforderlich.",
+            "notesMax": "Notizen dürfen maximal {max} Zeichen lang sein."
+        }
+    },
+    "fridges": {
+        "list": {
+            "title": "Meine Kühlschränke",
+            "subtitle": "Behalte den Überblick über deine Lebensmittel.",
+            "newButton": "Neu",
+            "namePlaceholder": "z. B. Küche, Büro",
+            "createSubmit": "Erstellen",
+            "creating": "...",
+            "emptyTitle": "Noch keine Kühlschränke",
+            "emptyMessage": "Erstelle deinen ersten Kühlschrank, um deine Lebensmittel zu verfolgen und Verschwendung zu reduzieren.",
+            "createCta": "Kühlschrank erstellen"
+        },
+        "card": {
+            "viewInventory": "Inventar ansehen",
+            "mostCommonNutriScore": "Häufigster Nutri-Score: {grade}"
+        },
+        "detail": {
+            "shareTitle": "Kühlschrank teilen",
+            "shareHeading": "Zugriff teilen",
+            "shareEmailPlaceholder": "E-Mail des Mitnutzers",
+            "sharedWith": "Geteilt mit",
+            "noOneYet": "Noch niemand",
+            "removeAccess": "Zugriff entfernen",
+            "nutriScoreLabel": "Nutri-Score",
+            "productsCount": "{count, plural, =0 {Keine Produkte} one {# Produkt} other {# Produkte}}",
+            "moreAnalysis": "Weitere Analyse",
+            "searchPlaceholder": "Produkte suchen...",
+            "addButton": "Hinzufügen",
+            "inventory": "Inventar",
+            "emptyFridge": "Dein Kühlschrank ist leer. Scanne Produkte, um ihn zu füllen!",
+            "noResults": "Keine Produkte gefunden, die den Filtern entsprechen.",
+            "startScanning": "Scannen starten",
+            "fridgeNotFound": "Kühlschrank nicht gefunden",
+            "backToFridges": "Zurück zu den Kühlschränken",
+            "deleteProductTitle": "Produkt löschen",
+            "deleteProductConfirm": "Möchtest du {name} wirklich aus dem Kühlschrank entfernen?",
+            "swipeDelete": "Löschen",
+            "deleteProductTooltip": "Produkt löschen",
+            "saveQuantity": "Speichern",
+            "cancelQuantity": "Abbrechen",
+            "quantityLabel": "M: {count}",
+            "veganBadge": "Vegan",
+            "manualBadge": "Manuell",
+            "filters": {
+                "allCategories": "Alle Kategorien",
+                "dairy": "Milchprodukte",
+                "meat": "Fleisch & Wurst",
+                "veg": "Gemüse",
+                "fruit": "Obst",
+                "drinks": "Getränke"
+            },
+            "sort": {
+                "nameAsc": "Name (A-Z)",
+                "nameDesc": "Name (Z-A)",
+                "quantityAsc": "Menge (Aufsteigend)",
+                "quantityDesc": "Menge (Absteigend)",
+                "nutriAsc": "Nutri-Score (Aufsteigend)",
+                "nutriDesc": "Nutri-Score (Absteigend)",
+                "expiryAsc": "Ablaufdatum (Bald ablaufen zuerst)"
+            },
+            "categories": {
+                "dairy": "Milchprodukte",
+                "meatFish": "Fleisch & Fisch",
+                "vegFruit": "Gemüse & Obst",
+                "drinks": "Getränke",
+                "snacks": "Snacks & Süßes",
+                "frozen": "Tiefkühl",
+                "other": "Sonstiges"
+            }
+        },
+        "analysis": {
+            "title": "Analyse",
+            "overallHealth": "Gesamtbild",
+            "headline": "Was in deinem Kühlschrank ist und wie gesund es aussieht.",
+            "subheadline": "Ein schneller Überblick über Produktverteilung, Bewertungen, Mengen und Nährwertdurchschnitte.",
+            "modalNutriScore": "Häufigster Nutri-Score",
+            "stats": {
+                "items": "Produkte",
+                "totalQuantity": "Gesamtmenge",
+                "avgQuantity": "Ø Menge",
+                "expiringSoon": "Läuft bald ab"
+            },
+            "warnings": {
+                "title": "Warnungen",
+                "subtitle": "Produkte mit hohen oder mittleren Nährwert-Warnungen.",
+                "products": "Produkte",
+                "high": "Hoch",
+                "medium": "Mittel"
+            },
+            "dataCoverage": {
+                "title": "Datenabdeckung",
+                "subtitle": "Wie viele Produktdaten zur Analyse verfügbar sind.",
+                "nutriScore": "Nutri-Score",
+                "nutriments": "Nährwerte"
+            },
+            "quickSignal": {
+                "title": "Schnellsignal",
+                "subtitle": "Auf einen Blick die Qualitätstendenz deines Kühlschranks.",
+                "highWarnings": "Einige Produkte brauchen Aufmerksamkeit wegen hoher Warnstufen.",
+                "ok": "Aktuell keine Produkte mit hoher Warnstufe."
+            },
+            "nutriSpread": {
+                "title": "Nutri-Score Verteilung",
+                "subtitle": "Wie die Bewertungen in deinem Kühlschrank verteilt sind."
+            },
+            "dietary": {
+                "title": "Ernährungs-Flags",
+                "subtitle": "Anteil veganer, vegetarischer und palmölfreier Produkte.",
+                "vegan": "Vegan",
+                "vegetarian": "Vegetarisch",
+                "palmOilFree": "Palmölfrei"
+            },
+            "avgNutrition": {
+                "title": "Durchschnittliche Nährwerte",
+                "subtitle": "Durchschnittswerte aus Produkten mit Nährwertdaten.",
+                "per100g": "pro 100g"
+            },
+            "best": {
+                "title": "Beste Produkte",
+                "subtitle": "Die aktuell gesündesten Produkte im Kühlschrank.",
+                "empty": "Noch keine Produkte verfügbar."
+            },
+            "needsAttention": {
+                "title": "Braucht Aufmerksamkeit",
+                "subtitle": "Produkte mit niedrigen Bewertungen oder hoher Warnstufe.",
+                "empty": "Keine Risikoprodukte erkannt."
+            },
+            "warningDetails": {
+                "title": "Warnungsdetails",
+                "subtitle": "Konkrete Warnsignale für Produkte, die Aufmerksamkeit brauchen.",
+                "lowNutri": "Niedriger Nutri-Score erkannt."
+            },
+            "topBrands": {
+                "title": "Top-Marken",
+                "subtitle": "Häufigste Marken in diesem Kühlschrank.",
+                "empty": "Keine Marken-Daten verfügbar."
+            },
+            "recommendation": {
+                "title": "Empfehlung",
+                "subtitle": "Basierend auf der aktuellen Verteilung.",
+                "addProducts": "Füge Produkte hinzu, um einen Gesundheitswert zu erhalten.",
+                "reduceDE": "Versuche, Produkte mit Nutri-Score D oder E zu reduzieren.",
+                "addAB": "Füge mehr Produkte mit Nutri-Score A oder B hinzu.",
+                "great": "Gute Balance! Weiter so."
+            },
+            "backToFridge": "Zurück zum Kühlschrank",
+            "warningCount": "{count, plural, one {# Warnung} other {# Warnungen}}"
+        }
+    },
+    "scanner": {
+        "title": "Produkt scannen",
+        "subtitle": "Scanne einen Barcode oder suche manuell.",
+        "barcodePlaceholder": "Barcode eingeben (z. B. 9012501000053)",
+        "cameraScanner": "Kamera-Scanner",
+        "addManually": "Manuell anlegen",
+        "origin": "Herkunft: {country}",
+        "nutriScore": "Nutri-Score",
+        "labels": "Labels",
+        "flags": {
+            "vegan": "Vegan",
+            "vegetarian": "Vegetarisch",
+            "palmOilFree": "Palmölfrei"
+        },
+        "nutritionTitle": "Nährwerte (pro 100g)",
+        "nutritionWarningsTitle": "Nährwert-Warnungen (pro 100g)",
+        "allergens": "Allergene",
+        "addToFridge": "In den Kühlschrank legen",
+        "addedToFridge": "Zum Kühlschrank hinzugefügt!",
+        "createFridgeFirst": "Erstelle zuerst einen Kühlschrank, um Produkte hinzuzufügen.",
+        "energy": "Energie",
+        "fat": "Fett",
+        "saturatedFat": "Gesättigte Fettsäuren",
+        "carbohydrates": "Kohlenhydrate",
+        "sugars": "Zucker",
+        "proteins": "Proteine",
+        "salt": "Salz",
+        "fiber": "Ballaststoffe",
+        "errors": {
+            "offline": "Offline sind nur bereits gespeicherte Produkte verfügbar.",
+            "notFound": "Produkt nicht gefunden. Bitte manuell anlegen.",
+            "searchFailed": "Fehler bei der Produktsuche."
+        },
+        "modal": {
+            "title": "Scanner",
+            "cameraNotFound": "Keine Kamera gefunden",
+            "scannerAreaNotFound": "Scanner-Bereich nicht gefunden",
+            "starting": "Kamera startet...",
+            "initializing": "Initialisiere Kamera...",
+            "optimizingLens": "Optimiere Linse...",
+            "focusing": "Fokussiere...",
+            "flashOn": "Blitz An",
+            "flashOff": "Blitz Aus",
+            "switchLens": "Linse wechseln",
+            "cancel": "Abbrechen"
+        }
+    },
+    "manualProduct": {
+        "title": "Produkt manuell anlegen",
+        "nameLabel": "Produktname",
+        "namePlaceholder": "z. B. Äpfel vom Markt",
+        "quantityLabel": "Menge",
+        "categoryLabel": "Kategorie",
+        "expiryLabel": "Ablaufdatum",
+        "notesLabel": "Notizen",
+        "notesPlaceholder": "Weitere Details zum Produkt...",
+        "submitting": "Wird hinzugefügt...",
+        "submit": "In den Kühlschrank legen",
+        "manualLabel": "Manuell",
+        "categories": {
+            "dairy": "Milchprodukte",
+            "meatFish": "Fleisch & Fisch",
+            "vegFruit": "Gemüse & Obst",
+            "snacks": "Snacks & Süßes",
+            "drinks": "Getränke",
+            "frozen": "Tiefkühl",
+            "other": "Sonstiges"
+        }
+    },
+    "productModal": {
+        "noImage": "Kein Bild verfügbar",
+        "origin": "Herkunft: {country}",
+        "inventory": "Inventar",
+        "quantity": "Menge: {count}",
+        "productInfo": "Produkt-Info",
+        "flags": {
+            "vegan": "Vegan",
+            "vegetarian": "Vegetarisch",
+            "palmOilFree": "Palmölfrei"
+        },
+        "nutritionWarnings": "Nährwert-Warnungen (pro 100g)",
+        "nutriScore": "Nutri-Score",
+        "ecoScore": "Eco-Score",
+        "nutritionTitle": "Nährwerte (pro 100g)",
+        "energy": "Energie",
+        "fat": "Fett",
+        "saturatedFat": "Gesättigte Fettsäuren",
+        "sugars": "Zucker",
+        "proteins": "Proteine",
+        "fiber": "Ballaststoffe",
+        "salt": "Salz",
+        "allergens": "Allergene",
+        "noAllergens": "Keine angegeben",
+        "ingredients": "Zutaten"
+    },
+    "shoppingList": {
+        "title": "Einkaufsliste",
+        "subtitle": "Plane, was du als Nächstes kaufst.",
+        "selectFridge": "Kühlschrank auswählen",
+        "quickAdd": "Schnell hinzufügen",
+        "movingToFridge": "Verschiebe in Kühlschrank...",
+        "emptyTitle": "Liste ist leer",
+        "emptyMessage": "Füge oben Produkte hinzu, die du kaufen möchtest.",
+        "toBuy": "Zu kaufen",
+        "recentlyAdded": "Zuletzt hinzugefügt",
+        "addPlaceholder": "Eintrag hinzufügen...",
+        "scanTooltip": "Produkt scannen und in Kühlschrank verschieben",
+        "itemScanTooltip": "Scannen, um in Kühlschrank zu verschieben"
+    },
+    "settings": {
+        "title": "Einstellungen",
+        "subtitle": "Verwalte dein Konto und die App-Einstellungen.",
+        "sections": {
+            "account": {
+                "title": "Konto",
+                "description": "Dein Profil und deine Anmeldedaten."
+            },
+            "preferences": {
+                "title": "Präferenzen",
+                "description": "Passe das Erscheinungsbild auf diesem Gerät an."
+            },
+            "security": {
+                "title": "Sicherheit",
+                "description": "Behalte den Zugriff auf dein Konto unter Kontrolle."
+            },
+            "language": {
+                "title": "Sprache",
+                "description": "Wähle die Anzeigesprache der App."
+            }
+        },
+        "profile": {
+            "verified": "Verifiziert",
+            "signInMethod": "Anmeldemethode",
+            "memberSince": "Mitglied seit",
+            "notAvailable": "Nicht verfügbar",
+            "providers": {
+                "google": "Google-Konto",
+                "password": "E-Mail und Passwort",
+                "other": "Verbundenes Konto"
+            },
+            "fallbackName": "Nutzer",
+            "profileImageAlt": "Profil"
+        },
+        "theme": {
+            "title": "Dunkelmodus",
+            "on": "An",
+            "off": "Aus",
+            "turnOn": "Dunkelmodus aktivieren",
+            "turnOff": "Dunkelmodus deaktivieren"
+        },
+        "language": {
+            "title": "Sprache",
+            "en": "Englisch",
+            "de": "Deutsch",
+            "switchAria": "Sprache wechseln"
+        },
+        "actions": {
+            "changePassword": {
+                "title": "Passwort ändern",
+                "description": "Aktualisiere das Passwort für die E-Mail-Anmeldung."
+            },
+            "signOut": {
+                "title": "Abmelden",
+                "description": "Beende diese Sitzung auf dem aktuellen Gerät."
+            },
+            "deleteAccount": {
+                "title": "Konto löschen",
+                "description": "Entferne dein Konto und gespeicherte Zugänge dauerhaft."
+            }
+        },
+        "password": {
+            "title": "Passwort ändern",
+            "newPlaceholder": "Neues Passwort",
+            "confirmPlaceholder": "Neues Passwort bestätigen",
+            "currentPlaceholder": "Aktuelles Passwort",
+            "submit": "Passwort ändern",
+            "submitting": "Aktualisiere Passwort...",
+            "mismatch": "Die Passwörter müssen übereinstimmen.",
+            "tooShort": "Dein neues Passwort muss mindestens 6 Zeichen lang sein.",
+            "updated": "Passwort erfolgreich aktualisiert.",
+            "updateFailed": "Passwort konnte nicht aktualisiert werden. Bitte erneut versuchen."
+        },
+        "delete": {
+            "title": "Konto löschen",
+            "confirmText": "DELETE",
+            "warning": "Diese Aktion ist endgültig. Tippe DELETE, um zu bestätigen.",
+            "currentPasswordPlaceholder": "Aktuelles Passwort",
+            "googleNote": "Du wirst zu Google weitergeleitet, um diese Aktion zu bestätigen.",
+            "submit": "Konto löschen",
+            "submitting": "Lösche Konto...",
+            "typeDelete": "Tippe DELETE, um die Kontolöschung zu bestätigen.",
+            "deleteFailed": "Konto konnte nicht gelöscht werden. Bitte erneut versuchen."
+        },
+        "modal": {
+            "closeAria": "Dialog schließen"
+        }
+    },
+    "offline": {
+        "title": "Du bist offline",
+        "message": "MyFridge kann weiterhin gecachte Kühlschrank-Daten und gespeicherte Produkte anzeigen. Sobald du wieder online bist, werden Änderungen automatisch synchronisiert.",
+        "retry": "Erneut versuchen",
+        "openScanner": "Scanner öffnen",
+        "offlineBadge": "Offline",
+        "installCta": "Zum Startbildschirm hinzufügen"
+    },
+    "debug": {
+        "title": "Debug-Tools",
+        "description": "Diese Seite dient zum Zurücksetzen der Testdaten während der Entwicklung.",
+        "mustBeLoggedIn": "Du musst eingeloggt sein, um deine Daten zu löschen.",
+        "confirm": "Möchtest du wirklich ALLE DEINE Kühlschränke, Produkte und Einkaufslisten löschen? Dies kann nicht rückgängig gemacht werden.",
+        "deleteStarted": "Löschvorgang gestartet...",
+        "deleteSuccess": "Datenbank erfolgreich bereinigt. {count} deiner Kühlschränke wurden gelöscht.",
+        "deleteButton": "Datenbank jetzt leeren",
+        "backToApp": "Zurück zur App",
+        "retry": "Erneut versuchen",
+        "permissionDenied": "Berechtigung verweigert. Stelle sicher, dass du eingeloggt bist oder öffne die Security Rules temporär in der Firebase Console.",
+        "genericFailure": "Fehler beim Löschen: {message}",
+        "unknownError": "Unbekannter Fehler",
+        "cancel": "Abbrechen und zurück",
+        "cacheWarn": "Produkt-Cache konnte nicht geleert werden (evtl. fehlende Berechtigung):"
+    },
+    "nutrimentWarnings": {
+        "sugar": {
+            "label": "Zucker",
+            "high": "Sehr hoher Zuckergehalt (pro 100g).",
+            "medium": "Mäßig hoher Zuckergehalt (pro 100g)."
+        },
+        "salt": {
+            "label": "Salz",
+            "high": "Sehr hoher Salzgehalt (pro 100g).",
+            "medium": "Mäßig hoher Salzgehalt (pro 100g)."
+        },
+        "fat": {
+            "label": "Fett",
+            "high": "Sehr hoher Fettgehalt (pro 100g).",
+            "medium": "Mäßig hoher Fettgehalt (pro 100g)."
+        },
+        "saturated_fat": {
+            "label": "Gesättigte Fettsäuren",
+            "high": "Sehr hoher Gehalt an gesättigten Fettsäuren (pro 100g).",
+            "medium": "Mäßig hoher Gehalt an gesättigten Fettsäuren (pro 100g)."
+        },
+        "energy": {
+            "label": "Energie",
+            "high": "Sehr energiereich (pro 100g).",
+            "medium": "Mäßig energiereich (pro 100g)."
+        }
+    },
+    "toast": {
+        "genericError": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+    }
+}

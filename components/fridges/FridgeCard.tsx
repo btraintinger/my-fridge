@@ -1,7 +1,8 @@
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import { Refrigerator } from 'lucide-react'
-import type { Fridge } from '../../lib/types'
-import { GRADE_COLORS } from '../../lib/constants'
+import type { Fridge } from '@/lib/types'
+import { GRADE_COLORS } from '@/lib/constants'
 
 interface FridgeCardProps {
     fridge: Fridge
@@ -9,6 +10,7 @@ interface FridgeCardProps {
 }
 
 export function FridgeCard({ fridge, score }: FridgeCardProps) {
+    const t = useTranslations('fridges.card')
     const displayScore = score || fridge.modalNutriScore
 
     return (
@@ -23,12 +25,12 @@ export function FridgeCard({ fridge, score }: FridgeCardProps) {
                     </h3>
                     <div className="flex items-center gap-2">
                         <p className="text-sm lg:text-base text-slate-500 dark:text-slate-400 font-medium">
-                            Inventar ansehen &rarr;
+                            {t('viewInventory')} &rarr;
                         </p>
                         {displayScore && (
                             <span
                                 className={`inline-flex items-center justify-center w-6 h-6 lg:w-7 lg:h-7 rounded-lg text-white font-bold text-[10px] lg:text-xs uppercase shadow-sm ${GRADE_COLORS[displayScore.toLowerCase()] ?? 'bg-slate-400'}`}
-                                title={`Häufigster Nutri-Score: ${displayScore.toUpperCase()}`}
+                                title={t('mostCommonNutriScore', { grade: displayScore.toUpperCase() })}
                             >
                                 {displayScore.toUpperCase()}
                             </span>

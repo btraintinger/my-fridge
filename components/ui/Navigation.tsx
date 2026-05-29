@@ -1,21 +1,22 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
 import { Home, ListPlus, ScanLine, Settings } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function Navigation() {
     const pathname = usePathname()
     const { user } = useAuth()
+    const t = useTranslations('nav')
 
     if (!user) return null
 
     const navItems = [
-        { href: '/fridges', icon: Home, label: 'Fridges' },
-        { href: '/scanner', icon: ScanLine, label: 'Scan' },
-        { href: '/shopping-list', icon: ListPlus, label: 'List' },
-        { href: '/settings', icon: Settings, label: 'Settings' },
+        { href: '/fridges', icon: Home, label: t('fridges') },
+        { href: '/scanner', icon: ScanLine, label: t('scan') },
+        { href: '/shopping-list', icon: ListPlus, label: t('list') },
+        { href: '/settings', icon: Settings, label: t('settings') },
     ]
 
     return (

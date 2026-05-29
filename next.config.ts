@@ -1,4 +1,8 @@
 import type { NextConfig } from 'next'
+import createNextIntlPlugin from 'next-intl/plugin'
+import { withSerwist } from '@serwist/turbopack'
+
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 
 const firebaseAuthDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
 
@@ -31,4 +35,4 @@ const nextConfig: NextConfig = {
     },
 }
 
-export default nextConfig
+export default withSerwist(withNextIntl(nextConfig))
