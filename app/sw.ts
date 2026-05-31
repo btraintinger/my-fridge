@@ -6,11 +6,7 @@ import { defaultCache } from '@serwist/turbopack/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
 import { Serwist } from 'serwist'
 import { initializeApp, getApps } from 'firebase/app'
-import {
-    getMessaging,
-    isSupported as isMessagingSupported,
-    onBackgroundMessage,
-} from 'firebase/messaging/sw'
+import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw'
 
 declare global {
     interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -29,27 +25,24 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-void (async () => {
-    try {
-        if (!(await isMessagingSupported())) return
-        const firebaseApp = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
-        const messaging = getMessaging(firebaseApp)
-        onBackgroundMessage(messaging, (payload) => {
-            const title = payload.data?.title ?? 'MyFridge'
-            const body = payload.data?.body ?? ''
-            const link = payload.data?.link ?? '/'
-            self.registration.showNotification(title, {
-                body,
-                icon: '/icons/icon-192.png',
-                badge: '/icons/icon-192.png',
-                data: { link },
-                tag: payload.data?.tag,
-            })
+try {
+    const firebaseApp = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+    const messaging = getMessaging(firebaseApp)
+    onBackgroundMessage(messaging, (payload) => {
+        const title = payload.data?.title ?? 'MyFridge'
+        const body = payload.data?.body ?? ''
+        const link = payload.data?.link ?? '/'
+        self.registration.showNotification(title, {
+            body,
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png',
+            data: { link },
+            tag: payload.data?.tag,
         })
-    } catch (err) {
-        console.error('[sw] firebase messaging init failed', err)
-    }
-})()
+    })
+} catch (err) {
+    console.error('[sw] firebase messaging init failed', err)
+}
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close()

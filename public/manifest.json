@@ -17,19 +17,23 @@
   "shortcuts": [
     {
       "name": "My Fridges",
-      "url": "/fridges"
+      "url": "/fridges",
+      "icons": [{ "src": "/icons/shortcut-96.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Scan Item",
-      "url": "/scanner"
+      "url": "/scanner",
+      "icons": [{ "src": "/icons/shortcut-96.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Shopping List",
-      "url": "/shopping-list"
+      "url": "/shopping-list",
+      "icons": [{ "src": "/icons/shortcut-96.png", "sizes": "96x96", "type": "image/png" }]
     },
     {
       "name": "Settings",
-      "url": "/settings"
+      "url": "/settings",
+      "icons": [{ "src": "/icons/shortcut-96.png", "sizes": "96x96", "type": "image/png" }]
     }
   ],
   "icons": [
