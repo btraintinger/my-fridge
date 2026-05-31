@@ -14,8 +14,8 @@ const nextConfig: NextConfig = {
         serverActions: {
             allowedOrigins: [
                 'localhost:3000',
-                '10.164.11.98:3000',
-                '10.164.11.98'
+                '192.168.0.175:3000',
+                '192.168.0.175'
             ]
         }
     }
