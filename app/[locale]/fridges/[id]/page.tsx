@@ -245,7 +245,7 @@ export default function FridgeDetail({
     }
 
     const startQuantityEdit = (item: FridgeItem) => {
-        setEditingQuantityItemId(item.id)
+        setEditingQuantityItemId(item.id ?? null)
         setQuantityDraft(String(item.quantity ?? 1))
     }
 
@@ -686,7 +686,7 @@ export default function FridgeDetail({
                                                         <div
                                                             onClick={() => handleItemClick(item)}
                                                             onPointerDown={(event) =>
-                                                                handleItemPointerDown(item.id, event)
+                                                                handleItemPointerDown(item.id!, event)
                                                             }
                                                             onPointerMove={handleItemPointerMove}
                                                             onPointerUp={handleItemPointerUp}
@@ -758,7 +758,7 @@ export default function FridgeDetail({
                                                                                     ) {
                                                                                         e.preventDefault()
                                                                                         saveQuantity(
-                                                                                            item.id
+                                                                                            item.id!
                                                                                         )
                                                                                     }
                                                                                 }}
@@ -773,7 +773,7 @@ export default function FridgeDetail({
                                                                                 }
                                                                                 onClick={() =>
                                                                                     saveQuantity(
-                                                                                        item.id
+                                                                                        item.id!
                                                                                     )
                                                                                 }
                                                                             >
@@ -966,7 +966,7 @@ export default function FridgeDetail({
                             <Button
                                 className="flex-1 bg-rose-500 hover:bg-rose-600 text-white border-transparent"
                                 onClick={async () => {
-                                    await deleteFridgeItem(itemToDelete.id)
+                                    await deleteFridgeItem(itemToDelete.id!)
                                     setItemToDelete(null)
                                 }}
                             >

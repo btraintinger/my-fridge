@@ -1,8 +1,4 @@
-import type {
-    DocumentSnapshot,
-    FirestoreError,
-    QuerySnapshot,
-} from 'firebase/firestore'
+import type { FirestoreError } from 'firebase/firestore'
 import { notify } from '../notify'
 
 export async function runFirebaseAction<T>(
@@ -28,12 +24,4 @@ export function subscriptionErrorHandler(
         }
         onError?.(error)
     }
-}
-
-export function mapSnapshot<T>(snap: QuerySnapshot): T[] {
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as T[]
-}
-
-export function docWithId<T>(snap: DocumentSnapshot): T | null {
-    return snap.exists() ? ({ id: snap.id, ...snap.data() } as T) : null
 }

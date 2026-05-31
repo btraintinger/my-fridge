@@ -142,7 +142,7 @@ export default function Fridges() {
                             <FridgeCard
                                 key={fridge.id}
                                 fridge={fridge}
-                                score={fridgeScores[fridge.id]}
+                                score={fridgeScores[fridge.id!]}
                             />
                         ))}
                     </div>

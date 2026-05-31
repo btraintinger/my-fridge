@@ -15,10 +15,9 @@ import {
     writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase'
+import { FridgeItemSchema } from '../schemas'
 import type { Fridge, FridgeItem, Product } from '../types'
 import {
-    docWithId,
-    mapSnapshot,
     runFirebaseAction,
     subscriptionErrorHandler,
 } from './firebaseAction'
@@ -28,6 +27,7 @@ import {
     fridgesCollection,
     itemDoc,
     itemsCollection,
+    shoppingListCollection,
 } from './refs'
 import { postNotify } from '../notificationsClient'
 
@@ -65,7 +65,7 @@ export function subscribeToFridges(
 
     return onSnapshot(
         q,
-        (snap) => callback(mapSnapshot<Fridge>(snap)),
+        (snap) => callback(snap.docs.map((d) => d.data())),
         subscriptionErrorHandler(onError)
     )
 }
@@ -77,7 +77,7 @@ export function subscribeToFridge(
 ) {
     return onSnapshot(
         fridgeDoc(id),
-        (snap) => callback(docWithId<Fridge>(snap)),
+        (snap) => callback(snap.exists() ? snap.data() : null),
         subscriptionErrorHandler(onError)
     )
 }
@@ -104,7 +104,7 @@ export function subscribeToFridgeItems(
                         (data.productId
                             ? await getCachedProduct(data.productId)
                             : null)
-                    return { id: d.id, ...data, product } as FridgeItem
+                    return FridgeItemSchema.parse({ id: d.id, ...data, product })
                 })
             )
             callback(items.filter((item) => item.product))
@@ -118,16 +118,21 @@ export async function createFridge(userId: string, name: string) {
         addDoc(fridgesCollection(), {
             name,
             userId,
+            sharedWithEmails: [],
             createdAt: serverTimestamp(),
         })
     )
 }
 
 export async function deleteFridge(fridgeId: string) {
-    const itemsSnapshot = await getDocs(itemsCollection(fridgeId))
+    const [itemsSnapshot, shoppingSnapshot] = await Promise.all([
+        getDocs(itemsCollection(fridgeId)),
+        getDocs(shoppingListCollection(fridgeId)),
+    ])
     return runFirebaseAction(async () => {
         const batch = writeBatch(db)
-        itemsSnapshot.docs.forEach((doc) => batch.delete(doc.ref))
+        itemsSnapshot.docs.forEach((d) => batch.delete(d.ref))
+        shoppingSnapshot.docs.forEach((d) => batch.delete(d.ref))
         batch.delete(fridgeDoc(fridgeId))
         await batch.commit()
     }, 'Kühlschrank gelöscht')

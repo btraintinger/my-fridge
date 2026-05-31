@@ -3,14 +3,6 @@ import { fetchProductByBarcode } from '../openFoodFacts'
 import type { Product } from '../types'
 import { productDoc } from './refs'
 
-type CachedProductData = Product & { updatedAt?: { toMillis?: () => number } }
-
-function stripUpdatedAt(data: CachedProductData): Product {
-    const product = { ...data }
-    delete (product as { updatedAt?: unknown }).updatedAt
-    return product as Product
-}
-
 export async function getCachedProduct(
     barcode: string
 ): Promise<Product | null> {
@@ -23,11 +15,9 @@ export async function getCachedProduct(
             return null
         }
 
-        const data = snap.data() as CachedProductData
-        const updatedAt = data.updatedAt?.toMillis
-            ? data.updatedAt.toMillis()
-            : 0
-        const ageInDays = (Date.now() - updatedAt) / (1000 * 60 * 60 * 24)
+        const data = snap.data()
+        const updatedAtMillis = data.updatedAt?.toMillis?.() ?? 0
+        const ageInDays = (Date.now() - updatedAtMillis) / (1000 * 60 * 60 * 24)
         const isOffline =
             typeof navigator !== 'undefined' && !navigator.onLine
 
@@ -43,10 +33,7 @@ export async function getCachedProduct(
             console.debug(
                 `[Cache Fallback] API fetch failed for ${barcode}, using stale cache data.`
             )
-            return stripUpdatedAt(data)
-        }
-
-        if (ageInDays > 30) {
+        } else if (ageInDays > 30) {
             console.debug(
                 `[Cache Fallback] Product ${barcode} is stale but offline. Using local cache data.`
             )
@@ -55,7 +42,8 @@ export async function getCachedProduct(
                 `[Cache Hit] Product ${barcode} is fresh (${ageInDays.toFixed(1)} days old).`
             )
         }
-        return stripUpdatedAt(data)
+
+        return data
     } catch (error) {
         console.error('Error getting cached product:', error)
         return null

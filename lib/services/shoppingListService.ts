@@ -13,7 +13,6 @@ import {
 } from 'firebase/firestore'
 import type { Product, ShoppingListItem as ShoppingListItemType } from '../types'
 import {
-    mapSnapshot,
     runFirebaseAction,
     subscriptionErrorHandler,
 } from './firebaseAction'
@@ -37,7 +36,7 @@ export function subscribeToShoppingList(
 
     return onSnapshot(
         q,
-        (snap) => callback(mapSnapshot<ShoppingListItemType>(snap)),
+        (snap) => callback(snap.docs.map((d) => d.data())),
         subscriptionErrorHandler(onError)
     )
 }

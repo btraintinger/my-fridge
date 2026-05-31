@@ -1,8 +1,14 @@
 import { z } from 'zod'
+import { zodConverter } from './zodConverter'
 
-export const TimestampType = z.custom<{toDate:()=>Date}>((val) => {
-    return val != null && typeof (val as { toDate?: unknown }).toDate === "function"
-});
+// Accepts:
+// - Firestore Timestamps (read path: has toDate/toMillis)
+// - FieldValue sentinels like serverTimestamp() (write path: opaque object)
+// - null (transient local state for pending serverTimestamp writes, before the
+//   server resolves the placeholder to a real Timestamp)
+export const TimestampType = z.custom<{ toDate?(): Date; toMillis?(): number } | null>(
+    (val) => val === null || typeof val === 'object'
+)
 
 export const NutrimentsSchema = z.object({
     energy_kcal: z.number().default(0),
@@ -40,10 +46,13 @@ export const ProductSchema = z.object({
     nutriments: NutrimentsSchema,
     ecoscore_grade: z.string().nullable().default(null),
     category: z.string().default('Sonstiges'),
+    // Cache metadata — only set by client-side cache writes.
+    updatedAt: TimestampType.optional(),
 })
 
+// `id` is injected by the converter on read; absent on write (Firestore auto-assigns).
 export const FridgeSchema = z.object({
-    id: z.string(),
+    id: z.string().optional(),
     name: z.string(),
     userId: z.string(),
     createdAt: TimestampType.optional(),
@@ -52,8 +61,10 @@ export const FridgeSchema = z.object({
     modalNutriScore: z.string().nullable().optional(),
 })
 
+// Hydrated fridge item — `product` is populated after read from the products cache.
+// Used at the application layer, not directly as a Firestore converter.
 export const FridgeItemSchema = z.object({
-    id: z.string(),
+    id: z.string().optional(),
     fridgeId: z.string().optional(),
     userId: z.string().optional(),
     addedAt: TimestampType.optional(),
@@ -65,7 +76,7 @@ export const FridgeItemSchema = z.object({
 })
 
 export const ShoppingListItemSchema = z.object({
-    id: z.string(),
+    id: z.string().optional(),
     name: z.string(),
     fridgeId: z.string().optional(),
     userId: z.string(),
@@ -73,11 +84,20 @@ export const ShoppingListItemSchema = z.object({
     createdAt: TimestampType.optional(),
 })
 
+export const NotificationPreferencesSchema = z.object({
+    invites: z.boolean(),
+    fridgeActivity: z.boolean(),
+    shoppingList: z.boolean(),
+    expirationAlerts: z.boolean(),
+    expirationLeadDays: z.number(),
+})
+
 export const UserPreferencesSchema = z.object({
     userId: z.string(),
     darkMode: z.boolean().default(false),
     locale: z.enum(['en', 'de']).optional(),
     updatedAt: TimestampType.optional(),
+    notificationPreferences: NotificationPreferencesSchema.optional(),
 })
 
 export const FcmTokenDocSchema = z.object({
@@ -87,7 +107,7 @@ export const FcmTokenDocSchema = z.object({
 })
 
 export const NotificationDocSchema = z.object({
-    id: z.string(),
+    id: z.string().optional(),
     type: z.enum([
         'fridge_invite',
         'fridge_activity',
@@ -102,20 +122,22 @@ export const NotificationDocSchema = z.object({
     readAt: TimestampType.nullable(),
 })
 
-export const NotificationPreferencesSchema = z.object({
-    invites: z.boolean(),
-    fridgeActivity: z.boolean(),
-    shoppingList: z.boolean(),
-    expirationAlerts: z.boolean(),
-    expirationLeadDays: z.number(),
-})
-
 export type Nutriments = z.infer<typeof NutrimentsSchema>
 export type Product = z.infer<typeof ProductSchema>
 export type Fridge = z.infer<typeof FridgeSchema>
 export type FridgeItem = z.infer<typeof FridgeItemSchema>
 export type ShoppingListItem = z.infer<typeof ShoppingListItemSchema>
+export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>
 export type UserPreferences = z.infer<typeof UserPreferencesSchema>
 export type FcmTokenDoc = z.infer<typeof FcmTokenDocSchema>
 export type NotificationDoc = z.infer<typeof NotificationDocSchema>
-export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>
+
+// Converters — attach to refs via .withConverter() for type-safe, validated I/O.
+// FridgeItem has no converter: it requires async product hydration that can't
+// happen inside a synchronous converter.
+export const fridgeConverter = zodConverter(FridgeSchema)
+export const shoppingListItemConverter = zodConverter(ShoppingListItemSchema)
+export const userPreferencesConverter = zodConverter(UserPreferencesSchema)
+export const productConverter = zodConverter(ProductSchema)
+export const fcmTokenConverter = zodConverter(FcmTokenDocSchema)
+export const notificationConverter = zodConverter(NotificationDocSchema)

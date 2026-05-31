@@ -21,7 +21,7 @@ export function ShoppingListItem({
         return (
             <div className="flex items-center gap-3 bg-white/60 dark:bg-slate-900/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 animate-in fade-in duration-300">
                 <button
-                    onClick={() => onToggle(item.id, item.checked)}
+                    onClick={() => onToggle(item.id!, item.checked)}
                     className="w-6 h-6 rounded-full bg-emerald-500 flex-shrink-0 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20"
                 >
                     <svg
@@ -42,7 +42,7 @@ export function ShoppingListItem({
                     {item.name}
                 </span>
                 <button
-                    onClick={() => onDelete(item.id)}
+                    onClick={() => onDelete(item.id!)}
                     className="text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 p-1 transition-colors"
                 >
                     <Trash2 size={18} />
@@ -54,21 +54,21 @@ export function ShoppingListItem({
     return (
         <div className="flex items-center gap-3 bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 group hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all">
             <button
-                onClick={() => onToggle(item.id, item.checked)}
+                onClick={() => onToggle(item.id!, item.checked)}
                 className="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-400 flex-shrink-0 transition-all active:scale-90"
             />
             <span className="flex-1 text-slate-900 dark:text-slate-100 font-medium">
                 {item.name}
             </span>
             <button
-                onClick={() => onScan(item.id)}
+                onClick={() => onScan(item.id!)}
                 className="text-emerald-500 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 p-2 rounded-xl transition-all active:scale-95"
                 title={t('itemScanTooltip')}
             >
                 <ScanLine size={18} />
             </button>
             <button
-                onClick={() => onDelete(item.id)}
+                onClick={() => onDelete(item.id!)}
                 className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-2 rounded-xl transition-all active:scale-95"
             >
                 <Trash2 size={18} />

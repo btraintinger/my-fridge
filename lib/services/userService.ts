@@ -6,11 +6,11 @@ import {
     updateDoc,
 } from 'firebase/firestore'
 import type { FirestoreError } from 'firebase/firestore'
-import { UserPreferences } from '../types'
+import type { UserPreferences } from '../types'
 import { runFirebaseAction, subscriptionErrorHandler } from './firebaseAction'
 import { userDoc } from './refs'
 
-const DEFAULT_PREFERENCES: Partial<UserPreferences> = {
+const DEFAULT_PREFERENCES = {
     darkMode: false,
 }
 
@@ -33,7 +33,7 @@ export async function getUserPreferences(
 ): Promise<UserPreferences | null> {
     try {
         const snap = await getDoc(userDoc(userId))
-        return snap.exists() ? (snap.data() as UserPreferences) : null
+        return snap.exists() ? snap.data() : null
     } catch (error) {
         console.error('Error fetching user preferences:', error)
         return null
@@ -43,7 +43,7 @@ export async function getUserPreferences(
 export function subscribeToUserPreferences(
     userId: string,
     callback: (
-        prefs: Partial<UserPreferences>,
+        prefs: UserPreferences,
         metadata: { hasPendingWrites: boolean }
     ) => void,
     onError?: (error: FirestoreError) => void
@@ -53,7 +53,7 @@ export function subscribeToUserPreferences(
         { includeMetadataChanges: true },
         (docSnap) => {
             if (docSnap.exists()) {
-                callback(docSnap.data() as Partial<UserPreferences>, {
+                callback(docSnap.data(), {
                     hasPendingWrites: docSnap.metadata.hasPendingWrites,
                 })
             }

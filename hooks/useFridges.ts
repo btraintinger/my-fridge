@@ -47,7 +47,7 @@ export function useFridges() {
 
         fridges.forEach((fridge) => {
             const unsub = subscribeToFridgeItems(
-                fridge.id,
+                fridge.id!,
                 (items) => {
                     const grades = items.map(
                         (i) =>
@@ -56,7 +56,7 @@ export function useFridges() {
                     )
                     setFridgeScores((prev) => ({
                         ...prev,
-                        [fridge.id]: modalNutriScore(grades),
+                        [fridge.id!]: modalNutriScore(grades),
                     }))
                 },
                 false,

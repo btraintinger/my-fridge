@@ -87,7 +87,7 @@ export default function Scanner() {
 
     useEffect(() => {
         if (fridges.length > 0 && !selectedFridge) {
-            setSelectedFridge(fridges[0].id)
+            setSelectedFridge(fridges[0].id!)
         }
     }, [fridges, selectedFridge])
 
@@ -391,7 +391,7 @@ export default function Scanner() {
                                         value={selectedFridge}
                                         onChange={setSelectedFridge}
                                         options={fridges.map((f) => ({
-                                            value: f.id,
+                                            value: f.id!,
                                             label: f.name,
                                         }))}
                                     />

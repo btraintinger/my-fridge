@@ -20,7 +20,7 @@ export function FridgeSelector({
         <Select
             value={selectedFridge}
             onChange={onSelect}
-            options={fridges.map((f) => ({ value: f.id, label: f.name }))}
+            options={fridges.map((f) => ({ value: f.id!, label: f.name }))}
         />
     )
 }

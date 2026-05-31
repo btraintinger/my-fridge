@@ -45,7 +45,7 @@ export default function ShoppingList() {
     useEffect(() => {
         setFridges(userFridges)
         if (userFridges.length > 0 && !selectedFridge)
-            setSelectedFridge(userFridges[0].id)
+            setSelectedFridge(userFridges[0].id!)
     }, [userFridges, selectedFridge])
 
     useEffect(() => {
@@ -139,7 +139,7 @@ export default function ShoppingList() {
                 if (match) {
                     await moveShoppingItemToFridge(
                         selectedFridge,
-                        match.id,
+                        match.id!,
                         product
                     )
                 } else {
