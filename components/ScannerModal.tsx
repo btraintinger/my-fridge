@@ -115,31 +115,45 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                 })
                 scannerRef.current = scanner
 
-                if (camerasRef.current.length === 0) {
-                    camerasRef.current = await Html5Qrcode.getCameras()
+                let cameraConfig: any = { facingMode: "environment" }
+
+                // Versuche spezifische Kamera-ID zu finden (oft auf Android/Desktop nützlich)
+                try {
+                    if (camerasRef.current.length === 0) {
+                        camerasRef.current = await Html5Qrcode.getCameras()
+                    }
+
+                    if (camerasRef.current.length > 0) {
+                        // Back-Kamera Logik
+                        if (idxOverride === undefined && currentIdxRef.current === 0) {
+                            const backIdx = camerasRef.current.findLastIndex(d =>
+                                /back|rück|rear/i.test(d.label)
+                            )
+                            if (backIdx !== -1) currentIdxRef.current = backIdx
+                        }
+
+                        const selectedIdx = idxOverride !== undefined ? idxOverride : currentIdxRef.current
+                        const cam = camerasRef.current[selectedIdx]
+                        
+                        // Wenn Labels auf iOS leer sind (vor Permission), verlasse dich auf facingMode
+                        if (cam && cam.id && cam.label !== "") {
+                            cameraConfig = cam.id
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Fehler beim Abrufen der Kameras, falle zurück auf facingMode", e)
                 }
 
-                if (camerasRef.current.length === 0) throw new Error(t('cameraNotFound'))
-
-                if (idxOverride === undefined && currentIdxRef.current === 0) {
-                    const backIdx = camerasRef.current.findLastIndex((d: { label: string }) =>
-                        /back|rück|rear|0/i.test(d.label)
-                    )
-                    if (backIdx !== -1) currentIdxRef.current = backIdx
-                }
-
-                const selectedIdx = idxOverride !== undefined ? idxOverride : currentIdxRef.current
-                const cameraId = camerasRef.current[selectedIdx].id
 
                 await scanner.start(
-                    cameraId,
+                    cameraConfig,
                     {
                         fps: 30,
                         qrbox: (w, h) => ({
                             width: Math.max(Math.min(w * 0.8, 280), 150),
                             height: Math.max(Math.min(h * 0.4, 180), 80)
                         }),
-                        aspectRatio: 1.7777777778,
+                        // aspectRatio entfernt, da es auf iOS zu OverconstrainedError führt
                     },
                     (text) => {
                         if (hasScannedRef.current) return
@@ -153,25 +167,32 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     () => { }
                 )
 
+                // Makro-Zoom & Torch für unterstützte Geräte
                 try {
                     const track = (scanner as any)._videoTrack
-                    if (track) {
+                    if (track && typeof track.getCapabilities === 'function') {
                         const caps = track.getCapabilities()
                         setTorchSupported(!!caps.torch)
                         if (caps.zoom) {
                             await track.applyConstraints({ advanced: [{ zoom: Math.min(2.0, caps.zoom.max) }] })
                         }
                     }
-                } catch (e) { }
+                } catch (e) { 
+                    console.debug('Zoom/Torch not supported:', e)
+                }
 
                 setScannerReady(true)
             } catch (err: any) {
                 console.error('Start failed:', err)
                 setError(t('starting'))
                 isInitializedRef.current = false
-                setTimeout(() => {
-                    if (isOpen && !hasScannedRef.current) switchCamera()
-                }, 3000)
+                
+                // Endlos-Retry bei Hardware-Fehlern (wie OverconstrainedError) vermeiden
+                if (idxOverride === undefined && camerasRef.current.length > 1) {
+                    setTimeout(() => {
+                        if (isOpen && !hasScannedRef.current) switchCamera()
+                    }, 3000)
+                }
             }
         })()
     }, [isOpen, stopScanner, t])
