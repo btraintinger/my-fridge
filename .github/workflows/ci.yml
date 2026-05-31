@@ -1,0 +1,90 @@
+name: CI
+
+on:
+    pull_request:
+        branches: [main]
+        paths-ignore:
+            - '**/*.md'
+            - 'LICENSE'
+            - '.gitignore'
+            - '.vscode/**'
+    push:
+        branches: [main]
+        paths-ignore:
+            - '**/*.md'
+            - 'LICENSE'
+            - '.gitignore'
+            - '.vscode/**'
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+    contents: read
+
+jobs:
+    lint:
+        name: Lint
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+            - run: npm ci
+            - run: npm run lint
+
+    format:
+        name: Format
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+            - run: npm ci
+            - run: npm run format:check
+
+    typecheck:
+        name: Typecheck
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+            - run: npm ci
+            - run: npm run typecheck
+
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+        env:
+            # Build-time placeholders. Real values live in Vercel for previews/prod.
+            # These let `next build` complete without runtime Firebase config.
+            NEXT_PUBLIC_FIREBASE_API_KEY: ci-placeholder
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ci.example.com
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID: ci-placeholder
+            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ci.example.com
+            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '0'
+            NEXT_PUBLIC_FIREBASE_APP_ID: ci-placeholder
+            NEXT_PUBLIC_FIREBASE_VAPID_KEY: ci-placeholder
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+            - name: Cache Next.js build
+              uses: actions/cache@v4
+              with:
+                  path: .next/cache
+                  key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**/*.[jt]s', '**/*.[jt]sx') }}
+                  restore-keys: |
+                      nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+            - run: npm ci
+            - run: npm run build
