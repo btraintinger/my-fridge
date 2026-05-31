@@ -3,15 +3,17 @@ import { Link } from '@/i18n/navigation'
 import { Refrigerator } from 'lucide-react'
 import type { Fridge } from '@/lib/types'
 import { GRADE_COLORS } from '@/lib/constants'
+import { modalFromCounts } from '@/lib/utils'
 
 interface FridgeCardProps {
     fridge: Fridge
-    score: string | null
 }
 
-export function FridgeCard({ fridge, score }: FridgeCardProps) {
+export function FridgeCard({ fridge }: FridgeCardProps) {
     const t = useTranslations('fridges.card')
-    const displayScore = score || fridge.modalNutriScore
+    const displayScore = fridge.gradeCounts
+        ? modalFromCounts(fridge.gradeCounts)
+        : fridge.modalNutriScore
 
     return (
         <Link

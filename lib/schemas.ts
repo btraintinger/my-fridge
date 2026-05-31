@@ -58,11 +58,15 @@ export const FridgeSchema = z.object({
     createdAt: TimestampType.optional(),
     sharedWithEmails: z.array(z.string()).optional().default([]),
     itemCount: z.number().optional(),
+    // Sum of quantities per nutri-grade. Maintained via FieldValue.increment on
+    // each item mutation; the displayed "modal" grade is derived from this.
+    gradeCounts: z.record(z.string(), z.number()).optional(),
+    // Legacy: pre-gradeCounts fridges still have this written by older clients.
     modalNutriScore: z.string().nullable().optional(),
 })
 
-// Hydrated fridge item — `product` is populated after read from the products cache.
-// Used at the application layer, not directly as a Firestore converter.
+// Embedded product snapshot — captured at add time and never re-fetched.
+// Fridge reads should never touch the `/products` cache or OFF; stale is OK.
 export const FridgeItemSchema = z.object({
     id: z.string().optional(),
     fridgeId: z.string().optional(),
@@ -70,7 +74,6 @@ export const FridgeItemSchema = z.object({
     addedAt: TimestampType.optional(),
     quantity: z.number().int().positive().optional(),
     expiryDate: z.string().optional(),
-    productId: z.string().optional(),
     notes: z.string().optional(),
     product: ProductSchema,
 })
@@ -133,9 +136,8 @@ export type FcmTokenDoc = z.infer<typeof FcmTokenDocSchema>
 export type NotificationDoc = z.infer<typeof NotificationDocSchema>
 
 // Converters — attach to refs via .withConverter() for type-safe, validated I/O.
-// FridgeItem has no converter: it requires async product hydration that can't
-// happen inside a synchronous converter.
 export const fridgeConverter = zodConverter(FridgeSchema)
+export const fridgeItemConverter = zodConverter(FridgeItemSchema)
 export const shoppingListItemConverter = zodConverter(ShoppingListItemSchema)
 export const userPreferencesConverter = zodConverter(UserPreferencesSchema)
 export const productConverter = zodConverter(ProductSchema)

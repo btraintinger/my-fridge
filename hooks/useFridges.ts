@@ -5,16 +5,12 @@ import {
     subscribeToFridgeItems,
     subscribeToFridges,
 } from '../lib/services/fridgeService'
-import { modalNutriScore } from '../lib/utils'
 import type { Fridge, FridgeItem } from '../lib/types'
 
 export function useFridges() {
     const { user } = useAuth()
     const [fridges, setFridges] = useState<Fridge[]>([])
     const [loading, setLoading] = useState(true)
-    const [fridgeScores, setFridgeScores] = useState<
-        Record<string, string | null>
-    >({})
 
     useEffect(() => {
         if (!user) return
@@ -39,46 +35,11 @@ export function useFridges() {
         return () => unsubscribe()
     }, [user])
 
-    // Subscribe to Nutri-Scores for all fridges
-    useEffect(() => {
-        if (fridges.length === 0) return
-
-        const unsubscribes: (() => void)[] = []
-
-        fridges.forEach((fridge) => {
-            const unsub = subscribeToFridgeItems(
-                fridge.id!,
-                (items) => {
-                    const grades = items.map(
-                        (i) =>
-                            (i.product?.nutriscore_grade as string | null) ??
-                            null
-                    )
-                    setFridgeScores((prev) => ({
-                        ...prev,
-                        [fridge.id!]: modalNutriScore(grades),
-                    }))
-                },
-                false,
-                (err) => {
-                    if (err.code === 'permission-denied') return
-                    console.error(
-                        `Error fetching items for fridge ${fridge.id}:`,
-                        err
-                    )
-                }
-            )
-            unsubscribes.push(unsub)
-        })
-
-        return () => unsubscribes.forEach((unsub) => unsub())
-    }, [fridges])
-
     if (!user) {
-        return { fridges: [], fridgeScores: {}, loading: false }
+        return { fridges: [], loading: false }
     }
 
-    return { fridges, fridgeScores, loading }
+    return { fridges, loading }
 }
 
 export function useFridge(id: string) {

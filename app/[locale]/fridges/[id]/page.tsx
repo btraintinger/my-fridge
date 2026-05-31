@@ -39,12 +39,12 @@ import {
     X,
 } from 'lucide-react'
 import type { FridgeItem } from '@/lib/types'
-import { modalNutriScore } from '@/lib/utils'
 import {
     createShareFridgeSchema,
     createItemQuantitySchema,
 } from '@/lib/validations'
 import { notify } from '@/lib/notify'
+import { modalFromCounts } from '@/lib/utils'
 
 export default function FridgeDetail({
     params,
@@ -214,10 +214,10 @@ export default function FridgeDetail({
 
     const isCategoryExpanded = (cat: string) => expandedCategories[cat]
 
-    const fridgeNutriScore = useMemo(
-        () => modalNutriScore(items.map((item) => item.product?.nutriscore_grade ?? null)),
-        [items]
-    )
+    const fridgeNutriScore =
+        (fridge?.gradeCounts
+            ? modalFromCounts(fridge.gradeCounts)
+            : fridge?.modalNutriScore) ?? '-'
 
     const handleShare = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -258,13 +258,15 @@ export default function FridgeDetail({
             return
         }
 
+        const item = items.find((i) => i.id === itemId)
+        if (!item) return
+
         setSavingQuantityItemId(itemId)
         try {
-            await updateItemQuantity(
-                id,
-                itemId,
-                parsed.data.quantity
-            )
+            await updateItemQuantity(id, itemId, parsed.data.quantity, {
+                grade: item.product?.nutriscore_grade,
+                quantity: item.quantity ?? 1,
+            })
             setEditingQuantityItemId(null)
         } finally {
             setSavingQuantityItemId(null)
@@ -273,7 +275,12 @@ export default function FridgeDetail({
 
     const deleteFridgeItem = async (itemId: string) => {
         const item = items.find((i) => i.id === itemId)
-        await deleteItem(id, itemId, item?.product?.product_name)
+        if (!item) return
+        await deleteItem(id, itemId, {
+            grade: item.product?.nutriscore_grade,
+            quantity: item.quantity ?? 1,
+            itemName: item.product?.product_name,
+        })
         if (selectedItem?.id === itemId) {
             setSelectedItem(null)
         }
@@ -855,7 +862,10 @@ export default function FridgeDetail({
                     itemId={selectedItem.id}
                     fridgeId={id}
                     onQuantityChange={async (itemId, fridgeId, quantity) => {
-                        await updateItemQuantity(fridgeId, itemId, quantity)
+                        await updateItemQuantity(fridgeId, itemId, quantity, {
+                            grade: selectedItem.product?.nutriscore_grade,
+                            quantity: selectedItem.quantity ?? 1,
+                        })
                     }}
                     onDelete={async () => {
                         setSelectedItem(null)

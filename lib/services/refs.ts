@@ -4,6 +4,7 @@ import { COLLECTIONS } from '../constants'
 import {
     fcmTokenConverter,
     fridgeConverter,
+    fridgeItemConverter,
     productConverter,
     shoppingListItemConverter,
     userPreferencesConverter,
@@ -15,13 +16,13 @@ export const fridgesCollection = () =>
 export const fridgeDoc = (fridgeId: string) =>
     doc(db, COLLECTIONS.FRIDGES, fridgeId).withConverter(fridgeConverter)
 
-// FridgeItem hydration happens async after read; the items collection stays
-// untyped so we can plug in the product in the service layer.
 export const itemsCollection = (fridgeId: string) =>
     collection(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.ITEMS)
+        .withConverter(fridgeItemConverter)
 
 export const itemDoc = (fridgeId: string, itemId: string) =>
     doc(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.ITEMS, itemId)
+        .withConverter(fridgeItemConverter)
 
 export const shoppingListCollection = (fridgeId: string) =>
     collection(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.SHOPPING_LIST)

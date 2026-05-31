@@ -3,8 +3,9 @@ import {
     addDoc,
     arrayRemove,
     arrayUnion,
-    deleteDoc,
+    doc,
     getDocs,
+    increment,
     onSnapshot,
     or,
     orderBy,
@@ -15,13 +16,11 @@ import {
     writeBatch,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import { FridgeItemSchema } from '../schemas'
 import type { Fridge, FridgeItem, Product } from '../types'
 import {
     runFirebaseAction,
     subscriptionErrorHandler,
 } from './firebaseAction'
-import { getCachedProduct } from './productService'
 import {
     fridgeDoc,
     fridgesCollection,
@@ -30,6 +29,7 @@ import {
     shoppingListCollection,
 } from './refs'
 import { postNotify } from '../notificationsClient'
+import { normalizeGrade } from '../utils'
 
 export type NewItemOptions = {
     quantity?: number
@@ -38,13 +38,26 @@ export type NewItemOptions = {
 }
 
 export function newItemPayload(product: Product, options: NewItemOptions = {}) {
+    // Strip cache metadata before embedding — it only makes sense on /products docs.
+    const { updatedAt: _ignored, ...embedded } = product
     return {
-        productId: product.barcode,
+        product: embedded,
         quantity: options.quantity || 1,
         ...(options.expiryDate && { expiryDate: options.expiryDate }),
         ...(options.notes && { notes: options.notes }),
         addedAt: serverTimestamp(),
     }
+}
+
+// Returns `{ 'gradeCounts.<g>': increment(delta) }` or `null` if the grade is
+// invalid (unknown / "-" / null) — in which case no fridge update is needed.
+function gradeCountDelta(
+    grade: string | null | undefined,
+    delta: number
+): Record<string, ReturnType<typeof increment>> | null {
+    const key = normalizeGrade(grade)
+    if (!key || delta === 0) return null
+    return { [`gradeCounts.${key}`]: increment(delta) }
 }
 
 export function subscribeToFridges(
@@ -95,20 +108,7 @@ export function subscribeToFridgeItems(
 
     return onSnapshot(
         itemsQuery,
-        async (snapshot) => {
-            const items = await Promise.all(
-                snapshot.docs.map(async (d) => {
-                    const data = d.data()
-                    const product =
-                        data.product ??
-                        (data.productId
-                            ? await getCachedProduct(data.productId)
-                            : null)
-                    return FridgeItemSchema.parse({ id: d.id, ...data, product })
-                })
-            )
-            callback(items.filter((item) => item.product))
-        },
+        (snap) => callback(snap.docs.map((d) => d.data())),
         subscriptionErrorHandler(onError)
     )
 }
@@ -160,12 +160,23 @@ export async function unshareFridge(fridgeId: string, email: string) {
     )
 }
 
-export async function deleteItem(fridgeId: string, itemId: string, itemName?: string) {
-    const result = await runFirebaseAction(
-        () => deleteDoc(itemDoc(fridgeId, itemId)),
-        'Produkt entfernt'
-    )
-    postNotify('fridge-activity', { fridgeId, action: 'item_removed', itemName: itemName ?? 'an item' })
+export async function deleteItem(
+    fridgeId: string,
+    itemId: string,
+    prev: { grade: string | null | undefined; quantity: number; itemName?: string }
+) {
+    const result = await runFirebaseAction(async () => {
+        const batch = writeBatch(db)
+        batch.delete(itemDoc(fridgeId, itemId))
+        const delta = gradeCountDelta(prev.grade, -prev.quantity)
+        if (delta) batch.update(fridgeDoc(fridgeId), delta)
+        await batch.commit()
+    }, 'Produkt entfernt')
+    postNotify('fridge-activity', {
+        fridgeId,
+        action: 'item_removed',
+        itemName: prev.itemName ?? 'an item',
+    })
     return result
 }
 
@@ -174,11 +185,16 @@ export async function addItemToFridge(
     product: Product,
     options: NewItemOptions = {}
 ) {
-    const result = await runFirebaseAction(
-        () =>
-            addDoc(itemsCollection(fridgeId), newItemPayload(product, options)),
-        `"${product.product_name}" hinzugefügt!`
-    )
+    const result = await runFirebaseAction(async () => {
+        const newItemRef = doc(itemsCollection(fridgeId))
+        const payload = newItemPayload(product, options)
+
+        const batch = writeBatch(db)
+        batch.set(newItemRef, payload)
+        const delta = gradeCountDelta(product.nutriscore_grade, payload.quantity)
+        if (delta) batch.update(fridgeDoc(fridgeId), delta)
+        await batch.commit()
+    }, `"${product.product_name}" hinzugefügt!`)
     postNotify('fridge-activity', { fridgeId, action: 'item_added', itemName: product.product_name })
     return result
 }
@@ -186,10 +202,14 @@ export async function addItemToFridge(
 export async function updateItemQuantity(
     fridgeId: string,
     itemId: string,
-    quantity: number
+    quantity: number,
+    prev: { grade: string | null | undefined; quantity: number }
 ) {
-    return runFirebaseAction(
-        () => updateDoc(itemDoc(fridgeId, itemId), { quantity }),
-        'Menge aktualisiert'
-    )
+    return runFirebaseAction(async () => {
+        const batch = writeBatch(db)
+        batch.update(itemDoc(fridgeId, itemId), { quantity })
+        const delta = gradeCountDelta(prev.grade, quantity - prev.quantity)
+        if (delta) batch.update(fridgeDoc(fridgeId), delta)
+        await batch.commit()
+    }, 'Menge aktualisiert')
 }

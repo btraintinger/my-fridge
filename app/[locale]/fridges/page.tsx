@@ -18,7 +18,7 @@ import { useRouter } from '@/i18n/navigation'
 export default function Fridges() {
     const t = useTranslations()
     const { user } = useAuth()
-    const { fridges, fridgeScores, loading } = useFridges()
+    const { fridges, loading } = useFridges()
     const [showCreate, setShowCreate] = useState(false)
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -142,7 +142,6 @@ export default function Fridges() {
                             <FridgeCard
                                 key={fridge.id}
                                 fridge={fridge}
-                                score={fridgeScores[fridge.id!]}
                             />
                         ))}
                     </div>

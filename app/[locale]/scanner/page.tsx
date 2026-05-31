@@ -142,7 +142,6 @@ export default function Scanner() {
     ) => {
         if (!user || !selectedFridge) return
 
-        await cacheProduct(manualProduct.barcode, manualProduct)
         await addItemToFridge(selectedFridge, manualProduct, options)
 
         setProduct(manualProduct)
