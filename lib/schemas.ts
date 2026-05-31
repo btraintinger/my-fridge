@@ -1,8 +1,7 @@
-import { Timestamp } from 'firebase/firestore'
 import { z } from 'zod'
 
-export const TimestampType = z.custom<{toDate:()=>Date}>((val)=>{
-    return val && typeof val['toDate'] === "function"
+export const TimestampType = z.custom<{toDate:()=>Date}>((val) => {
+    return val != null && typeof (val as { toDate?: unknown }).toDate === "function"
 });
 
 export const NutrimentsSchema = z.object({
