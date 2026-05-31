@@ -82,9 +82,6 @@ export async function updateUserPreferences(
     })
 }
 
-export async function toggleDarkMode(
-    userId: string,
-    currentDarkMode: boolean
-) {
+export async function toggleDarkMode(userId: string, currentDarkMode: boolean) {
     return updateUserPreferences(userId, { darkMode: !currentDarkMode })
 }

@@ -72,7 +72,9 @@ export function Select({
         const rect = trigger.getBoundingClientRect()
         const spaceBelow = window.innerHeight - rect.bottom
         const placement: 'bottom' | 'top' =
-            spaceBelow < POPOVER_MAX_HEIGHT && rect.top > spaceBelow ? 'top' : 'bottom'
+            spaceBelow < POPOVER_MAX_HEIGHT && rect.top > spaceBelow
+                ? 'top'
+                : 'bottom'
         setPosition({
             top: placement === 'bottom' ? rect.bottom + 8 : rect.top - 8,
             left: rect.left,
@@ -120,7 +122,8 @@ export function Select({
         const { body } = document
         const previousOverflow = body.style.overflow
         const previousPaddingRight = body.style.paddingRight
-        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+        const scrollbarWidth =
+            window.innerWidth - document.documentElement.clientWidth
         body.style.overflow = 'hidden'
         if (scrollbarWidth > 0) {
             body.style.paddingRight = `${scrollbarWidth}px`
@@ -133,7 +136,9 @@ export function Select({
 
     useEffect(() => {
         if (open && activeIndex >= 0) {
-            const el = listRef.current?.children[activeIndex] as HTMLElement | undefined
+            const el = listRef.current?.children[activeIndex] as
+                | HTMLElement
+                | undefined
             el?.scrollIntoView({ block: 'nearest' })
         }
     }, [activeIndex, open])
@@ -220,7 +225,10 @@ export function Select({
                         >
                             <span className="truncate">{opt.label}</span>
                             {isSelected && (
-                                <Check size={16} className="text-emerald-500 flex-shrink-0 ml-2" />
+                                <Check
+                                    size={16}
+                                    className="text-emerald-500 flex-shrink-0 ml-2"
+                                />
                             )}
                         </button>
                     )
@@ -256,10 +264,14 @@ export function Select({
                         ? 'border-red-500 focus:border-red-500'
                         : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500',
                     disabled && 'opacity-50 cursor-not-allowed',
-                    selected ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'
+                    selected
+                        ? 'text-slate-900 dark:text-slate-100'
+                        : 'text-slate-400 dark:text-slate-500'
                 )}
             >
-                <span className="truncate">{selected?.label ?? placeholder ?? 'Auswählen…'}</span>
+                <span className="truncate">
+                    {selected?.label ?? placeholder ?? 'Auswählen…'}
+                </span>
                 <ChevronDown
                     size={18}
                     className={cn(

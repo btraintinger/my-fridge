@@ -14,9 +14,7 @@ import { useFridge } from '@/hooks/useFridges'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import {
-    NutriScoreBadge,
-} from '@/components/fridge-details/NutriScoreComponents'
+import { NutriScoreBadge } from '@/components/fridge-details/NutriScoreComponents'
 import { ProductDetailModal } from '@/components/fridge-details/ProductDetailModal'
 import { Link, useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
@@ -87,7 +85,9 @@ export default function FridgeDetail({
     const [sortBy, setSortBy] = useState<string>('name-asc')
     const [filterCategory, setFilterCategory] = useState<string>('all')
     const [isSortInitialized, setIsSortInitialized] = useState(false)
-    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
+    const [expandedCategories, setExpandedCategories] = useState<
+        Record<string, boolean>
+    >({})
     const [itemToDelete, setItemToDelete] = useState<FridgeItem | null>(null)
 
     const shareFridgeSchema = useMemo(() => createShareFridgeSchema(t), [t])
@@ -108,11 +108,74 @@ export default function FridgeDetail({
     }, [sortBy, isSortInitialized])
 
     const CATEGORY_KEYWORDS: Record<string, string[]> = {
-        dairy: ['milch', 'käse', 'joghurt', 'butter', 'sahne', 'quark', 'milk', 'cheese', 'yogurt', 'dairy'],
-        meat: ['fleisch', 'wurst', 'schinken', 'hähnchen', 'rind', 'schwein', 'meat', 'chicken', 'beef', 'pork', 'speck'],
-        veg: ['gemüse', 'tomate', 'gurke', 'paprika', 'salat', 'karotte', 'vegetable', 'tomato', 'cucumber', 'pepper', 'salad', 'carrot', 'zwiebel', 'knoblauch'],
-        fruit: ['obst', 'apfel', 'banane', 'orange', 'beere', 'fruit', 'apple', 'banana', 'orange', 'berry', 'zitrone'],
-        drinks: ['saft', 'wasser', 'cola', 'limo', 'bier', 'wein', 'drink', 'water', 'juice', 'beer', 'wine', 'getränk']
+        dairy: [
+            'milch',
+            'käse',
+            'joghurt',
+            'butter',
+            'sahne',
+            'quark',
+            'milk',
+            'cheese',
+            'yogurt',
+            'dairy',
+        ],
+        meat: [
+            'fleisch',
+            'wurst',
+            'schinken',
+            'hähnchen',
+            'rind',
+            'schwein',
+            'meat',
+            'chicken',
+            'beef',
+            'pork',
+            'speck',
+        ],
+        veg: [
+            'gemüse',
+            'tomate',
+            'gurke',
+            'paprika',
+            'salat',
+            'karotte',
+            'vegetable',
+            'tomato',
+            'cucumber',
+            'pepper',
+            'salad',
+            'carrot',
+            'zwiebel',
+            'knoblauch',
+        ],
+        fruit: [
+            'obst',
+            'apfel',
+            'banane',
+            'orange',
+            'beere',
+            'fruit',
+            'apple',
+            'banana',
+            'orange',
+            'berry',
+            'zitrone',
+        ],
+        drinks: [
+            'saft',
+            'wasser',
+            'cola',
+            'limo',
+            'bier',
+            'wein',
+            'drink',
+            'water',
+            'juice',
+            'beer',
+            'wine',
+            'getränk',
+        ],
     }
 
     const filteredAndSortedItems = useMemo(() => {
@@ -120,18 +183,20 @@ export default function FridgeDetail({
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase()
-            result = result.filter(item =>
-                item.product.product_name?.toLowerCase().includes(query) ||
-                item.product.brands?.toLowerCase().includes(query)
+            result = result.filter(
+                (item) =>
+                    item.product.product_name?.toLowerCase().includes(query) ||
+                    item.product.brands?.toLowerCase().includes(query)
             )
         }
 
         if (filterCategory !== 'all') {
             const keywords = CATEGORY_KEYWORDS[filterCategory]
             if (keywords) {
-                result = result.filter(item => {
-                    const text = `${item.product.product_name} ${item.product.ingredients} ${item.product.labels?.join(' ')}`.toLowerCase()
-                    return keywords.some(kw => text.includes(kw))
+                result = result.filter((item) => {
+                    const text =
+                        `${item.product.product_name} ${item.product.ingredients} ${item.product.labels?.join(' ')}`.toLowerCase()
+                    return keywords.some((kw) => text.includes(kw))
                 })
             }
         }
@@ -139,9 +204,13 @@ export default function FridgeDetail({
         result.sort((a, b) => {
             switch (sortBy) {
                 case 'name-asc':
-                    return (a.product.product_name || '').localeCompare(b.product.product_name || '')
+                    return (a.product.product_name || '').localeCompare(
+                        b.product.product_name || ''
+                    )
                 case 'name-desc':
-                    return (b.product.product_name || '').localeCompare(a.product.product_name || '')
+                    return (b.product.product_name || '').localeCompare(
+                        a.product.product_name || ''
+                    )
                 case 'quantity-asc':
                     return (a.quantity ?? 1) - (b.quantity ?? 1)
                 case 'quantity-desc':
@@ -157,8 +226,12 @@ export default function FridgeDetail({
                     return gradeB.localeCompare(gradeA)
                 }
                 case 'expiry-asc': {
-                    const dateA = a.expiryDate ? new Date(a.expiryDate).getTime() : Infinity
-                    const dateB = b.expiryDate ? new Date(b.expiryDate).getTime() : Infinity
+                    const dateA = a.expiryDate
+                        ? new Date(a.expiryDate).getTime()
+                        : Infinity
+                    const dateB = b.expiryDate
+                        ? new Date(b.expiryDate).getTime()
+                        : Infinity
                     return dateA - dateB
                 }
                 default:
@@ -171,8 +244,9 @@ export default function FridgeDetail({
 
     const groupedItems = useMemo(() => {
         const groups: Record<string, FridgeItem[]> = {}
-        filteredAndSortedItems.forEach(item => {
-            const cat = item.product.category || t('fridges.detail.categories.other')
+        filteredAndSortedItems.forEach((item) => {
+            const cat =
+                item.product.category || t('fridges.detail.categories.other')
             if (!groups[cat]) groups[cat] = []
             groups[cat].push(item)
         })
@@ -206,9 +280,9 @@ export default function FridgeDetail({
     })
 
     const toggleCategory = (cat: string) => {
-        setExpandedCategories(prev => ({
+        setExpandedCategories((prev) => ({
             ...prev,
-            [cat]: !prev[cat] ? true : false
+            [cat]: !prev[cat] ? true : false,
         }))
     }
 
@@ -418,7 +492,9 @@ export default function FridgeDetail({
                     {error || t('fridges.detail.fridgeNotFound')}
                 </p>
                 <Link href="/fridges?list=1">
-                    <Button variant="outline">{t('fridges.detail.backToFridges')}</Button>
+                    <Button variant="outline">
+                        {t('fridges.detail.backToFridges')}
+                    </Button>
                 </Link>
             </div>
         )
@@ -461,7 +537,8 @@ export default function FridgeDetail({
                     )}
                     <Link href="/scanner">
                         <Button size="sm" className="rounded-xl">
-                            <ScanLine size={18} className="mr-1" /> {t('fridges.detail.addButton')}
+                            <ScanLine size={18} className="mr-1" />{' '}
+                            {t('fridges.detail.addButton')}
                         </Button>
                     </Link>
                 </div>
@@ -493,9 +570,13 @@ export default function FridgeDetail({
                             >
                                 <Input
                                     type="email"
-                                    placeholder={t('fridges.detail.shareEmailPlaceholder')}
+                                    placeholder={t(
+                                        'fridges.detail.shareEmailPlaceholder'
+                                    )}
                                     value={shareEmail}
-                                    onChange={(e) => setShareEmail(e.target.value)}
+                                    onChange={(e) =>
+                                        setShareEmail(e.target.value)
+                                    }
                                     required
                                     className="flex-1"
                                 />
@@ -509,36 +590,40 @@ export default function FridgeDetail({
                                     {t('fridges.detail.sharedWith')}
                                 </h3>
                                 {!fridge.sharedWithEmails ||
-                                    fridge.sharedWithEmails.length === 0 ? (
+                                fridge.sharedWithEmails.length === 0 ? (
                                     <p className="text-sm text-slate-400 dark:text-slate-500 italic px-1">
                                         {t('fridges.detail.noOneYet')}
                                     </p>
                                 ) : (
                                     <div className="space-y-2">
-                                        {fridge.sharedWithEmails.map((email) => (
-                                            <div
-                                                key={email}
-                                                className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center">
-                                                        <User size={16} />
-                                                    </div>
-                                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[150px] sm:max-w-none">
-                                                        {email}
-                                                    </span>
-                                                </div>
-                                                <button
-                                                    onClick={() =>
-                                                        handleUnshare(email)
-                                                    }
-                                                    className="text-slate-300 hover:text-red-500 dark:hover:text-red-400 p-1 transition-colors"
-                                                    title={t('fridges.detail.removeAccess')}
+                                        {fridge.sharedWithEmails.map(
+                                            (email) => (
+                                                <div
+                                                    key={email}
+                                                    className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800"
                                                 >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        ))}
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center">
+                                                            <User size={16} />
+                                                        </div>
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[150px] sm:max-w-none">
+                                                            {email}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleUnshare(email)
+                                                        }
+                                                        className="text-slate-300 hover:text-red-500 dark:hover:text-red-400 p-1 transition-colors"
+                                                        title={t(
+                                                            'fridges.detail.removeAccess'
+                                                        )}
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            )
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -557,13 +642,18 @@ export default function FridgeDetail({
                                 <div className="flex items-center gap-2 flex-wrap mt-1">
                                     <NutriScoreBadge grade={fridgeNutriScore} />
                                     <span className="text-sm text-slate-500 dark:text-slate-400">
-                                        {t('fridges.detail.productsCount', { count: filteredAndSortedItems.length })}
+                                        {t('fridges.detail.productsCount', {
+                                            count: filteredAndSortedItems.length,
+                                        })}
                                     </span>
                                 </div>
                             </div>
                         </div>
                         <Link href={`/fridges/${id}/analysis`}>
-                            <Button variant="outline" className="w-full sm:w-auto rounded-xl">
+                            <Button
+                                variant="outline"
+                                className="w-full sm:w-auto rounded-xl"
+                            >
                                 {t('fridges.detail.moreAnalysis')}
                             </Button>
                         </Link>
@@ -571,10 +661,15 @@ export default function FridgeDetail({
 
                     <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 space-y-3">
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <Search
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                                size={18}
+                            />
                             <Input
                                 type="text"
-                                placeholder={t('fridges.detail.searchPlaceholder')}
+                                placeholder={t(
+                                    'fridges.detail.searchPlaceholder'
+                                )}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10 py-2 text-sm rounded-xl"
@@ -588,12 +683,38 @@ export default function FridgeDetail({
                                 onChange={setFilterCategory}
                                 icon={<Filter size={16} />}
                                 options={[
-                                    { value: 'all', label: t('fridges.detail.filters.allCategories') },
-                                    { value: 'dairy', label: t('fridges.detail.filters.dairy') },
-                                    { value: 'meat', label: t('fridges.detail.filters.meat') },
-                                    { value: 'veg', label: t('fridges.detail.filters.veg') },
-                                    { value: 'fruit', label: t('fridges.detail.filters.fruit') },
-                                    { value: 'drinks', label: t('fridges.detail.filters.drinks') },
+                                    {
+                                        value: 'all',
+                                        label: t(
+                                            'fridges.detail.filters.allCategories'
+                                        ),
+                                    },
+                                    {
+                                        value: 'dairy',
+                                        label: t(
+                                            'fridges.detail.filters.dairy'
+                                        ),
+                                    },
+                                    {
+                                        value: 'meat',
+                                        label: t('fridges.detail.filters.meat'),
+                                    },
+                                    {
+                                        value: 'veg',
+                                        label: t('fridges.detail.filters.veg'),
+                                    },
+                                    {
+                                        value: 'fruit',
+                                        label: t(
+                                            'fridges.detail.filters.fruit'
+                                        ),
+                                    },
+                                    {
+                                        value: 'drinks',
+                                        label: t(
+                                            'fridges.detail.filters.drinks'
+                                        ),
+                                    },
                                 ]}
                             />
                             <Select
@@ -603,13 +724,46 @@ export default function FridgeDetail({
                                 onChange={setSortBy}
                                 icon={<ArrowUpDown size={16} />}
                                 options={[
-                                    { value: 'name-asc', label: t('fridges.detail.sort.nameAsc') },
-                                    { value: 'name-desc', label: t('fridges.detail.sort.nameDesc') },
-                                    { value: 'quantity-asc', label: t('fridges.detail.sort.quantityAsc') },
-                                    { value: 'quantity-desc', label: t('fridges.detail.sort.quantityDesc') },
-                                    { value: 'nutri-asc', label: t('fridges.detail.sort.nutriAsc') },
-                                    { value: 'nutri-desc', label: t('fridges.detail.sort.nutriDesc') },
-                                    { value: 'expiry-asc', label: t('fridges.detail.sort.expiryAsc') },
+                                    {
+                                        value: 'name-asc',
+                                        label: t('fridges.detail.sort.nameAsc'),
+                                    },
+                                    {
+                                        value: 'name-desc',
+                                        label: t(
+                                            'fridges.detail.sort.nameDesc'
+                                        ),
+                                    },
+                                    {
+                                        value: 'quantity-asc',
+                                        label: t(
+                                            'fridges.detail.sort.quantityAsc'
+                                        ),
+                                    },
+                                    {
+                                        value: 'quantity-desc',
+                                        label: t(
+                                            'fridges.detail.sort.quantityDesc'
+                                        ),
+                                    },
+                                    {
+                                        value: 'nutri-asc',
+                                        label: t(
+                                            'fridges.detail.sort.nutriAsc'
+                                        ),
+                                    },
+                                    {
+                                        value: 'nutri-desc',
+                                        label: t(
+                                            'fridges.detail.sort.nutriDesc'
+                                        ),
+                                    },
+                                    {
+                                        value: 'expiry-asc',
+                                        label: t(
+                                            'fridges.detail.sort.expiryAsc'
+                                        ),
+                                    },
                                 ]}
                             />
                         </div>
@@ -628,7 +782,9 @@ export default function FridgeDetail({
                                     <ChefHat size={40} strokeWidth={1.5} />
                                 </div>
                                 <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mb-8">
-                                    {items.length === 0 ? t('fridges.detail.emptyFridge') : t('fridges.detail.noResults')}
+                                    {items.length === 0
+                                        ? t('fridges.detail.emptyFridge')
+                                        : t('fridges.detail.noResults')}
                                 </p>
                                 {items.length === 0 && (
                                     <Link href="/scanner">
@@ -640,211 +796,335 @@ export default function FridgeDetail({
                             </div>
                         ) : (
                             <div className="space-y-8">
-                                {sortedCategories.map(category => (
+                                {sortedCategories.map((category) => (
                                     <div key={category} className="space-y-3">
                                         <button
-                                            onClick={() => toggleCategory(category)}
+                                            onClick={() =>
+                                                toggleCategory(category)
+                                            }
                                             className="w-full flex items-center justify-between p-3 sm:p-4 bg-white dark:bg-slate-900 border-b-4 border-slate-200 dark:border-slate-800 rounded-t-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors min-h-[48px]"
                                         >
                                             <div className="flex items-center gap-2">
-                                                {isCategoryExpanded(category) ? (
-                                                    <ChevronDown size={20} className="text-slate-400" />
+                                                {isCategoryExpanded(
+                                                    category
+                                                ) ? (
+                                                    <ChevronDown
+                                                        size={20}
+                                                        className="text-slate-400"
+                                                    />
                                                 ) : (
-                                                    <ChevronRight size={20} className="text-slate-400" />
+                                                    <ChevronRight
+                                                        size={20}
+                                                        className="text-slate-400"
+                                                    />
                                                 )}
                                                 <h4 className="font-bold text-slate-700 dark:text-slate-300">
                                                     {category}
                                                 </h4>
                                                 <span className="ml-2 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 py-0.5 px-2 rounded-full">
-                                                    {groupedItems[category].length}
+                                                    {
+                                                        groupedItems[category]
+                                                            .length
+                                                    }
                                                 </span>
                                             </div>
                                         </button>
 
-                                        <div className={`transition-all duration-300 ease-in-out overflow-hidden ${isCategoryExpanded(category) ? 'opacity-100' : 'max-h-0 opacity-0'}`}>
+                                        <div
+                                            className={`transition-all duration-300 ease-in-out overflow-hidden ${isCategoryExpanded(category) ? 'opacity-100' : 'max-h-0 opacity-0'}`}
+                                        >
                                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 pb-4 px-1 sm:px-2 relative">
                                                 <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-b from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-900 rounded-b-xl shadow-inner pointer-events-none -z-10" />
 
-                                                {groupedItems[category].map((item) => (
-                                                    <div key={item.id} className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800/60 transform transition-transform hover:-translate-y-1 hover:shadow-md group/item">
-
-                                                        <div className="hidden md:flex absolute top-2 right-2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    setItemToDelete(item)
-                                                                }}
-                                                                className="p-2 bg-white/90 dark:bg-slate-800/90 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-full shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-700 transition-colors"
-                                                                title={t('fridges.detail.deleteProductTooltip')}
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
-                                                        </div>
-
+                                                {groupedItems[category].map(
+                                                    (item) => (
                                                         <div
-                                                            className="absolute inset-y-0 right-0 w-20 flex items-center justify-center rounded-r-2xl bg-rose-500/95 text-white opacity-0 transition-opacity"
-                                                            aria-hidden="true"
+                                                            key={item.id}
+                                                            className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800/60 transform transition-transform hover:-translate-y-1 hover:shadow-md group/item"
                                                         >
-                                                            <div className="flex flex-col items-center gap-1 text-[10px] font-semibold uppercase tracking-wider">
-                                                                <Trash2 size={16} />
-                                                                {t('fridges.detail.swipeDelete')}
-                                                            </div>
-                                                        </div>
-                                                        <div
-                                                            onClick={() => handleItemClick(item)}
-                                                            onPointerDown={(event) =>
-                                                                handleItemPointerDown(item.id!, event)
-                                                            }
-                                                            onPointerMove={handleItemPointerMove}
-                                                            onPointerUp={handleItemPointerUp}
-                                                            onPointerCancel={handleItemPointerUp}
-                                                            className={`group p-3 cursor-pointer active:scale-[0.98] flex items-center gap-3 ${swipeItemId === item.id ? 'touch-none' : ''}`}
-                                                            style={{
-                                                                transform:
-                                                                    swipeItemId === item.id
-                                                                        ? `translateX(${swipeOffset}px)`
-                                                                        : undefined,
-                                                                transition:
-                                                                    swipeItemId === item.id
-                                                                        ? 'none'
-                                                                        : 'transform 180ms ease',
-                                                                touchAction: 'pan-y',
-                                                                willChange:
-                                                                    swipeItemId === item.id
-                                                                        ? 'transform'
-                                                                        : undefined,
-                                                            }}
-                                                        >
-                                                            <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
-                                                                {item.product?.image_url ? (
-                                                                    <Image
-                                                                        src={item.product.image_url}
-                                                                        alt={item.product.product_name}
-                                                                        width={56}
-                                                                        height={56}
-                                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                                    />
-                                                                ) : (
-                                                                    <div className="w-full h-full flex flex-col items-center justify-center text-[9px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
-                                                                        <ChefHat
-                                                                            size={16}
-                                                                            className="mb-0.5"
-                                                                        />
-                                                                        {t('productModal.noImage')}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <h4 className="font-bold text-sm text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                                                    {item.product.product_name}
-                                                                </h4>
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
-                                                                    {item.product.brands || '-'}
-                                                                </p>
-                                                                <div
-                                                                    className="flex items-center gap-1.5 flex-wrap"
-                                                                    onClick={(e) => e.stopPropagation()}
+                                                            <div className="hidden md:flex absolute top-2 right-2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                                <button
+                                                                    onClick={(
+                                                                        e
+                                                                    ) => {
+                                                                        e.stopPropagation()
+                                                                        setItemToDelete(
+                                                                            item
+                                                                        )
+                                                                    }}
+                                                                    className="p-2 bg-white/90 dark:bg-slate-800/90 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-full shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-700 transition-colors"
+                                                                    title={t(
+                                                                        'fridges.detail.deleteProductTooltip'
+                                                                    )}
                                                                 >
-                                                                    {editingQuantityItemId ===
-                                                                        item.id ? (
-                                                                        <div className="flex items-center gap-1">
-                                                                            <Input
-                                                                                type="number"
-                                                                                min={1}
-                                                                                step={1}
-                                                                                value={quantityDraft}
-                                                                                onChange={(e) =>
-                                                                                    setQuantityDraft(
-                                                                                        e.target.value
-                                                                                    )
+                                                                    <Trash2
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                            </div>
+
+                                                            <div
+                                                                className="absolute inset-y-0 right-0 w-20 flex items-center justify-center rounded-r-2xl bg-rose-500/95 text-white opacity-0 transition-opacity"
+                                                                aria-hidden="true"
+                                                            >
+                                                                <div className="flex flex-col items-center gap-1 text-[10px] font-semibold uppercase tracking-wider">
+                                                                    <Trash2
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                    />
+                                                                    {t(
+                                                                        'fridges.detail.swipeDelete'
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                onClick={() =>
+                                                                    handleItemClick(
+                                                                        item
+                                                                    )
+                                                                }
+                                                                onPointerDown={(
+                                                                    event
+                                                                ) =>
+                                                                    handleItemPointerDown(
+                                                                        item.id!,
+                                                                        event
+                                                                    )
+                                                                }
+                                                                onPointerMove={
+                                                                    handleItemPointerMove
+                                                                }
+                                                                onPointerUp={
+                                                                    handleItemPointerUp
+                                                                }
+                                                                onPointerCancel={
+                                                                    handleItemPointerUp
+                                                                }
+                                                                className={`group p-3 cursor-pointer active:scale-[0.98] flex items-center gap-3 ${swipeItemId === item.id ? 'touch-none' : ''}`}
+                                                                style={{
+                                                                    transform:
+                                                                        swipeItemId ===
+                                                                        item.id
+                                                                            ? `translateX(${swipeOffset}px)`
+                                                                            : undefined,
+                                                                    transition:
+                                                                        swipeItemId ===
+                                                                        item.id
+                                                                            ? 'none'
+                                                                            : 'transform 180ms ease',
+                                                                    touchAction:
+                                                                        'pan-y',
+                                                                    willChange:
+                                                                        swipeItemId ===
+                                                                        item.id
+                                                                            ? 'transform'
+                                                                            : undefined,
+                                                                }}
+                                                            >
+                                                                <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                                                    {item
+                                                                        .product
+                                                                        ?.image_url ? (
+                                                                        <Image
+                                                                            src={
+                                                                                item
+                                                                                    .product
+                                                                                    .image_url
+                                                                            }
+                                                                            alt={
+                                                                                item
+                                                                                    .product
+                                                                                    .product_name
+                                                                            }
+                                                                            width={
+                                                                                56
+                                                                            }
+                                                                            height={
+                                                                                56
+                                                                            }
+                                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                                        />
+                                                                    ) : (
+                                                                        <div className="w-full h-full flex flex-col items-center justify-center text-[9px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
+                                                                            <ChefHat
+                                                                                size={
+                                                                                    16
                                                                                 }
-                                                                                onKeyDown={(e) => {
-                                                                                    if (
-                                                                                        e.key ===
-                                                                                        'Enter'
-                                                                                    ) {
-                                                                                        e.preventDefault()
+                                                                                className="mb-0.5"
+                                                                            />
+                                                                            {t(
+                                                                                'productModal.noImage'
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h4 className="font-bold text-sm text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                                                        {
+                                                                            item
+                                                                                .product
+                                                                                .product_name
+                                                                        }
+                                                                    </h4>
+                                                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mb-2">
+                                                                        {item
+                                                                            .product
+                                                                            .brands ||
+                                                                            '-'}
+                                                                    </p>
+                                                                    <div
+                                                                        className="flex items-center gap-1.5 flex-wrap"
+                                                                        onClick={(
+                                                                            e
+                                                                        ) =>
+                                                                            e.stopPropagation()
+                                                                        }
+                                                                    >
+                                                                        {editingQuantityItemId ===
+                                                                        item.id ? (
+                                                                            <div className="flex items-center gap-1">
+                                                                                <Input
+                                                                                    type="number"
+                                                                                    min={
+                                                                                        1
+                                                                                    }
+                                                                                    step={
+                                                                                        1
+                                                                                    }
+                                                                                    value={
+                                                                                        quantityDraft
+                                                                                    }
+                                                                                    onChange={(
+                                                                                        e
+                                                                                    ) =>
+                                                                                        setQuantityDraft(
+                                                                                            e
+                                                                                                .target
+                                                                                                .value
+                                                                                        )
+                                                                                    }
+                                                                                    onKeyDown={(
+                                                                                        e
+                                                                                    ) => {
+                                                                                        if (
+                                                                                            e.key ===
+                                                                                            'Enter'
+                                                                                        ) {
+                                                                                            e.preventDefault()
+                                                                                            saveQuantity(
+                                                                                                item.id!
+                                                                                            )
+                                                                                        }
+                                                                                    }}
+                                                                                    className="h-7 w-16 text-xs"
+                                                                                />
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    className="h-7 px-2 text-xs"
+                                                                                    disabled={
+                                                                                        savingQuantityItemId ===
+                                                                                        item.id
+                                                                                    }
+                                                                                    onClick={() =>
                                                                                         saveQuantity(
                                                                                             item.id!
                                                                                         )
                                                                                     }
-                                                                                }}
-                                                                                className="h-7 w-16 text-xs"
-                                                                            />
-                                                                            <Button
-                                                                                size="sm"
-                                                                                className="h-7 px-2 text-xs"
-                                                                                disabled={
-                                                                                    savingQuantityItemId ===
-                                                                                    item.id
-                                                                                }
-                                                                                onClick={() =>
-                                                                                    saveQuantity(
-                                                                                        item.id!
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                {t('fridges.detail.saveQuantity')}
-                                                                            </Button>
-                                                                            <Button
-                                                                                size="sm"
-                                                                                variant="outline"
-                                                                                className="h-7 px-2 text-xs"
-                                                                                onClick={() =>
-                                                                                    setEditingQuantityItemId(
-                                                                                        null
-                                                                                    )
-                                                                                }
-                                                                            >
-                                                                                {t('fridges.detail.cancelQuantity')}
-                                                                            </Button>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <>
-                                                                            <button
-                                                                                className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
-                                                                                onClick={() =>
-                                                                                    startQuantityEdit(item)
-                                                                                }
-                                                                            >
-                                                                                {t('fridges.detail.quantityLabel', { count: item.quantity ?? 1 })}
-                                                                            </button>
-                                                                            <NutriScoreBadge
-                                                                                grade={
-                                                                                    item.product
-                                                                                        ?.nutriscore_grade
-                                                                                }
-                                                                                size="sm"
-                                                                            />
-                                                                            {item.product.dietary_flags
-                                                                                ?.vegan && (
+                                                                                >
+                                                                                    {t(
+                                                                                        'fridges.detail.saveQuantity'
+                                                                                    )}
+                                                                                </Button>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    className="h-7 px-2 text-xs"
+                                                                                    onClick={() =>
+                                                                                        setEditingQuantityItemId(
+                                                                                            null
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    {t(
+                                                                                        'fridges.detail.cancelQuantity'
+                                                                                    )}
+                                                                                </Button>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <>
+                                                                                <button
+                                                                                    className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
+                                                                                    onClick={() =>
+                                                                                        startQuantityEdit(
+                                                                                            item
+                                                                                        )
+                                                                                    }
+                                                                                >
+                                                                                    {t(
+                                                                                        'fridges.detail.quantityLabel',
+                                                                                        {
+                                                                                            count:
+                                                                                                item.quantity ??
+                                                                                                1,
+                                                                                        }
+                                                                                    )}
+                                                                                </button>
+                                                                                <NutriScoreBadge
+                                                                                    grade={
+                                                                                        item
+                                                                                            .product
+                                                                                            ?.nutriscore_grade
+                                                                                    }
+                                                                                    size="sm"
+                                                                                />
+                                                                                {item
+                                                                                    .product
+                                                                                    .dietary_flags
+                                                                                    ?.vegan && (
                                                                                     <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
-                                                                                        {t('fridges.detail.veganBadge')}
+                                                                                        {t(
+                                                                                            'fridges.detail.veganBadge'
+                                                                                        )}
                                                                                     </span>
                                                                                 )}
-                                                                            {item.product.labels?.includes('Manuell') && (
-                                                                                <span className="text-xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border border-sky-200/70 dark:border-sky-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
-                                                                                    {t('fridges.detail.manualBadge')}
-                                                                                </span>
-                                                                            )}
-                                                                        </>
-                                                                    )}
+                                                                                {item.product.labels?.includes(
+                                                                                    'Manuell'
+                                                                                ) && (
+                                                                                    <span className="text-xs font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border border-sky-200/70 dark:border-sky-900/50 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                                                                        {t(
+                                                                                            'fridges.detail.manualBadge'
+                                                                                        )}
+                                                                                    </span>
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
+                                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 dark:text-slate-600">
+                                                                    <Info
+                                                                        size={
+                                                                            18
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                {swipeItemId ===
+                                                                    item.id &&
+                                                                    swipeOffset <
+                                                                        0 && (
+                                                                        <div
+                                                                            className="absolute inset-y-0 right-0 rounded-r-2xl bg-rose-500/90"
+                                                                            style={{
+                                                                                width: `${Math.min(20, Math.abs(swipeOffset) / 4)}px`,
+                                                                            }}
+                                                                        />
+                                                                    )}
                                                             </div>
-                                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 dark:text-slate-600">
-                                                                <Info size={18} />
-                                                            </div>
-                                                            {swipeItemId === item.id && swipeOffset < 0 && (
-                                                                <div
-                                                                    className="absolute inset-y-0 right-0 rounded-r-2xl bg-rose-500/90"
-                                                                    style={{
-                                                                        width: `${Math.min(20, Math.abs(swipeOffset) / 4)}px`,
-                                                                    }}
-                                                                />
-                                                            )}
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    )
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -887,7 +1167,9 @@ export default function FridgeDetail({
                                     t('fridges.detail.deleteFridgeConfirmText')
                                 ) {
                                     setDeleteFridgeStatus(
-                                        t('fridges.detail.deleteFridgeTypeConfirm')
+                                        t(
+                                            'fridges.detail.deleteFridgeTypeConfirm'
+                                        )
                                     )
                                     return
                                 }
@@ -911,13 +1193,19 @@ export default function FridgeDetail({
                                     {t('fridges.detail.deleteFridgeTitle')}
                                 </h3>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
-                                    {t('fridges.detail.deleteFridgeWarning', { name: fridge.name })}
+                                    {t('fridges.detail.deleteFridgeWarning', {
+                                        name: fridge.name,
+                                    })}
                                 </p>
                                 <Input
                                     type="text"
                                     value={deleteFridgeConfirm}
-                                    onChange={(e) => setDeleteFridgeConfirm(e.target.value)}
-                                    placeholder={t('fridges.detail.deleteFridgeConfirmText')}
+                                    onChange={(e) =>
+                                        setDeleteFridgeConfirm(e.target.value)
+                                    }
+                                    placeholder={t(
+                                        'fridges.detail.deleteFridgeConfirmText'
+                                    )}
                                     required
                                     autoFocus
                                 />
@@ -944,8 +1232,12 @@ export default function FridgeDetail({
                                     className="flex-1 border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
                                 >
                                     {deletingFridge
-                                        ? t('fridges.detail.deleteFridgeSubmitting')
-                                        : t('fridges.detail.deleteFridgeSubmit')}
+                                        ? t(
+                                              'fridges.detail.deleteFridgeSubmitting'
+                                          )
+                                        : t(
+                                              'fridges.detail.deleteFridgeSubmit'
+                                          )}
                                 </Button>
                             </div>
                         </form>
@@ -960,9 +1252,13 @@ export default function FridgeDetail({
                             <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-2">
                                 <Trash2 size={32} />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">{t('fridges.detail.deleteProductTitle')}</h3>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">
+                                {t('fridges.detail.deleteProductTitle')}
+                            </h3>
                             <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                {t('fridges.detail.deleteProductConfirm', { name: itemToDelete.product.product_name })}
+                                {t('fridges.detail.deleteProductConfirm', {
+                                    name: itemToDelete.product.product_name,
+                                })}
                             </p>
                         </div>
                         <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex gap-3 border-t border-slate-100 dark:border-slate-800">

@@ -7,7 +7,12 @@ import {
     useEffect,
     useState,
 } from 'react'
-import { getRedirectResult, onAuthStateChanged, signOut, User } from 'firebase/auth'
+import {
+    getRedirectResult,
+    onAuthStateChanged,
+    signOut,
+    User,
+} from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { ensureUserPreferencesDocument } from '../lib/services/userService'
 

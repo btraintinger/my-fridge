@@ -11,12 +11,14 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function InstallButton() {
-    const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-    const [isStandalone] = useState(() =>
-        typeof window !== 'undefined' && (
-            window.matchMedia('(display-mode: standalone)').matches ||
-            (window.navigator as Navigator & { standalone?: boolean }).standalone === true
-        )
+    const [deferredPrompt, setDeferredPrompt] =
+        useState<BeforeInstallPromptEvent | null>(null)
+    const [isStandalone] = useState(
+        () =>
+            typeof window !== 'undefined' &&
+            (window.matchMedia('(display-mode: standalone)').matches ||
+                (window.navigator as Navigator & { standalone?: boolean })
+                    .standalone === true)
     )
     const t = useTranslations('offline')
 
@@ -27,11 +29,17 @@ export function InstallButton() {
         }
         const handleAppInstalled = () => setDeferredPrompt(null)
 
-        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
+        window.addEventListener(
+            'beforeinstallprompt',
+            handleBeforeInstallPrompt as EventListener
+        )
         window.addEventListener('appinstalled', handleAppInstalled)
 
         return () => {
-            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener)
+            window.removeEventListener(
+                'beforeinstallprompt',
+                handleBeforeInstallPrompt as EventListener
+            )
             window.removeEventListener('appinstalled', handleAppInstalled)
         }
     }, [])

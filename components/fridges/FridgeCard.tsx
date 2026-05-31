@@ -32,7 +32,9 @@ export function FridgeCard({ fridge }: FridgeCardProps) {
                         {displayScore && (
                             <span
                                 className={`inline-flex items-center justify-center w-6 h-6 lg:w-7 lg:h-7 rounded-lg text-white font-bold text-[10px] lg:text-xs uppercase shadow-sm ${GRADE_COLORS[displayScore.toLowerCase()] ?? 'bg-slate-400'}`}
-                                title={t('mostCommonNutriScore', { grade: displayScore.toUpperCase() })}
+                                title={t('mostCommonNutriScore', {
+                                    grade: displayScore.toUpperCase(),
+                                })}
                             >
                                 {displayScore.toUpperCase()}
                             </span>
@@ -40,7 +42,11 @@ export function FridgeCard({ fridge }: FridgeCardProps) {
                     </div>
                 </div>
                 <div className="w-11 h-11 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-slate-50 dark:bg-slate-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-slate-400 dark:text-slate-500 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-all duration-200 shadow-inner flex-shrink-0">
-                    <Refrigerator size={22} strokeWidth={1.5} className="sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
+                    <Refrigerator
+                        size={22}
+                        strokeWidth={1.5}
+                        className="sm:w-6 sm:h-6 lg:w-8 lg:h-8"
+                    />
                 </div>
             </div>
         </Link>

@@ -6,9 +6,10 @@ import { zodConverter } from './zodConverter'
 // - FieldValue sentinels like serverTimestamp() (write path: opaque object)
 // - null (transient local state for pending serverTimestamp writes, before the
 //   server resolves the placeholder to a real Timestamp)
-export const TimestampType = z.custom<{ toDate?(): Date; toMillis?(): number } | null>(
-    (val) => val === null || typeof val === 'object'
-)
+export const TimestampType = z.custom<{
+    toDate?(): Date
+    toMillis?(): number
+} | null>((val) => val === null || typeof val === 'object')
 
 export const NutrimentsSchema = z.object({
     energy_kcal: z.number().default(0),
@@ -130,7 +131,9 @@ export type Product = z.infer<typeof ProductSchema>
 export type Fridge = z.infer<typeof FridgeSchema>
 export type FridgeItem = z.infer<typeof FridgeItemSchema>
 export type ShoppingListItem = z.infer<typeof ShoppingListItemSchema>
-export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>
+export type NotificationPreferences = z.infer<
+    typeof NotificationPreferencesSchema
+>
 export type UserPreferences = z.infer<typeof UserPreferencesSchema>
 export type FcmTokenDoc = z.infer<typeof FcmTokenDocSchema>
 export type NotificationDoc = z.infer<typeof NotificationDocSchema>

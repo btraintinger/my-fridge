@@ -1,5 +1,11 @@
 import { deleteDoc, serverTimestamp, setDoc } from 'firebase/firestore'
-import { deleteToken, getMessaging, getToken, isSupported, onMessage } from 'firebase/messaging'
+import {
+    deleteToken,
+    getMessaging,
+    getToken,
+    isSupported,
+    onMessage,
+} from 'firebase/messaging'
 import type { MessagePayload, Unsubscribe } from 'firebase/messaging'
 import { app } from './firebase'
 import { userFcmTokenRef } from './services/refs'
@@ -11,8 +17,11 @@ export async function isPushSupported(): Promise<boolean> {
     return isSupported()
 }
 
-export async function getCurrentPermission(): Promise<NotificationPermission | 'unsupported'> {
-    if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported'
+export async function getCurrentPermission(): Promise<
+    NotificationPermission | 'unsupported'
+> {
+    if (typeof window === 'undefined' || !('Notification' in window))
+        return 'unsupported'
     return Notification.permission
 }
 

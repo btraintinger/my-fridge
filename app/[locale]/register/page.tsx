@@ -3,10 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-    createUserWithEmailAndPassword,
-    updateProfile,
-} from 'firebase/auth'
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
 import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
 import { auth } from '@/lib/firebase'
@@ -63,7 +60,10 @@ export default function Register() {
             title={t('auth.register.title')}
             subtitle={t('auth.register.subtitle')}
         >
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
+            <form
+                onSubmit={handleSubmit(onSubmit)}
+                className="w-full space-y-6"
+            >
                 {serverError && (
                     <div className="p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-semibold border border-red-100 dark:border-red-900/50 animate-in shake-in duration-300">
                         {serverError}

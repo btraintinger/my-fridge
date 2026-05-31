@@ -2,7 +2,6 @@
 
 <img src="public/icons/manifest-icon-512.maskable.png" alt="MyFridge" width="128" height="128" />
 
-
 <h1>MyFridge</h1>
 
 <p>
@@ -25,7 +24,6 @@
   <a href="#stack">Stack</a> ·
   <a href="#getting-started">Getting started</a> ·
   <a href="#layout">Layout</a> ·
-  <a href="#conventions">Conventions</a>
 </sub>
 
 </div>
@@ -66,21 +64,21 @@ top shelf — not for ten thousand tenants. The priorities are mobile-first, off
 
 ## Stack
 
-| Layer | Choice |
-| --- | --- |
-| Framework | Next.js 16 (App Router, React 19.2) |
-| Styling | Tailwind v4 |
-| Auth | Firebase Auth (email/password + Google, behind a same-origin OAuth proxy) |
-| Database | Firestore (client SDK with persistent multi-tab cache + Admin SDK on server) |
-| Type safety | Zod schemas with Firestore `withConverter` |
-| Forms | react-hook-form + `@hookform/resolvers/zod` |
-| State | Zustand (for modal/dialog UI state) |
-| Scanning | html5-qrcode |
-| Notifications | Firebase Cloud Messaging + `react-hot-toast` |
-| Product data | `@openfoodfacts/openfoodfacts-nodejs` |
-| Service worker | Serwist |
-| i18n | next-intl |
-| Hosting / Cron | Vercel |
+| Layer          | Choice                                                                       |
+| -------------- | ---------------------------------------------------------------------------- |
+| Framework      | Next.js 16 (App Router, React 19.2)                                          |
+| Styling        | Tailwind v4                                                                  |
+| Auth           | Firebase Auth (email/password + Google, behind a same-origin OAuth proxy)    |
+| Database       | Firestore (client SDK with persistent multi-tab cache + Admin SDK on server) |
+| Type safety    | Zod schemas with Firestore `withConverter`                                   |
+| Forms          | react-hook-form + `@hookform/resolvers/zod`                                  |
+| State          | Zustand (for modal/dialog UI state)                                          |
+| Scanning       | html5-qrcode                                                                 |
+| Notifications  | Firebase Cloud Messaging + `react-hot-toast`                                 |
+| Product data   | `@openfoodfacts/openfoodfacts-nodejs`                                        |
+| Service worker | Serwist                                                                      |
+| i18n           | next-intl                                                                    |
+| Hosting / Cron | Vercel                                                                       |
 
 ---
 
@@ -94,6 +92,7 @@ npm run dev
 ```
 
 The dev server runs over HTTPS (Next's `--experimental-https`) on `https://localhost:3000`.
+
 ### Environment
 
 You'll need a `.env.local` with your public Firebase config, Firebase Admin credentials for the server side, and a
@@ -104,21 +103,21 @@ leave the server.
 
 ## Layout
 
-| Path | What lives there |
-| --- | --- |
-| `app/[locale]/` | Localized pages: fridges, shopping-list, scanner, settings, login, register |
-| `app/api/cron/` | Daily expiration-alerts job |
-| `app/api/notifications/` | FCM send endpoints |
-| `app/api/openfoodfacts/` | Server-side product lookup |
-| `app/sw.ts` | Serwist service worker entry |
-| `components/` | `AuthGate`, `ScannerModal`, `ManualProductModal`, `ui/` primitives, feature folders |
-| `contexts/` | React context providers |
-| `hooks/` | Shared hooks |
-| `i18n/` | next-intl config |
-| `lib/` | Firestore refs, schemas, services, OFF client, utilities |
-| `messages/` | `en.json`, `de.json` |
-| `stores/` | Zustand stores for UI state |
-| `firestore.rules` | Security rules: ownership + email-based sharing |
-| `firestore.indexes.json` | Composite index definitions |
-| `proxy.ts` | OAuth proxy entry (avoids third-party cookie blocking) |
-| `vercel.json` | Cron schedule |
+| Path                     | What lives there                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `app/[locale]/`          | Localized pages: fridges, shopping-list, scanner, settings, login, register         |
+| `app/api/cron/`          | Daily expiration-alerts job                                                         |
+| `app/api/notifications/` | FCM send endpoints                                                                  |
+| `app/api/openfoodfacts/` | Server-side product lookup                                                          |
+| `app/sw.ts`              | Serwist service worker entry                                                        |
+| `components/`            | `AuthGate`, `ScannerModal`, `ManualProductModal`, `ui/` primitives, feature folders |
+| `contexts/`              | React context providers                                                             |
+| `hooks/`                 | Shared hooks                                                                        |
+| `i18n/`                  | next-intl config                                                                    |
+| `lib/`                   | Firestore refs, schemas, services, OFF client, utilities                            |
+| `messages/`              | `en.json`, `de.json`                                                                |
+| `stores/`                | Zustand stores for UI state                                                         |
+| `firestore.rules`        | Security rules: ownership + email-based sharing                                     |
+| `firestore.indexes.json` | Composite index definitions                                                         |
+| `proxy.ts`               | OAuth proxy entry (avoids third-party cookie blocking)                              |
+| `vercel.json`            | Cron schedule                                                                       |

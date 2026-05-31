@@ -10,7 +10,12 @@ interface FormFieldProps {
     children: ReactNode
 }
 
-export function FormField({ label, required, error, children }: FormFieldProps) {
+export function FormField({
+    label,
+    required,
+    error,
+    children,
+}: FormFieldProps) {
     return (
         <div className="space-y-2">
             <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1 uppercase tracking-wider">

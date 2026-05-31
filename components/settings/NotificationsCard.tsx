@@ -37,8 +37,7 @@ export const NotificationsCard = () => {
     const { permission, isRegistering, isRegistered, enable, disable } =
         useNotifications(uid)
 
-    const [prefs, setPrefs] =
-        useState<NotificationPreferences>(DEFAULT_PREFS)
+    const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFS)
 
     const writePrefs = useCallback(
         async (next: NotificationPreferences) => {
@@ -77,11 +76,7 @@ export const NotificationsCard = () => {
             {/* Header */}
             <div className="flex items-center gap-4 p-4 sm:p-5">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                    {isRegistered ? (
-                        <BellRing size={20} />
-                    ) : (
-                        <Bell size={20} />
-                    )}
+                    {isRegistered ? <BellRing size={20} /> : <Bell size={20} />}
                 </div>
                 <div className="min-w-0 flex-1">
                     <h3 className="font-bold text-slate-900 dark:text-slate-50">
@@ -139,16 +134,12 @@ export const NotificationsCard = () => {
                                 ? 'bg-emerald-500'
                                 : 'bg-slate-200 dark:bg-slate-800'
                         )}
-                        aria-label={
-                            isRegistered ? t('disable') : t('enable')
-                        }
+                        aria-label={isRegistered ? t('disable') : t('enable')}
                     >
                         <span
                             className={cn(
                                 'absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform',
-                                isRegistered
-                                    ? 'translate-x-6'
-                                    : 'translate-x-0'
+                                isRegistered ? 'translate-x-6' : 'translate-x-0'
                             )}
                         />
                     </button>
@@ -170,9 +161,7 @@ export const NotificationsCard = () => {
                                 type="button"
                                 role="switch"
                                 aria-checked={prefs[key]}
-                                onClick={() =>
-                                    void handleCategoryToggle(key)
-                                }
+                                onClick={() => void handleCategoryToggle(key)}
                                 className={cn(
                                     'relative h-6 w-11 flex-none overflow-hidden rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 min-h-0',
                                     prefs[key]
@@ -207,9 +196,24 @@ export const NotificationsCard = () => {
                                     void handleLeadDaysChange(Number(v))
                                 }
                                 options={[
-                                    { value: '1', label: t('expirationLeadDays.options.1d') },
-                                    { value: '3', label: t('expirationLeadDays.options.3d') },
-                                    { value: '7', label: t('expirationLeadDays.options.7d') },
+                                    {
+                                        value: '1',
+                                        label: t(
+                                            'expirationLeadDays.options.1d'
+                                        ),
+                                    },
+                                    {
+                                        value: '3',
+                                        label: t(
+                                            'expirationLeadDays.options.3d'
+                                        ),
+                                    },
+                                    {
+                                        value: '7',
+                                        label: t(
+                                            'expirationLeadDays.options.7d'
+                                        ),
+                                    },
                                 ]}
                             />
                         </div>

@@ -34,7 +34,9 @@ export const ProfileSummaryCard = ({ user }: ProfileSummaryCardProps) => {
                     {user.photoURL ? (
                         <Image
                             src={user.photoURL}
-                            alt={user.displayName || t('profile.profileImageAlt')}
+                            alt={
+                                user.displayName || t('profile.profileImageAlt')
+                            }
                             width={64}
                             height={64}
                             className="h-full w-full object-cover"

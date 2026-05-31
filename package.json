@@ -22,7 +22,7 @@
         "@serwist/turbopack": "^9.5.11",
         "@tanstack/react-virtual": "^3.13.24",
         "clsx": "^2.1.1",
-        "firebase": "^12.10.0",
+        "firebase": "^12.14.0",
         "firebase-admin": "^13.10.0",
         "html5-qrcode": "^2.3.8",
         "lucide-react": "^0.577.0",

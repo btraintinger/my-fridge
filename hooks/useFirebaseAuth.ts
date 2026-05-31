@@ -36,7 +36,10 @@ export function useFirebaseAuth() {
                 throw new Error('Enter your current password to continue.')
             }
 
-            const credential = EmailAuthProvider.credential(currentUser.email, password)
+            const credential = EmailAuthProvider.credential(
+                currentUser.email,
+                password
+            )
             await reauthenticateWithCredential(currentUser, credential)
             return currentUser
         }
@@ -75,4 +78,3 @@ export function useFirebaseAuth() {
         formatAuthError,
     }
 }
-

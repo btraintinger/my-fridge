@@ -17,7 +17,11 @@ interface ProductDetailModalProps {
     quantity?: number
     itemId?: string
     fridgeId?: string
-    onQuantityChange?: (itemId: string, fridgeId: string, quantity: number) => Promise<void>
+    onQuantityChange?: (
+        itemId: string,
+        fridgeId: string,
+        quantity: number
+    ) => Promise<void>
     onDelete?: (itemId: string, fridgeId: string) => Promise<void>
     onClose: () => void
 }
@@ -30,7 +34,8 @@ function FlagBadge({
     value: boolean | null | undefined
 }) {
     const t = useTranslations('common')
-    const text = value === true ? t('yes') : value === false ? t('no') : t('none')
+    const text =
+        value === true ? t('yes') : value === false ? t('no') : t('none')
     const tone =
         value === true
             ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-900/40'
@@ -118,7 +123,9 @@ export function ProductDetailModal({
                         </p>
                         {product.origin_country && (
                             <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
-                                {t('productModal.origin', { country: product.origin_country })}
+                                {t('productModal.origin', {
+                                    country: product.origin_country,
+                                })}
                             </p>
                         )}
                     </div>
@@ -135,7 +142,9 @@ export function ProductDetailModal({
                                         min={1}
                                         step={1}
                                         value={quantityDraft}
-                                        onChange={(e) => setQuantityDraft(e.target.value)}
+                                        onChange={(e) =>
+                                            setQuantityDraft(e.target.value)
+                                        }
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 e.preventDefault()
@@ -156,7 +165,9 @@ export function ProductDetailModal({
                                         size="sm"
                                         variant="outline"
                                         className="h-8 px-3 text-xs"
-                                        onClick={() => setEditingQuantity(false)}
+                                        onClick={() =>
+                                            setEditingQuantity(false)
+                                        }
                                     >
                                         {t('common.cancel')}
                                     </Button>
@@ -166,7 +177,9 @@ export function ProductDetailModal({
                                     className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 px-3 py-2 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-950/70 transition-colors"
                                     onClick={() => setEditingQuantity(true)}
                                 >
-                                    {t('productModal.quantity', { count: quantity })}
+                                    {t('productModal.quantity', {
+                                        count: quantity,
+                                    })}
                                 </button>
                             )}
                         </div>
@@ -190,18 +203,19 @@ export function ProductDetailModal({
                                 value={product.dietary_flags?.palm_oil_free}
                             />
                         </div>
-                        {Array.isArray(product.labels) && product.labels.length > 0 && (
-                            <div className="flex flex-wrap gap-2 pt-1">
-                                {product.labels.slice(0, 8).map((label) => (
-                                    <span
-                                        key={label}
-                                        className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-300"
-                                    >
-                                        {label}
-                                    </span>
-                                ))}
-                            </div>
-                        )}
+                        {Array.isArray(product.labels) &&
+                            product.labels.length > 0 && (
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                    {product.labels.slice(0, 8).map((label) => (
+                                        <span
+                                            key={label}
+                                            className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-300"
+                                        >
+                                            {label}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                     </div>
 
                     {warnings.length > 0 && (
@@ -216,10 +230,16 @@ export function ProductDetailModal({
                                         className="text-sm text-amber-900 dark:text-amber-200"
                                     >
                                         <span className="font-semibold">
-                                            {t(`nutrimentWarnings.${warning.id}.label` as never)}:
+                                            {t(
+                                                `nutrimentWarnings.${warning.id}.label` as never
+                                            )}
+                                            :
                                         </span>{' '}
-                                        {warning.value.toFixed(1)} {warning.unit}{' '}
-                                        - {t(`nutrimentWarnings.${warning.id}.${warning.severity}` as never)}
+                                        {warning.value.toFixed(1)}{' '}
+                                        {warning.unit} -{' '}
+                                        {t(
+                                            `nutrimentWarnings.${warning.id}.${warning.severity}` as never
+                                        )}
                                     </p>
                                 ))}
                             </div>
@@ -341,7 +361,8 @@ export function ProductDetailModal({
                                 {product.allergens
                                     .split(',')
                                     .map((a) => a.replace('en:', ''))
-                                    .join(', ') || t('productModal.noAllergens')}
+                                    .join(', ') ||
+                                    t('productModal.noAllergens')}
                             </p>
                         </div>
                     )}

@@ -11,11 +11,11 @@ import {
     updateDoc,
     writeBatch,
 } from 'firebase/firestore'
-import type { Product, ShoppingListItem as ShoppingListItemType } from '../types'
-import {
-    runFirebaseAction,
-    subscriptionErrorHandler,
-} from './firebaseAction'
+import type {
+    Product,
+    ShoppingListItem as ShoppingListItemType,
+} from '../types'
+import { runFirebaseAction, subscriptionErrorHandler } from './firebaseAction'
 import { newItemPayload } from './fridgeService'
 import {
     itemsCollection,
@@ -54,7 +54,11 @@ export async function addShoppingItem(
             createdAt: serverTimestamp(),
         })
     )
-    postNotify('shopping-list-activity', { fridgeId, action: 'item_added', itemName: name })
+    postNotify('shopping-list-activity', {
+        fridgeId,
+        action: 'item_added',
+        itemName: name,
+    })
     return result
 }
 
@@ -69,7 +73,11 @@ export async function toggleShoppingItem(
             checked: !currentChecked,
         })
     )
-    postNotify('shopping-list-activity', { fridgeId, action: 'item_checked', itemName })
+    postNotify('shopping-list-activity', {
+        fridgeId,
+        action: 'item_checked',
+        itemName,
+    })
     return result
 }
 
@@ -81,7 +89,11 @@ export async function deleteShoppingItem(
     const result = await runFirebaseAction(() =>
         deleteDoc(shoppingItemDoc(fridgeId, itemId))
     )
-    postNotify('shopping-list-activity', { fridgeId, action: 'item_removed', itemName })
+    postNotify('shopping-list-activity', {
+        fridgeId,
+        action: 'item_removed',
+        itemName,
+    })
     return result
 }
 

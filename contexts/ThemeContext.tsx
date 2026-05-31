@@ -59,7 +59,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
                 void updateUserPreferences(user.uid, {
                     darkMode: newValue,
                 }).catch((error) => {
-                    console.error('Failed to update dark mode preference:', error)
+                    console.error(
+                        'Failed to update dark mode preference:',
+                        error
+                    )
                 })
             }
 
@@ -90,9 +93,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         )
 
         return () => unsubscribe()
-    // pathname and router are stable refs; locale is intentionally excluded so
-    // we only redirect once on the initial subscription, not on every locale change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // pathname and router are stable refs; locale is intentionally excluded so
+        // we only redirect once on the initial subscription, not on every locale change.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading, user])
 
     return (

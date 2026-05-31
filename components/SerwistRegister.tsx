@@ -11,7 +11,8 @@ export function SerwistRegister({ children }: { children: ReactNode }) {
     // page because the browser only swaps SWs when a new registration with
     // the same scriptURL succeeds.
     useEffect(() => {
-        if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return
+        if (typeof navigator === 'undefined' || !('serviceWorker' in navigator))
+            return
         navigator.serviceWorker
             .getRegistrations()
             .then((registrations) => {

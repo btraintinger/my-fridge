@@ -22,7 +22,9 @@ export function NutriScoreBadge({
             className={`${sizeClasses} flex items-center justify-center text-white font-bold uppercase shadow-sm ${g?.bg ?? 'bg-slate-400'}`}
             title={`Nutri-Score: ${normalizedGrade === 'unknown' ? '-' : normalizedGrade.toUpperCase()}`}
         >
-            {normalizedGrade === 'unknown' ? '-' : normalizedGrade.toUpperCase()}
+            {normalizedGrade === 'unknown'
+                ? '-'
+                : normalizedGrade.toUpperCase()}
         </div>
     )
 }

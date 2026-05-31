@@ -17,10 +17,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { Fridge, FridgeItem, Product } from '../types'
-import {
-    runFirebaseAction,
-    subscriptionErrorHandler,
-} from './firebaseAction'
+import { runFirebaseAction, subscriptionErrorHandler } from './firebaseAction'
 import {
     fridgeDoc,
     fridgesCollection,
@@ -163,7 +160,11 @@ export async function unshareFridge(fridgeId: string, email: string) {
 export async function deleteItem(
     fridgeId: string,
     itemId: string,
-    prev: { grade: string | null | undefined; quantity: number; itemName?: string }
+    prev: {
+        grade: string | null | undefined
+        quantity: number
+        itemName?: string
+    }
 ) {
     const result = await runFirebaseAction(async () => {
         const batch = writeBatch(db)
@@ -191,11 +192,18 @@ export async function addItemToFridge(
 
         const batch = writeBatch(db)
         batch.set(newItemRef, payload)
-        const delta = gradeCountDelta(product.nutriscore_grade, payload.quantity)
+        const delta = gradeCountDelta(
+            product.nutriscore_grade,
+            payload.quantity
+        )
         if (delta) batch.update(fridgeDoc(fridgeId), delta)
         await batch.commit()
     }, `"${product.product_name}" hinzugefügt!`)
-    postNotify('fridge-activity', { fridgeId, action: 'item_added', itemName: product.product_name })
+    postNotify('fridge-activity', {
+        fridgeId,
+        action: 'item_added',
+        itemName: product.product_name,
+    })
     return result
 }
 

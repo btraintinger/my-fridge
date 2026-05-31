@@ -26,7 +26,9 @@ const firebaseConfig = {
 }
 
 try {
-    const firebaseApp = getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+    const firebaseApp = getApps().length
+        ? getApps()[0]
+        : initializeApp(firebaseConfig)
     const messaging = getMessaging(firebaseApp)
     onBackgroundMessage(messaging, (payload) => {
         const title = payload.data?.title ?? 'MyFridge'
@@ -46,13 +48,22 @@ try {
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close()
-    const link = (event.notification.data as { link?: string } | null)?.link ?? '/'
-    event.waitUntil((async () => {
-        const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-        const existing = all.find((c) => c.url.includes(link))
-        if (existing) { await existing.focus(); return }
-        await self.clients.openWindow(link)
-    })())
+    const link =
+        (event.notification.data as { link?: string } | null)?.link ?? '/'
+    event.waitUntil(
+        (async () => {
+            const all = await self.clients.matchAll({
+                type: 'window',
+                includeUncontrolled: true,
+            })
+            const existing = all.find((c) => c.url.includes(link))
+            if (existing) {
+                await existing.focus()
+                return
+            }
+            await self.clients.openWindow(link)
+        })()
+    )
 })
 
 const serwist = new Serwist({

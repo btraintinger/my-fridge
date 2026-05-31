@@ -23,15 +23,22 @@ function categoryEnabled(
 ): boolean {
     if (!prefs) return true // default all-on when no prefs saved
     switch (type) {
-        case 'fridge_invite': return prefs.invites
-        case 'fridge_activity': return prefs.fridgeActivity
-        case 'shopping_list_activity': return prefs.shoppingList
-        case 'expiration_alert': return prefs.expirationAlerts
+        case 'fridge_invite':
+            return prefs.invites
+        case 'fridge_activity':
+            return prefs.fridgeActivity
+        case 'shopping_list_activity':
+            return prefs.shoppingList
+        case 'expiration_alert':
+            return prefs.expirationAlerts
     }
 }
 
 function isSupportedLocale(value: unknown): value is SupportedLocale {
-    return typeof value === 'string' && (routing.locales as readonly string[]).includes(value)
+    return (
+        typeof value === 'string' &&
+        (routing.locales as readonly string[]).includes(value)
+    )
 }
 
 export interface OutgoingNotification {
@@ -43,7 +50,10 @@ export interface OutgoingNotification {
     tag?: string
 }
 
-export async function sendToUser(uid: string, n: OutgoingNotification): Promise<void> {
+export async function sendToUser(
+    uid: string,
+    n: OutgoingNotification
+): Promise<void> {
     // 1. Load user doc once (for preferences + locale)
     const userData = (await userAdminDoc(uid).get()).data()
     const prefs = userData?.notificationPreferences
@@ -60,9 +70,10 @@ export async function sendToUser(uid: string, n: OutgoingNotification): Promise<
     const params: Record<string, string | number> = {}
     if (n.params) {
         for (const [k, v] of Object.entries(n.params)) {
-            params[k] = typeof v === 'string' && v.startsWith('@@')
-                ? t(v.slice(2) as Parameters<typeof t>[0])
-                : v
+            params[k] =
+                typeof v === 'string' && v.startsWith('@@')
+                    ? t(v.slice(2) as Parameters<typeof t>[0])
+                    : v
         }
     }
 
@@ -98,7 +109,11 @@ export async function sendToUser(uid: string, n: OutgoingNotification): Promise<
         // Clean up dead tokens
         const deletes: Promise<FirebaseFirestore.WriteResult>[] = []
         response.responses.forEach((r, idx) => {
-            if (!r.success && r.error?.code && DEAD_TOKEN_CODES.has(r.error.code)) {
+            if (
+                !r.success &&
+                r.error?.code &&
+                DEAD_TOKEN_CODES.has(r.error.code)
+            ) {
                 deletes.push(userFcmTokenAdminRef(uid, batch[idx]).delete())
             }
         })
@@ -118,7 +133,10 @@ export async function findUidByEmail(email: string): Promise<string | null> {
 // Resolves a display value for the user who triggered a notification.
 // `name` is the Firebase Auth displayName (carried in the ID token's `name`
 // claim). Falls back to the email local-part, then a localized "Someone".
-export function actorDisplayName(name: string | null, email: string | null): string {
+export function actorDisplayName(
+    name: string | null,
+    email: string | null
+): string {
     if (name && name.trim()) return name.trim()
     if (email) {
         const localPart = email.split('@')[0]

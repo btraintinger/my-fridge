@@ -46,9 +46,7 @@ export function DeleteAccountModal({
             )
             router.push('/register')
         } catch (error) {
-            setDeleteStatus(
-                formatAuthError(error, t('delete.deleteFailed'))
-            )
+            setDeleteStatus(formatAuthError(error, t('delete.deleteFailed')))
         } finally {
             setDeleteLoading(false)
         }

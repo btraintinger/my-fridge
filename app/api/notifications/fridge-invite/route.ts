@@ -2,15 +2,29 @@ export const dynamic = 'force-dynamic'
 
 import { requireAuth } from '@/lib/server/auth'
 import { fridgeAdminDoc } from '@/lib/server/refs'
-import { actorDisplayName, findUidByEmail, sendToUser } from '@/lib/server/sendNotification'
+import {
+    actorDisplayName,
+    findUidByEmail,
+    sendToUser,
+} from '@/lib/server/sendNotification'
 
 export async function POST(request: Request) {
     try {
-        const { uid, email: callerEmail, name: callerName } = await requireAuth(request)
-        const body = await request.json() as { fridgeId?: string; inviteeEmail?: string }
+        const {
+            uid,
+            email: callerEmail,
+            name: callerName,
+        } = await requireAuth(request)
+        const body = (await request.json()) as {
+            fridgeId?: string
+            inviteeEmail?: string
+        }
 
         if (!body.fridgeId || !body.inviteeEmail) {
-            return Response.json({ error: 'Missing fridgeId or inviteeEmail' }, { status: 400 })
+            return Response.json(
+                { error: 'Missing fridgeId or inviteeEmail' },
+                { status: 400 }
+            )
         }
 
         // Verify caller owns the fridge
@@ -41,6 +55,9 @@ export async function POST(request: Request) {
     } catch (e) {
         if (e instanceof Response) return e
         console.error('fridge-invite route error', e)
-        return Response.json({ error: 'Internal Server Error' }, { status: 500 })
+        return Response.json(
+            { error: 'Internal Server Error' },
+            { status: 500 }
+        )
     }
 }

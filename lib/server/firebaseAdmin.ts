@@ -10,7 +10,10 @@ const adminApp = getApps().length
               projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
               clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
               // Vercel stores newlines as literal \n in env vars — must unescape
-              privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+              privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(
+                  /\\n/g,
+                  '\n'
+              ),
           }),
       })
 

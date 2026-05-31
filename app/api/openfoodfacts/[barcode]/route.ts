@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
-import { OpenFoodFacts, type Product } from '@openfoodfacts/openfoodfacts-nodejs'
+import {
+    OpenFoodFacts,
+    type Product,
+} from '@openfoodfacts/openfoodfacts-nodejs'
 import { ProductSchema } from '@/lib/schemas'
 
 type Nutriments = NonNullable<Product['nutriments']>
@@ -30,10 +33,7 @@ const offFetch: typeof fetch = async (input, init) => {
     let lastError: unknown
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
         const controller = new AbortController()
-        const timeout = setTimeout(
-            () => controller.abort(),
-            REQUEST_TIMEOUT_MS
-        )
+        const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
         try {
             const res = await fetch(input, {
                 ...init,
@@ -57,7 +57,11 @@ function hasTag(tags: string[], tag: string) {
     return tags.includes(tag)
 }
 
-function flagFromTags(tags: string[], positiveTag: string, negativeTag: string) {
+function flagFromTags(
+    tags: string[],
+    positiveTag: string,
+    negativeTag: string
+) {
     if (hasTag(tags, positiveTag)) return true
     if (hasTag(tags, negativeTag)) return false
     return null
@@ -96,21 +100,96 @@ function normalizeOffString(value: string | undefined | null): string {
 function categorizeProduct(tags: string[], productName: string): string {
     const pName = productName.toLowerCase()
     const hasTag = (matches: string[]) =>
-        tags.some(tag => matches.some(m => tag.includes(m)))
+        tags.some((tag) => matches.some((m) => tag.includes(m)))
 
     if (hasTag(['frozen'])) return 'Tiefkühl'
-    if (hasTag(['beverage', 'drink', 'water', 'juice', 'soda', 'beer', 'wine', 'alcohol'])) return 'Getränke'
-    if (hasTag(['dairy', 'milk', 'cheese', 'yogurt', 'butter', 'cream'])) return 'Milchprodukte'
-    if (hasTag(['meat', 'poultry', 'beef', 'pork', 'fish', 'seafood', 'sausage'])) return 'Fleisch & Fisch'
-    if (hasTag(['snack', 'sweet', 'candy', 'chocolate', 'dessert', 'biscuit', 'cake', 'ice-cream'])) return 'Snacks & Süßes'
-    if (hasTag(['vegetable', 'fruit', 'legume', 'plant-based-foods'])) return 'Gemüse & Obst'
+    if (
+        hasTag([
+            'beverage',
+            'drink',
+            'water',
+            'juice',
+            'soda',
+            'beer',
+            'wine',
+            'alcohol',
+        ])
+    )
+        return 'Getränke'
+    if (hasTag(['dairy', 'milk', 'cheese', 'yogurt', 'butter', 'cream']))
+        return 'Milchprodukte'
+    if (
+        hasTag([
+            'meat',
+            'poultry',
+            'beef',
+            'pork',
+            'fish',
+            'seafood',
+            'sausage',
+        ])
+    )
+        return 'Fleisch & Fisch'
+    if (
+        hasTag([
+            'snack',
+            'sweet',
+            'candy',
+            'chocolate',
+            'dessert',
+            'biscuit',
+            'cake',
+            'ice-cream',
+        ])
+    )
+        return 'Snacks & Süßes'
+    if (hasTag(['vegetable', 'fruit', 'legume', 'plant-based-foods']))
+        return 'Gemüse & Obst'
 
-    if (['milch', 'käse', 'joghurt', 'butter', 'sahne', 'quark'].some(w => pName.includes(w))) return 'Milchprodukte'
-    if (['fleisch', 'wurst', 'schinken', 'fisch', 'lachs', 'huhn', 'rind', 'schwein'].some(w => pName.includes(w))) return 'Fleisch & Fisch'
-    if (['gemüse', 'obst', 'apfel', 'banane', 'tomate', 'salat', 'kartoffel'].some(w => pName.includes(w))) return 'Gemüse & Obst'
-    if (['schokolade', 'keks', 'chips', 'bonbon', 'eis', 'riegel'].some(w => pName.includes(w))) return 'Snacks & Süßes'
-    if (['saft', 'wasser', 'cola', 'limo', 'bier', 'wein'].some(w => pName.includes(w))) return 'Getränke'
-    if (['tiefkühl', 'pizza'].some(w => pName.includes(w))) return 'Tiefkühl'
+    if (
+        ['milch', 'käse', 'joghurt', 'butter', 'sahne', 'quark'].some((w) =>
+            pName.includes(w)
+        )
+    )
+        return 'Milchprodukte'
+    if (
+        [
+            'fleisch',
+            'wurst',
+            'schinken',
+            'fisch',
+            'lachs',
+            'huhn',
+            'rind',
+            'schwein',
+        ].some((w) => pName.includes(w))
+    )
+        return 'Fleisch & Fisch'
+    if (
+        [
+            'gemüse',
+            'obst',
+            'apfel',
+            'banane',
+            'tomate',
+            'salat',
+            'kartoffel',
+        ].some((w) => pName.includes(w))
+    )
+        return 'Gemüse & Obst'
+    if (
+        ['schokolade', 'keks', 'chips', 'bonbon', 'eis', 'riegel'].some((w) =>
+            pName.includes(w)
+        )
+    )
+        return 'Snacks & Süßes'
+    if (
+        ['saft', 'wasser', 'cola', 'limo', 'bier', 'wein'].some((w) =>
+            pName.includes(w)
+        )
+    )
+        return 'Getränke'
+    if (['tiefkühl', 'pizza'].some((w) => pName.includes(w))) return 'Tiefkühl'
 
     return 'Sonstiges'
 }
@@ -142,7 +221,12 @@ export async function GET(
             return NextResponse.json({ product: null }, { status: 502 })
         }
 
-        if (!data || data.status === 0 || !('product' in data) || !data.product) {
+        if (
+            !data ||
+            data.status === 0 ||
+            !('product' in data) ||
+            !data.product
+        ) {
             return NextResponse.json({ product: null })
         }
 
@@ -168,11 +252,7 @@ export async function GET(
             ),
             labels: labelTags.map(cleanLocalePrefix).slice(0, 8),
             dietary_flags: {
-                vegan: flagFromTags(
-                    analysisTags,
-                    'en:vegan',
-                    'en:non-vegan'
-                ),
+                vegan: flagFromTags(analysisTags, 'en:vegan', 'en:non-vegan'),
                 vegetarian: flagFromTags(
                     analysisTags,
                     'en:vegetarian',

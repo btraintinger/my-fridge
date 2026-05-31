@@ -9,7 +9,11 @@ import {
     useState,
 } from 'react'
 import { createPortal } from 'react-dom'
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+    Calendar as CalendarIcon,
+    ChevronLeft,
+    ChevronRight,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from './Button'
 
@@ -46,7 +50,11 @@ function parseIso(s: string): Date | null {
 }
 
 function formatDisplay(d: Date) {
-    return d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })
+    return d.toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    })
 }
 
 function isSameDay(a: Date, b: Date) {
@@ -126,7 +134,9 @@ export function DatePicker({
         const rect = trigger.getBoundingClientRect()
         const spaceBelow = window.innerHeight - rect.bottom
         const placement: 'bottom' | 'top' =
-            spaceBelow < POPOVER_HEIGHT && rect.top > spaceBelow ? 'top' : 'bottom'
+            spaceBelow < POPOVER_HEIGHT && rect.top > spaceBelow
+                ? 'top'
+                : 'bottom'
         const desiredLeft = rect.left
         const maxLeft = window.innerWidth - POPOVER_WIDTH - 8
         const left = Math.max(8, Math.min(desiredLeft, maxLeft))
@@ -213,7 +223,10 @@ export function DatePicker({
                     aria-label="Vorheriger Monat"
                     className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
                     onClick={() =>
-                        setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1))
+                        setView(
+                            (v) =>
+                                new Date(v.getFullYear(), v.getMonth() - 1, 1)
+                        )
                     }
                 >
                     <ChevronLeft size={16} />
@@ -226,7 +239,10 @@ export function DatePicker({
                     aria-label="Nächster Monat"
                     className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
                     onClick={() =>
-                        setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1))
+                        setView(
+                            (v) =>
+                                new Date(v.getFullYear(), v.getMonth() + 1, 1)
+                        )
                     }
                 >
                     <ChevronRight size={16} />
@@ -256,13 +272,18 @@ export function DatePicker({
                             disabled={dayDisabled}
                             className={cn(
                                 'h-9 w-9 mx-auto rounded-full text-sm font-medium transition-colors',
-                                !inMonth && 'text-slate-300 dark:text-slate-600',
+                                !inMonth &&
+                                    'text-slate-300 dark:text-slate-600',
                                 inMonth &&
                                     !isSelected &&
                                     'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800',
-                                isSelected && 'bg-emerald-500 text-white hover:bg-emerald-600',
-                                isToday && !isSelected && 'ring-2 ring-emerald-500/40',
-                                dayDisabled && 'opacity-30 cursor-not-allowed pointer-events-none'
+                                isSelected &&
+                                    'bg-emerald-500 text-white hover:bg-emerald-600',
+                                isToday &&
+                                    !isSelected &&
+                                    'ring-2 ring-emerald-500/40',
+                                dayDisabled &&
+                                    'opacity-30 cursor-not-allowed pointer-events-none'
                             )}
                         >
                             {d.getDate()}
@@ -311,12 +332,19 @@ export function DatePicker({
                         ? 'border-red-500 focus:border-red-500'
                         : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500',
                     disabled && 'opacity-50 cursor-not-allowed',
-                    selected ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400 dark:text-slate-500'
+                    selected
+                        ? 'text-slate-900 dark:text-slate-100'
+                        : 'text-slate-400 dark:text-slate-500'
                 )}
             >
                 <span className="flex items-center gap-2 truncate">
-                    <CalendarIcon size={18} className="text-slate-400 flex-shrink-0" />
-                    {selected ? formatDisplay(selected) : placeholder ?? 'Datum wählen…'}
+                    <CalendarIcon
+                        size={18}
+                        className="text-slate-400 flex-shrink-0"
+                    />
+                    {selected
+                        ? formatDisplay(selected)
+                        : (placeholder ?? 'Datum wählen…')}
                 </span>
             </button>
             {mounted && popover ? createPortal(popover, document.body) : null}

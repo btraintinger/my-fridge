@@ -41,7 +41,11 @@ export function useNotifications(uid: string | null) {
             if (cancelled) return
 
             if (perm !== 'granted') {
-                setState((s) => ({ ...s, permission: perm, isRegistered: false }))
+                setState((s) => ({
+                    ...s,
+                    permission: perm,
+                    isRegistered: false,
+                }))
                 return
             }
 
@@ -69,24 +73,44 @@ export function useNotifications(uid: string | null) {
                         // Touch lastSeenAt once per session
                         if (!tokenRefreshedThisSession.current) {
                             tokenRefreshedThisSession.current = true
-                            await updateDoc(ref, { lastSeenAt: serverTimestamp() }).catch(() => {})
+                            await updateDoc(ref, {
+                                lastSeenAt: serverTimestamp(),
+                            }).catch(() => {})
                         }
-                        setState((s) => ({ ...s, permission: 'granted', isRegistered: true }))
+                        setState((s) => ({
+                            ...s,
+                            permission: 'granted',
+                            isRegistered: true,
+                        }))
                     } else {
-                        setState((s) => ({ ...s, permission: 'granted', isRegistered: false }))
+                        setState((s) => ({
+                            ...s,
+                            permission: 'granted',
+                            isRegistered: false,
+                        }))
                     }
                 } else {
-                    setState((s) => ({ ...s, permission: 'granted', isRegistered: false }))
+                    setState((s) => ({
+                        ...s,
+                        permission: 'granted',
+                        isRegistered: false,
+                    }))
                 }
             } catch {
                 if (!cancelled) {
-                    setState((s) => ({ ...s, permission: perm as NotificationPermission, isRegistered: false }))
+                    setState((s) => ({
+                        ...s,
+                        permission: perm as NotificationPermission,
+                        isRegistered: false,
+                    }))
                 }
             }
         }
 
         init()
-        return () => { cancelled = true }
+        return () => {
+            cancelled = true
+        }
     }, [uid])
 
     // Refresh token on tab focus (once per session)
@@ -109,19 +133,26 @@ export function useNotifications(uid: string | null) {
                 if (!token) return
                 tokenRefreshedThisSession.current = true
                 const ref = userFcmTokenRef(uid!, token)
-                await updateDoc(ref, { lastSeenAt: serverTimestamp() }).catch(() => {})
+                await updateDoc(ref, { lastSeenAt: serverTimestamp() }).catch(
+                    () => {}
+                )
             } catch {
                 // non-fatal
             }
         }
 
         document.addEventListener('visibilitychange', handleVisibilityChange)
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+        return () =>
+            document.removeEventListener(
+                'visibilitychange',
+                handleVisibilityChange
+            )
     }, [uid])
 
     // Foreground message handler
     useEffect(() => {
-        if (!uid || state.permission !== 'granted' || !state.isRegistered) return
+        if (!uid || state.permission !== 'granted' || !state.isRegistered)
+            return
 
         const supported = isPushSupported()
         let unsubscribe: (() => void) | null = null
@@ -141,7 +172,9 @@ export function useNotifications(uid: string | null) {
             })
         })
 
-        return () => { unsubscribe?.() }
+        return () => {
+            unsubscribe?.()
+        }
     }, [uid, state.permission, state.isRegistered])
 
     const enable = useCallback(async () => {
@@ -150,18 +183,27 @@ export function useNotifications(uid: string | null) {
         try {
             const result = await requestPermissionAndRegister(uid)
             if (result.ok) {
-                setState((s) => ({ ...s, isRegistering: false, isRegistered: true, permission: 'granted' }))
+                setState((s) => ({
+                    ...s,
+                    isRegistering: false,
+                    isRegistered: true,
+                    permission: 'granted',
+                }))
             } else {
                 setState((s) => ({
                     ...s,
                     isRegistering: false,
-                    permission: result.reason === 'denied' ? 'denied' : 'unsupported',
+                    permission:
+                        result.reason === 'denied' ? 'denied' : 'unsupported',
                     error: result.reason ?? null,
                 }))
             }
         } catch (err) {
             console.error('[notifications] enable() failed:', err)
-            const msg = err instanceof Error ? err.message : 'Failed to enable notifications'
+            const msg =
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to enable notifications'
             setState((s) => ({ ...s, isRegistering: false, error: msg }))
         }
     }, [uid])
@@ -171,9 +213,16 @@ export function useNotifications(uid: string | null) {
         setState((s) => ({ ...s, isRegistering: true, error: null }))
         try {
             await unregister(uid)
-            setState((s) => ({ ...s, isRegistering: false, isRegistered: false }))
+            setState((s) => ({
+                ...s,
+                isRegistering: false,
+                isRegistered: false,
+            }))
         } catch (err) {
-            const msg = err instanceof Error ? err.message : 'Failed to disable notifications'
+            const msg =
+                err instanceof Error
+                    ? err.message
+                    : 'Failed to disable notifications'
             setState((s) => ({ ...s, isRegistering: false, error: msg }))
         }
     }, [uid])

@@ -22,12 +22,19 @@ export interface FridgeAnalytics {
     vegetarianCount: number
     palmOilFreeCount: number
     topBrands: Array<{ name: string; count: number }>
-    averageNutriments: Array<{ key: NutrimentKey; label: string; value: number | null; unit: string }>
+    averageNutriments: Array<{
+        key: NutrimentKey
+        label: string
+        value: number | null
+        unit: string
+    }>
 }
 
 function normalizeGrade(value: string | null | undefined) {
     const grade = value?.toLowerCase()
-    return grade && NUTRI_GRADES.some((entry) => entry.grade === grade) ? grade : null
+    return grade && NUTRI_GRADES.some((entry) => entry.grade === grade)
+        ? grade
+        : null
 }
 
 function average(values: number[]) {
@@ -37,7 +44,10 @@ function average(values: number[]) {
 
 export function analyzeFridge(items: FridgeItem[]): FridgeAnalytics {
     const totalItems = items.length
-    const totalQuantity = items.reduce((sum, item) => sum + (item.quantity ?? 1), 0)
+    const totalQuantity = items.reduce(
+        (sum, item) => sum + (item.quantity ?? 1),
+        0
+    )
     const expiringSoonCount = items.filter((item) => {
         if (!item.expiryDate) return false
         const expiry = new Date(item.expiryDate)
@@ -60,16 +70,25 @@ export function analyzeFridge(items: FridgeItem[]): FridgeAnalytics {
         nutriScoreCounts[grade] = (nutriScoreCounts[grade] ?? 0) + 1
     }
 
-    const productsWithScore = items.filter((item) => normalizeGrade(item.product?.nutriscore_grade))
-    const nutriScore = productsWithScore.length > 0
-        ? Object.entries(nutriScoreCounts).reduce((best, current) =>
-              current[1] > best[1] ? current : best
-          )[0]
-        : '-'
+    const productsWithScore = items.filter((item) =>
+        normalizeGrade(item.product?.nutriscore_grade)
+    )
+    const nutriScore =
+        productsWithScore.length > 0
+            ? Object.entries(nutriScoreCounts).reduce((best, current) =>
+                  current[1] > best[1] ? current : best
+              )[0]
+            : '-'
 
-    const veganCount = items.filter((item) => item.product?.dietary_flags?.vegan === true).length
-    const vegetarianCount = items.filter((item) => item.product?.dietary_flags?.vegetarian === true).length
-    const palmOilFreeCount = items.filter((item) => item.product?.dietary_flags?.palm_oil_free === true).length
+    const veganCount = items.filter(
+        (item) => item.product?.dietary_flags?.vegan === true
+    ).length
+    const vegetarianCount = items.filter(
+        (item) => item.product?.dietary_flags?.vegetarian === true
+    ).length
+    const palmOilFreeCount = items.filter(
+        (item) => item.product?.dietary_flags?.palm_oil_free === true
+    ).length
 
     const brandCounts = new Map<string, number>()
     for (const item of items) {
@@ -83,7 +102,11 @@ export function analyzeFridge(items: FridgeItem[]): FridgeAnalytics {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5)
 
-    const nutrimentKeys: Array<{ key: NutrimentKey; label: string; unit: string }> = [
+    const nutrimentKeys: Array<{
+        key: NutrimentKey
+        label: string
+        unit: string
+    }> = [
         { key: 'energy_kcal', label: 'Energy', unit: 'kcal' },
         { key: 'fat', label: 'Fat', unit: 'g' },
         { key: 'saturated_fat', label: 'Saturated Fat', unit: 'g' },
@@ -96,7 +119,10 @@ export function analyzeFridge(items: FridgeItem[]): FridgeAnalytics {
     const averageNutriments = nutrimentKeys.map(({ key, label, unit }) => {
         const values = items
             .map((item) => item.product?.nutriments?.[key])
-            .filter((value): value is number => typeof value === 'number' && value > 0)
+            .filter(
+                (value): value is number =>
+                    typeof value === 'number' && value > 0
+            )
 
         return {
             key,

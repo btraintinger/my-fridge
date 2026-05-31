@@ -1,7 +1,7 @@
 import { adminAuth } from './firebaseAdmin'
 
 export async function requireAuth(
-    request: Request,
+    request: Request
 ): Promise<{ uid: string; email: string | null; name: string | null }> {
     const authHeader = request.headers.get('Authorization')
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
@@ -31,7 +31,9 @@ export async function requireAuth(
 
 export function requireCronSecret(request: Request): void {
     const authHeader = request.headers.get('Authorization')
-    const secret = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    const secret = authHeader?.startsWith('Bearer ')
+        ? authHeader.slice(7)
+        : null
 
     if (!secret || secret !== process.env.CRON_SECRET) {
         throw new Response(JSON.stringify({ error: 'Unauthorized' }), {

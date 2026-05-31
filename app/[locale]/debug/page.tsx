@@ -10,7 +10,7 @@ import {
     doc,
     query,
     where,
-    deleteDoc
+    deleteDoc,
 } from 'firebase/firestore'
 import { useAuth } from '@/contexts/AuthContext'
 import { COLLECTIONS } from '@/lib/constants'
@@ -23,7 +23,9 @@ export default function DebugPage() {
 
     const { user } = useAuth()
     const t = useTranslations('debug')
-    const [status, setStatus] = useState<'idle' | 'deleting' | 'success' | 'error'>('idle')
+    const [status, setStatus] = useState<
+        'idle' | 'deleting' | 'success' | 'error'
+    >('idle')
     const [message, setMessage] = useState('')
 
     const clearDatabase = async () => {
@@ -40,7 +42,10 @@ export default function DebugPage() {
         setMessage(t('deleteStarted'))
 
         try {
-            const q = query(collection(db, COLLECTIONS.FRIDGES), where('userId', '==', user.uid))
+            const q = query(
+                collection(db, COLLECTIONS.FRIDGES),
+                where('userId', '==', user.uid)
+            )
             const fridgesSnap = await getDocs(q)
             const fridgeDocs = fridgesSnap.docs
 
@@ -49,14 +54,44 @@ export default function DebugPage() {
             for (const fridgeDoc of fridgeDocs) {
                 const fridgeId = fridgeDoc.id
 
-                const itemsSnap = await getDocs(collection(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.ITEMS))
+                const itemsSnap = await getDocs(
+                    collection(
+                        db,
+                        COLLECTIONS.FRIDGES,
+                        fridgeId,
+                        COLLECTIONS.ITEMS
+                    )
+                )
                 for (const itemDoc of itemsSnap.docs) {
-                    await deleteDoc(doc(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.ITEMS, itemDoc.id))
+                    await deleteDoc(
+                        doc(
+                            db,
+                            COLLECTIONS.FRIDGES,
+                            fridgeId,
+                            COLLECTIONS.ITEMS,
+                            itemDoc.id
+                        )
+                    )
                 }
 
-                const shoppingSnap = await getDocs(collection(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.SHOPPING_LIST))
+                const shoppingSnap = await getDocs(
+                    collection(
+                        db,
+                        COLLECTIONS.FRIDGES,
+                        fridgeId,
+                        COLLECTIONS.SHOPPING_LIST
+                    )
+                )
                 for (const shopDoc of shoppingSnap.docs) {
-                    await deleteDoc(doc(db, COLLECTIONS.FRIDGES, fridgeId, COLLECTIONS.SHOPPING_LIST, shopDoc.id))
+                    await deleteDoc(
+                        doc(
+                            db,
+                            COLLECTIONS.FRIDGES,
+                            fridgeId,
+                            COLLECTIONS.SHOPPING_LIST,
+                            shopDoc.id
+                        )
+                    )
                 }
 
                 await deleteDoc(doc(db, COLLECTIONS.FRIDGES, fridgeId))
@@ -71,7 +106,11 @@ export default function DebugPage() {
             if (err?.code === 'permission-denied') {
                 setMessage(t('permissionDenied'))
             } else {
-                setMessage(t('genericFailure', { message: err?.message || t('unknownError') }))
+                setMessage(
+                    t('genericFailure', {
+                        message: err?.message || t('unknownError'),
+                    })
+                )
             }
         }
     }
@@ -105,7 +144,10 @@ export default function DebugPage() {
 
                 {status === 'deleting' && (
                     <div className="flex flex-col items-center py-4">
-                        <Loader2 size={40} className="animate-spin text-emerald-500 mb-4" />
+                        <Loader2
+                            size={40}
+                            className="animate-spin text-emerald-500 mb-4"
+                        />
                         <p className="text-slate-700 dark:text-slate-300 font-medium">
                             {message}
                         </p>
@@ -114,7 +156,10 @@ export default function DebugPage() {
 
                 {status === 'success' && (
                     <div className="flex flex-col items-center py-4 animate-in zoom-in duration-300">
-                        <CheckCircle2 size={40} className="text-emerald-500 mb-4" />
+                        <CheckCircle2
+                            size={40}
+                            className="text-emerald-500 mb-4"
+                        />
                         <p className="text-emerald-600 dark:text-emerald-400 font-bold text-center mb-6">
                             {message}
                         </p>
@@ -128,18 +173,27 @@ export default function DebugPage() {
 
                 {status === 'error' && (
                     <div className="flex flex-col items-center py-4">
-                        <AlertTriangle size={40} className="text-red-500 mb-4" />
+                        <AlertTriangle
+                            size={40}
+                            className="text-red-500 mb-4"
+                        />
                         <p className="text-red-600 font-bold text-center mb-6">
                             {message}
                         </p>
-                        <Button variant="secondary" onClick={() => setStatus('idle')}>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setStatus('idle')}
+                        >
                             {t('retry')}
                         </Button>
                     </div>
                 )}
 
                 <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
-                    <Link href="/fridges" className="text-sm text-slate-400 hover:text-emerald-500 transition-colors">
+                    <Link
+                        href="/fridges"
+                        className="text-sm text-slate-400 hover:text-emerald-500 transition-colors"
+                    >
                         &larr; {t('cancel')}
                     </Link>
                 </div>

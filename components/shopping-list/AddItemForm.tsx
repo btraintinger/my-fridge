@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
 interface AddItemFormProps {
-     newItem: string
-     setNewItem: (value: string) => void
-     onAdd: (e: React.SubmitEvent<HTMLFormElement>) => void
-     onOpenScanner: () => void
- }
+    newItem: string
+    setNewItem: (value: string) => void
+    onAdd: (e: React.SubmitEvent<HTMLFormElement>) => void
+    onOpenScanner: () => void
+}
 
 export function AddItemForm({
     newItem,

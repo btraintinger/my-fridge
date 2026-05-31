@@ -39,10 +39,10 @@ const nextConfig: NextConfig = {
             allowedOrigins: [
                 'localhost:3000',
                 '192.168.0.175:3000',
-                '192.168.0.175'
-            ]
-        }
-    }
+                '192.168.0.175',
+            ],
+        },
+    },
 }
 
 export default withSerwist(withNextIntl(nextConfig))

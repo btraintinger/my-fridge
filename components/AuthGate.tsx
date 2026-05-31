@@ -22,7 +22,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     const router = useRouter()
 
     const isPublicRoute = PUBLIC_ROUTES.has(pathname)
-    const needsRedirect = !loading && ((isPublicRoute && !!user) || (!isPublicRoute && !user))
+    const needsRedirect =
+        !loading && ((isPublicRoute && !!user) || (!isPublicRoute && !user))
 
     useEffect(() => {
         router.prefetch(AUTHED_HOME)

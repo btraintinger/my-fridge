@@ -40,8 +40,10 @@ function LoginForm() {
     const [message, setMessage] = useState('')
     const [verificationLoading, setVerificationLoading] = useState(false)
     const [resetLoading, setResetLoading] = useState(false)
-    const [attemptedUnverifiedLogin, setAttemptedUnverifiedLogin] = useState(false)
-    const [attemptedWrongCredentials, setAttemptedWrongCredentials] = useState(false)
+    const [attemptedUnverifiedLogin, setAttemptedUnverifiedLogin] =
+        useState(false)
+    const [attemptedWrongCredentials, setAttemptedWrongCredentials] =
+        useState(false)
     const router = useRouter()
     const searchParams = useSearchParams()
     const showVerificationSent = searchParams.get('verification') === 'sent'
@@ -219,7 +221,11 @@ function LoginForm() {
                             variant="outline"
                             className="flex-1 h-12 rounded-2xl"
                             onClick={handleResendVerification}
-                            disabled={isSubmitting || verificationLoading || resetLoading}
+                            disabled={
+                                isSubmitting ||
+                                verificationLoading ||
+                                resetLoading
+                            }
                         >
                             {verificationLoading
                                 ? t('auth.login.sendingVerification')
@@ -233,7 +239,11 @@ function LoginForm() {
                             variant="outline"
                             className="flex-1 h-12 rounded-2xl"
                             onClick={handleForgotPassword}
-                            disabled={isSubmitting || verificationLoading || resetLoading}
+                            disabled={
+                                isSubmitting ||
+                                verificationLoading ||
+                                resetLoading
+                            }
                         >
                             {resetLoading
                                 ? t('auth.login.sendingResetEmail')

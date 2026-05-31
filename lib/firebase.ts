@@ -1,9 +1,9 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
-import { 
-    initializeFirestore, 
-    persistentLocalCache, 
-    persistentMultipleTabManager 
+import {
+    initializeFirestore,
+    persistentLocalCache,
+    persistentMultipleTabManager,
 } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -34,8 +34,8 @@ const auth = getAuth(app)
 // Use modern Firestore initialization with persistent cache
 const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager()
-    })
+        tabManager: persistentMultipleTabManager(),
+    }),
 })
 
 export { app, auth, db }

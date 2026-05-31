@@ -18,8 +18,7 @@ export async function getCachedProduct(
         const data = snap.data()
         const updatedAtMillis = data.updatedAt?.toMillis?.() ?? 0
         const ageInDays = (Date.now() - updatedAtMillis) / (1000 * 60 * 60 * 24)
-        const isOffline =
-            typeof navigator !== 'undefined' && !navigator.onLine
+        const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
         if (ageInDays > 30 && !isOffline) {
             console.debug(

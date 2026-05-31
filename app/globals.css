@@ -60,11 +60,11 @@
 
     /* Ensure minimum touch target size for interactive elements */
     button,
-    [role="button"],
+    [role='button'],
     a,
     select,
-    input[type="checkbox"],
-    input[type="radio"] {
+    input[type='checkbox'],
+    input[type='radio'] {
         min-height: 44px;
         min-width: 44px;
     }

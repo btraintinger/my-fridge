@@ -2,7 +2,11 @@ export const dynamic = 'force-dynamic'
 
 import { requireAuth } from '@/lib/server/auth'
 import { fridgeAdminDoc } from '@/lib/server/refs'
-import { actorDisplayName, findUidByEmail, sendToUser } from '@/lib/server/sendNotification'
+import {
+    actorDisplayName,
+    findUidByEmail,
+    sendToUser,
+} from '@/lib/server/sendNotification'
 
 type Action = 'item_added' | 'item_removed' | 'item_checked'
 
@@ -14,8 +18,16 @@ const ACTION_KEYS: Record<Action, string> = {
 
 export async function POST(request: Request) {
     try {
-        const { uid, email: callerEmail, name: callerName } = await requireAuth(request)
-        const body = await request.json() as { fridgeId?: string; action?: Action; itemName?: string }
+        const {
+            uid,
+            email: callerEmail,
+            name: callerName,
+        } = await requireAuth(request)
+        const body = (await request.json()) as {
+            fridgeId?: string
+            action?: Action
+            itemName?: string
+        }
 
         if (!body.fridgeId || !body.action || !body.itemName) {
             return Response.json({ error: 'Missing fields' }, { status: 400 })
@@ -24,7 +36,10 @@ export async function POST(request: Request) {
         const fridgeData = (await fridgeAdminDoc(body.fridgeId).get()).data()
         const callerEmail_lower = callerEmail?.toLowerCase()
         const isOwner = fridgeData?.userId === uid
-        const isShared = !!(callerEmail_lower && fridgeData?.sharedWithEmails.includes(callerEmail_lower))
+        const isShared = !!(
+            callerEmail_lower &&
+            fridgeData?.sharedWithEmails.includes(callerEmail_lower)
+        )
 
         // Single 403 for "missing" or "not a member" — don't reveal which.
         if (!fridgeData || (!isOwner && !isShared)) {
@@ -65,6 +80,9 @@ export async function POST(request: Request) {
     } catch (e) {
         if (e instanceof Response) return e
         console.error('shopping-list-activity route error', e)
-        return Response.json({ error: 'Internal Server Error' }, { status: 500 })
+        return Response.json(
+            { error: 'Internal Server Error' },
+            { status: 500 }
+        )
     }
 }
