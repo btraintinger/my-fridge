@@ -16,6 +16,7 @@ import {
 import { useTranslations } from 'next-intl'
 
 import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
+import { NotificationsCard } from '@/components/settings/NotificationsCard'
 import { PasswordChangeModal } from '@/components/settings/PasswordChangeModal'
 import { ProfileSummaryCard } from '@/components/settings/ProfileSummaryCard'
 import { ThemePreferenceCard } from '@/components/settings/ThemePreferenceCard'
@@ -99,6 +100,14 @@ export default function Settings() {
                         darkMode={darkMode}
                         onToggle={() => void toggleDarkMode()}
                     />
+                </section>
+
+                <section className="space-y-3">
+                    <SectionHeading
+                        title={t('sections.notifications.title')}
+                        description={t('sections.notifications.description')}
+                    />
+                    <NotificationsCard />
                 </section>
 
                 <section className="space-y-3">

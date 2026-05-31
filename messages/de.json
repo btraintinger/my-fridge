@@ -177,6 +177,14 @@
             "deleteProductConfirm": "Möchtest du {name} wirklich aus dem Kühlschrank entfernen?",
             "swipeDelete": "Löschen",
             "deleteProductTooltip": "Produkt löschen",
+            "deleteFridgeTitle": "Kühlschrank löschen",
+            "deleteFridgeTooltip": "Kühlschrank löschen",
+            "deleteFridgeWarning": "Damit wird \"{name}\" mit allen Produkten unwiderruflich gelöscht. Gib LÖSCHEN ein, um zu bestätigen.",
+            "deleteFridgeConfirmText": "LÖSCHEN",
+            "deleteFridgeSubmit": "Kühlschrank löschen",
+            "deleteFridgeSubmitting": "Wird gelöscht...",
+            "deleteFridgeTypeConfirm": "Gib LÖSCHEN ein, um zu bestätigen.",
+            "deleteFridgeFailed": "Kühlschrank konnte nicht gelöscht werden. Bitte versuche es erneut.",
             "saveQuantity": "Speichern",
             "cancelQuantity": "Abbrechen",
             "quantityLabel": "M: {count}",
@@ -416,6 +424,10 @@
             "language": {
                 "title": "Sprache",
                 "description": "Wähle die Anzeigesprache der App."
+            },
+            "notifications": {
+                "title": "Benachrichtigungen",
+                "description": "Benachrichtigungseinstellungen verwalten."
             }
         },
         "profile": {
@@ -481,6 +493,32 @@
             "typeDelete": "Tippe DELETE, um die Kontolöschung zu bestätigen.",
             "deleteFailed": "Konto konnte nicht gelöscht werden. Bitte erneut versuchen."
         },
+        "notifications": {
+            "title": "Push-Benachrichtigungen",
+            "description": "Erhalte Benachrichtigungen über Kühlschrankaktivitäten und ablaufende Lebensmittel.",
+            "enable": "Benachrichtigungen aktivieren",
+            "disable": "Benachrichtigungen deaktivieren",
+            "enabling": "Wird aktiviert…",
+            "disabling": "Wird deaktiviert…",
+            "permissionDenied": "Benachrichtigungen blockiert",
+            "permissionDeniedHelp": "Benachrichtigungen sind blockiert. Öffne die Browser-Einstellungen, um sie für diese Seite zu erlauben.",
+            "unsupported": "Nicht unterstützt",
+            "unsupportedIosHelp": "Füge die App zum Home-Bildschirm hinzu, um Push-Benachrichtigungen auf iOS zu aktivieren.",
+            "categories": {
+                "invites": "Kühlschrank-Einladungen",
+                "fridgeActivity": "Kühlschrankaktivitäten",
+                "shoppingList": "Einkaufslistenaktivitäten",
+                "expirationAlerts": "Ablaufbenachrichtigungen"
+            },
+            "expirationLeadDays": {
+                "label": "Erinnere mich",
+                "options": {
+                    "1d": "1 Tag vorher",
+                    "3d": "3 Tage vorher",
+                    "7d": "7 Tage vorher"
+                }
+            }
+        },
         "modal": {
             "closeAria": "Dialog schließen"
         }
@@ -538,5 +576,46 @@
     },
     "toast": {
         "genericError": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+    },
+    "pushNotifications": {
+        "someone": "Jemand",
+        "unnamedFridge": "einen Kühlschrank",
+        "fridgeInvite": {
+            "title": "Du wurdest zu einem Kühlschrank eingeladen",
+            "body": "{who} hat \"{fridgeName}\" mit dir geteilt"
+        },
+        "fridgeActivity": {
+            "itemAdded": {
+                "title": "Artikel hinzugefügt",
+                "body": "{who} hat \"{itemName}\" hinzugefügt"
+            },
+            "itemRemoved": {
+                "title": "Artikel entfernt",
+                "body": "{who} hat \"{itemName}\" entfernt"
+            },
+            "itemChecked": {
+                "title": "Artikel abgehakt",
+                "body": "{who} hat \"{itemName}\" abgehakt"
+            }
+        },
+        "shoppingListActivity": {
+            "itemAdded": {
+                "title": "Einkaufslistenartikel hinzugefügt",
+                "body": "{who} hat \"{itemName}\" hinzugefügt"
+            },
+            "itemRemoved": {
+                "title": "Einkaufslistenartikel entfernt",
+                "body": "{who} hat \"{itemName}\" entfernt"
+            },
+            "itemChecked": {
+                "title": "Einkaufslistenartikel abgehakt",
+                "body": "{who} hat \"{itemName}\" abgehakt"
+            }
+        },
+        "expirationAlert": {
+            "title": "{count, plural, one {# Artikel läuft bald ab} other {# Artikel laufen bald ab}}",
+            "body": "{items}",
+            "bodyWithMore": "{items} +{extra} weitere"
+        }
     }
 }

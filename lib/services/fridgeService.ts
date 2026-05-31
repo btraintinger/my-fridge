@@ -4,6 +4,7 @@ import {
     arrayRemove,
     arrayUnion,
     deleteDoc,
+    getDocs,
     onSnapshot,
     or,
     orderBy,
@@ -11,7 +12,9 @@ import {
     serverTimestamp,
     updateDoc,
     where,
+    writeBatch,
 } from 'firebase/firestore'
+import { db } from '../firebase'
 import type { Fridge, FridgeItem, Product } from '../types'
 import {
     docWithId,
@@ -26,6 +29,7 @@ import {
     itemDoc,
     itemsCollection,
 } from './refs'
+import { postNotify } from '../notificationsClient'
 
 export type NewItemOptions = {
     quantity?: number
@@ -119,14 +123,26 @@ export async function createFridge(userId: string, name: string) {
     )
 }
 
+export async function deleteFridge(fridgeId: string) {
+    const itemsSnapshot = await getDocs(itemsCollection(fridgeId))
+    return runFirebaseAction(async () => {
+        const batch = writeBatch(db)
+        itemsSnapshot.docs.forEach((doc) => batch.delete(doc.ref))
+        batch.delete(fridgeDoc(fridgeId))
+        await batch.commit()
+    }, 'Kühlschrank gelöscht')
+}
+
 export async function shareFridge(fridgeId: string, email: string) {
-    return runFirebaseAction(
+    const result = await runFirebaseAction(
         () =>
             updateDoc(fridgeDoc(fridgeId), {
                 sharedWithEmails: arrayUnion(email.toLowerCase()),
             }),
         `Erfolgreich mit ${email} geteilt`
     )
+    postNotify('fridge-invite', { fridgeId, inviteeEmail: email.toLowerCase() })
+    return result
 }
 
 export async function unshareFridge(fridgeId: string, email: string) {
@@ -139,11 +155,13 @@ export async function unshareFridge(fridgeId: string, email: string) {
     )
 }
 
-export async function deleteItem(fridgeId: string, itemId: string) {
-    return runFirebaseAction(
+export async function deleteItem(fridgeId: string, itemId: string, itemName?: string) {
+    const result = await runFirebaseAction(
         () => deleteDoc(itemDoc(fridgeId, itemId)),
         'Produkt entfernt'
     )
+    postNotify('fridge-activity', { fridgeId, action: 'item_removed', itemName: itemName ?? 'an item' })
+    return result
 }
 
 export async function addItemToFridge(
@@ -151,11 +169,13 @@ export async function addItemToFridge(
     product: Product,
     options: NewItemOptions = {}
 ) {
-    return runFirebaseAction(
+    const result = await runFirebaseAction(
         () =>
             addDoc(itemsCollection(fridgeId), newItemPayload(product, options)),
         `"${product.product_name}" hinzugefügt!`
     )
+    postNotify('fridge-activity', { fridgeId, action: 'item_added', itemName: product.product_name })
+    return result
 }
 
 export async function updateItemQuantity(

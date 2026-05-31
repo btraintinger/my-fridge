@@ -87,11 +87,13 @@ export default function ShoppingList() {
     }
 
     const toggleItem = async (itemId: string, checked: boolean) => {
-        await toggleShoppingItem(selectedFridge, itemId, checked)
+        const item = items.find((i) => i.id === itemId)
+        await toggleShoppingItem(selectedFridge, itemId, checked, item?.name ?? '')
     }
 
     const deleteItem = async (itemId: string) => {
-        await deleteShoppingItem(selectedFridge, itemId)
+        const item = items.find((i) => i.id === itemId)
+        await deleteShoppingItem(selectedFridge, itemId, item?.name ?? '')
     }
 
     const handleScan = async (barcode: string) => {

@@ -24,3 +24,9 @@ export const userDoc = (userId: string) =>
 
 export const productDoc = (barcode: string) =>
     doc(db, COLLECTIONS.PRODUCTS, barcode)
+
+export const userFcmTokensRef = (uid: string) =>
+    collection(db, COLLECTIONS.USERS, uid, COLLECTIONS.FCM_TOKENS)
+
+export const userFcmTokenRef = (uid: string, token: string) =>
+    doc(db, COLLECTIONS.USERS, uid, COLLECTIONS.FCM_TOKENS, token)

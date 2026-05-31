@@ -23,7 +23,9 @@ export function subscriptionErrorHandler(
     onError?: (error: FirestoreError) => void
 ) {
     return (error: FirestoreError) => {
-        notify.error(error)
+        if (error.code !== 'permission-denied') {
+            notify.error(error)
+        }
         onError?.(error)
     }
 }

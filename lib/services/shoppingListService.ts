@@ -23,6 +23,7 @@ import {
     shoppingItemDoc,
     shoppingListCollection,
 } from './refs'
+import { postNotify } from '../notificationsClient'
 
 export function subscribeToShoppingList(
     fridgeId: string,
@@ -46,7 +47,7 @@ export async function addShoppingItem(
     userId: string,
     name: string
 ) {
-    return runFirebaseAction(() =>
+    const result = await runFirebaseAction(() =>
         addDoc(shoppingListCollection(fridgeId), {
             name,
             userId,
@@ -54,24 +55,35 @@ export async function addShoppingItem(
             createdAt: serverTimestamp(),
         })
     )
+    postNotify('shopping-list-activity', { fridgeId, action: 'item_added', itemName: name })
+    return result
 }
 
 export async function toggleShoppingItem(
     fridgeId: string,
     itemId: string,
-    currentChecked: boolean
+    currentChecked: boolean,
+    itemName: string
 ) {
-    return runFirebaseAction(() =>
+    const result = await runFirebaseAction(() =>
         updateDoc(shoppingItemDoc(fridgeId, itemId), {
             checked: !currentChecked,
         })
     )
+    postNotify('shopping-list-activity', { fridgeId, action: 'item_checked', itemName })
+    return result
 }
 
-export async function deleteShoppingItem(fridgeId: string, itemId: string) {
-    return runFirebaseAction(() =>
+export async function deleteShoppingItem(
+    fridgeId: string,
+    itemId: string,
+    itemName: string
+) {
+    const result = await runFirebaseAction(() =>
         deleteDoc(shoppingItemDoc(fridgeId, itemId))
     )
+    postNotify('shopping-list-activity', { fridgeId, action: 'item_removed', itemName })
+    return result
 }
 
 export async function moveShoppingItemToFridge(

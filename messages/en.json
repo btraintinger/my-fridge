@@ -177,6 +177,14 @@
             "deleteProductConfirm": "Do you really want to remove {name} from this fridge?",
             "swipeDelete": "Delete",
             "deleteProductTooltip": "Delete product",
+            "deleteFridgeTitle": "Delete Fridge",
+            "deleteFridgeTooltip": "Delete fridge",
+            "deleteFridgeWarning": "This will permanently delete \"{name}\" and all its products. This cannot be undone. Type DELETE to confirm.",
+            "deleteFridgeConfirmText": "DELETE",
+            "deleteFridgeSubmit": "Delete Fridge",
+            "deleteFridgeSubmitting": "Deleting fridge...",
+            "deleteFridgeTypeConfirm": "Type DELETE to confirm.",
+            "deleteFridgeFailed": "Could not delete fridge. Please try again.",
             "saveQuantity": "Save",
             "cancelQuantity": "Cancel",
             "quantityLabel": "Q: {count}",
@@ -416,6 +424,10 @@
             "language": {
                 "title": "Language",
                 "description": "Choose the display language for the app."
+            },
+            "notifications": {
+                "title": "Notifications",
+                "description": "Manage push notification preferences."
             }
         },
         "profile": {
@@ -481,6 +493,32 @@
             "typeDelete": "Type DELETE to confirm account deletion.",
             "deleteFailed": "Could not delete account. Please try again."
         },
+        "notifications": {
+            "title": "Push Notifications",
+            "description": "Get notified about fridge activity and expiring items.",
+            "enable": "Enable notifications",
+            "disable": "Disable notifications",
+            "enabling": "Enabling…",
+            "disabling": "Disabling…",
+            "permissionDenied": "Notifications blocked",
+            "permissionDeniedHelp": "Notifications are blocked. Open your browser settings to allow them for this site.",
+            "unsupported": "Not supported",
+            "unsupportedIosHelp": "Add the app to your Home Screen to enable push notifications on iOS.",
+            "categories": {
+                "invites": "Fridge invitations",
+                "fridgeActivity": "Fridge activity",
+                "shoppingList": "Shopping list activity",
+                "expirationAlerts": "Expiration alerts"
+            },
+            "expirationLeadDays": {
+                "label": "Alert me",
+                "options": {
+                    "1d": "1 day before",
+                    "3d": "3 days before",
+                    "7d": "7 days before"
+                }
+            }
+        },
         "modal": {
             "closeAria": "Close dialog"
         }
@@ -538,5 +576,46 @@
     },
     "toast": {
         "genericError": "Something went wrong. Please try again."
+    },
+    "pushNotifications": {
+        "someone": "Someone",
+        "unnamedFridge": "a fridge",
+        "fridgeInvite": {
+            "title": "You've been invited to a fridge",
+            "body": "{who} shared \"{fridgeName}\" with you"
+        },
+        "fridgeActivity": {
+            "itemAdded": {
+                "title": "Item added",
+                "body": "{who} added \"{itemName}\""
+            },
+            "itemRemoved": {
+                "title": "Item removed",
+                "body": "{who} removed \"{itemName}\""
+            },
+            "itemChecked": {
+                "title": "Item checked",
+                "body": "{who} checked \"{itemName}\""
+            }
+        },
+        "shoppingListActivity": {
+            "itemAdded": {
+                "title": "Shopping item added",
+                "body": "{who} added \"{itemName}\""
+            },
+            "itemRemoved": {
+                "title": "Shopping item removed",
+                "body": "{who} removed \"{itemName}\""
+            },
+            "itemChecked": {
+                "title": "Shopping item checked",
+                "body": "{who} checked \"{itemName}\""
+            }
+        },
+        "expirationAlert": {
+            "title": "{count, plural, one {# item expiring soon} other {# items expiring soon}}",
+            "body": "{items}",
+            "bodyWithMore": "{items} +{extra} more"
+        }
     }
 }

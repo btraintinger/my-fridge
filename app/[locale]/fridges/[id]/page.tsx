@@ -4,6 +4,7 @@ import { use, useMemo, useRef, useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/contexts/AuthContext'
 import {
+    deleteFridge,
     deleteItem,
     shareFridge,
     unshareFridge,
@@ -17,7 +18,7 @@ import {
     NutriScoreBadge,
 } from '@/components/fridge-details/NutriScoreComponents'
 import { ProductDetailModal } from '@/components/fridge-details/ProductDetailModal'
-import { Link } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
 import {
     AlertCircle,
@@ -52,8 +53,13 @@ export default function FridgeDetail({
 }) {
     const { id } = use(params)
     const t = useTranslations()
+    const router = useRouter()
     const { user } = useAuth()
     const { fridge, items, loading, error } = useFridge(id)
+    const [showDeleteFridge, setShowDeleteFridge] = useState(false)
+    const [deleteFridgeConfirm, setDeleteFridgeConfirm] = useState('')
+    const [deleteFridgeStatus, setDeleteFridgeStatus] = useState('')
+    const [deletingFridge, setDeletingFridge] = useState(false)
     const [showShare, setShowShare] = useState(false)
     const [shareEmail, setShareEmail] = useState('')
     const [sharing, setSharing] = useState(false)
@@ -202,11 +208,11 @@ export default function FridgeDetail({
     const toggleCategory = (cat: string) => {
         setExpandedCategories(prev => ({
             ...prev,
-            [cat]: prev[cat] === false ? true : false
+            [cat]: !prev[cat] ? true : false
         }))
     }
 
-    const isCategoryExpanded = (cat: string) => expandedCategories[cat] !== false
+    const isCategoryExpanded = (cat: string) => expandedCategories[cat]
 
     const fridgeNutriScore = useMemo(
         () => modalNutriScore(items.map((item) => item.product?.nutriscore_grade ?? null)),
@@ -266,7 +272,8 @@ export default function FridgeDetail({
     }
 
     const deleteFridgeItem = async (itemId: string) => {
-        await deleteItem(id, itemId)
+        const item = items.find((i) => i.id === itemId)
+        await deleteItem(id, itemId, item?.product?.product_name)
         if (selectedItem?.id === itemId) {
             setSelectedItem(null)
         }
@@ -383,6 +390,14 @@ export default function FridgeDetail({
         )
     }
 
+    if (deletingFridge) {
+        return (
+            <div className="flex-1 flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 lg:pl-20 xl:pl-56">
+                <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+            </div>
+        )
+    }
+
     if (error || !fridge) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-6 text-center lg:pl-20 xl:pl-56">
@@ -416,13 +431,26 @@ export default function FridgeDetail({
                         {fridge.name}
                     </h1>
                     {fridge.userId === user?.uid && (
-                        <button
-                            onClick={() => setShowShare(!showShare)}
-                            className={`p-2.5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${showShare ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
-                            title={t('fridges.detail.shareTitle')}
-                        >
-                            <Share2 size={22} />
-                        </button>
+                        <>
+                            <button
+                                onClick={() => setShowShare(!showShare)}
+                                className={`p-2.5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${showShare ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400'}`}
+                                title={t('fridges.detail.shareTitle')}
+                            >
+                                <Share2 size={22} />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setDeleteFridgeConfirm('')
+                                    setDeleteFridgeStatus('')
+                                    setShowDeleteFridge(true)
+                                }}
+                                className="p-2.5 rounded-full transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400"
+                                title={t('fridges.detail.deleteFridgeTooltip')}
+                            >
+                                <Trash2 size={22} />
+                            </button>
+                        </>
                     )}
                     <Link href="/scanner">
                         <Button size="sm" className="rounded-xl">
@@ -835,6 +863,84 @@ export default function FridgeDetail({
                     }}
                     onClose={() => setSelectedItem(null)}
                 />
+            )}
+
+            {showDeleteFridge && fridge.userId === user?.uid && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 border border-rose-100 dark:border-rose-900/50">
+                        <form
+                            onSubmit={async (e) => {
+                                e.preventDefault()
+                                setDeleteFridgeStatus('')
+                                if (
+                                    deleteFridgeConfirm !==
+                                    t('fridges.detail.deleteFridgeConfirmText')
+                                ) {
+                                    setDeleteFridgeStatus(
+                                        t('fridges.detail.deleteFridgeTypeConfirm')
+                                    )
+                                    return
+                                }
+                                setDeletingFridge(true)
+                                try {
+                                    await deleteFridge(id)
+                                    router.push('/fridges?list=1')
+                                } catch {
+                                    setDeleteFridgeStatus(
+                                        t('fridges.detail.deleteFridgeFailed')
+                                    )
+                                    setDeletingFridge(false)
+                                }
+                            }}
+                        >
+                            <div className="p-6 space-y-4">
+                                <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto">
+                                    <Trash2 size={32} />
+                                </div>
+                                <h3 className="text-xl font-bold text-rose-600 dark:text-rose-400 text-center">
+                                    {t('fridges.detail.deleteFridgeTitle')}
+                                </h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
+                                    {t('fridges.detail.deleteFridgeWarning', { name: fridge.name })}
+                                </p>
+                                <Input
+                                    type="text"
+                                    value={deleteFridgeConfirm}
+                                    onChange={(e) => setDeleteFridgeConfirm(e.target.value)}
+                                    placeholder={t('fridges.detail.deleteFridgeConfirmText')}
+                                    required
+                                    autoFocus
+                                />
+                                {deleteFridgeStatus && (
+                                    <p className="text-sm text-red-600 dark:text-red-400 text-center">
+                                        {deleteFridgeStatus}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 flex gap-3 border-t border-slate-100 dark:border-slate-800">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setShowDeleteFridge(false)}
+                                    disabled={deletingFridge}
+                                >
+                                    {t('common.cancel')}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    disabled={deletingFridge}
+                                    className="flex-1 border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+                                >
+                                    {deletingFridge
+                                        ? t('fridges.detail.deleteFridgeSubmitting')
+                                        : t('fridges.detail.deleteFridgeSubmit')}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
 
             {itemToDelete && (

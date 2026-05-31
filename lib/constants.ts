@@ -4,6 +4,7 @@ export const COLLECTIONS = {
     ITEMS: 'items',
     SHOPPING_LIST: 'shopping_list',
     USERS: 'users',
+    FCM_TOKENS: 'fcm_tokens',
 } as const
 
 export const NUTRI_GRADES = [

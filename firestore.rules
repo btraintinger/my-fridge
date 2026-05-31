@@ -4,7 +4,7 @@ service cloud.firestore {
     // Allow users to read/write their own fridges
     match /fridges/{fridgeId} {
       allow create: if request.auth != null;
-      allow read, update, delete: if request.auth != null && 
+      allow read, update, delete: if request.auth != null &&
       (resource.data.userId == request.auth.uid ||
       (resource.data.sharedWithEmails != null &&
        request.auth.token.email in resource.data.sharedWithEmails)
@@ -15,7 +15,7 @@ service cloud.firestore {
         // Check if user is owner or has shared access to parent fridge
         allow read, write: if request.auth != null && (
           get(/databases/$(database)/documents/fridges/$(fridgeId)).data.userId == request.auth.uid ||
-          (get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails != null && 
+          (get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails != null &&
            request.auth.token.email in get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails)
         );
       }
@@ -24,7 +24,7 @@ service cloud.firestore {
       match /shopping_list/{itemId} {
         allow read, write: if request.auth != null && (
           get(/databases/$(database)/documents/fridges/$(fridgeId)).data.userId == request.auth.uid ||
-          (get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails != null && 
+          (get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails != null &&
            request.auth.token.email in get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails)
         );
       }
@@ -35,10 +35,20 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Global products cache (anyone authenticated can read/write to populate cache)
+    // FCM device tokens — the user owns and manages their own tokens.
+    // Rules do NOT recurse from users/{userId} so this explicit block is required.
+    match /users/{userId}/fcm_tokens/{tokenId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Global products cache. Any authenticated user can populate it on scan,
+    // but entries can't be deleted (vandalism) and the document's barcode
+    // must match the doc id.
     match /products/{barcode} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow create, update: if request.auth != null
+        && request.resource.data.barcode == barcode;
+      allow delete: if false;
     }
   }
 }
