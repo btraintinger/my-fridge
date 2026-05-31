@@ -10,6 +10,7 @@ import {
     moveShoppingItemToFridge,
     subscribeToShoppingList,
     toggleShoppingItem,
+    updateShoppingItemName,
 } from '@/lib/services/shoppingListService'
 import { cacheProduct, getCachedProduct } from '@/lib/services/productService'
 import { useFridges } from '@/hooks/useFridges'
@@ -94,6 +95,10 @@ export default function ShoppingList() {
     const deleteItem = async (itemId: string) => {
         const item = items.find((i) => i.id === itemId)
         await deleteShoppingItem(selectedFridge, itemId, item?.name ?? '')
+    }
+
+    const renameItem = async (itemId: string, name: string) => {
+        await updateShoppingItemName(selectedFridge, itemId, name)
     }
 
     const handleScan = async (barcode: string) => {
@@ -249,6 +254,7 @@ export default function ShoppingList() {
                                                 setScannerOpen(true)
                                             }}
                                             onDelete={deleteItem}
+                                            onRename={renameItem}
                                         />
                                     ))}
                                 </div>
@@ -271,6 +277,7 @@ export default function ShoppingList() {
                                                 setScannerOpen(true)
                                             }}
                                             onDelete={deleteItem}
+                                            onRename={renameItem}
                                         />
                                     ))}
                                 </div>

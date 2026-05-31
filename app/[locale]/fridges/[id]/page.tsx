@@ -33,6 +33,7 @@ import {
     Search,
     ScanLine,
     Share2,
+    ShoppingCart,
     Trash2,
     User,
     UserPlus,
@@ -45,6 +46,7 @@ import {
     createItemQuantitySchema,
 } from '@/lib/validations'
 import { notify } from '@/lib/notify'
+import { addShoppingItem } from '@/lib/services/shoppingListService'
 
 export default function FridgeDetail({
     params,
@@ -277,6 +279,12 @@ export default function FridgeDetail({
         if (selectedItem?.id === itemId) {
             setSelectedItem(null)
         }
+    }
+
+    const addToShoppingList = async (item: FridgeItem) => {
+        if (!user) return
+        await addShoppingItem(id, user.uid, item.product.product_name)
+        notify.success(t('fridges.detail.addedToShoppingList'))
     }
 
     const beginSwipe = (
@@ -661,13 +669,13 @@ export default function FridgeDetail({
                                                 {groupedItems[category].map((item) => (
                                                     <div key={item.id} className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800/60 transform transition-transform hover:-translate-y-1 hover:shadow-md group/item">
 
-                                                        <div className="hidden md:flex absolute top-2 right-2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                                        <div className="hidden md:flex absolute top-2 right-2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity gap-1">
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation()
                                                                     setItemToDelete(item)
                                                                 }}
-                                                                className="p-2 bg-white/90 dark:bg-slate-800/90 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-full shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-700 transition-colors"
+                                                                className="w-8 h-8 flex items-center justify-center bg-white/90 dark:bg-slate-800/90 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-full shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-700 transition-colors"
                                                                 title={t('fridges.detail.deleteProductTooltip')}
                                                             >
                                                                 <Trash2 size={16} />
@@ -820,6 +828,14 @@ export default function FridgeDetail({
                                                                                     {t('fridges.detail.manualBadge')}
                                                                                 </span>
                                                                             )}
+                                                                            <button
+                                                                                onClick={() => addToShoppingList(item)}
+                                                                                className="flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
+                                                                                title={t('fridges.detail.addToShoppingListTooltip')}
+                                                                            >
+                                                                                <ShoppingCart size={11} />
+                                                                                {t('fridges.detail.addToShoppingList')}
+                                                                            </button>
                                                                         </>
                                                                     )}
                                                                 </div>
@@ -860,6 +876,9 @@ export default function FridgeDetail({
                     onDelete={async () => {
                         setSelectedItem(null)
                         setItemToDelete(selectedItem)
+                    }}
+                    onAddToShoppingList={async () => {
+                        await addToShoppingList(selectedItem)
                     }}
                     onClose={() => setSelectedItem(null)}
                 />
