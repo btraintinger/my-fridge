@@ -3,8 +3,8 @@ export const maxDuration = 60
 
 import { requireCronSecret } from '@/lib/server/auth'
 import { adminDb } from '@/lib/server/firebaseAdmin'
+import { fridgesAdminCollection, userAdminDoc } from '@/lib/server/refs'
 import { findUidByEmail, sendToUser } from '@/lib/server/sendNotification'
-import type { NotificationPreferences } from '@/lib/types'
 import { COLLECTIONS } from '@/lib/constants'
 
 const DEFAULT_LEAD_DAYS = 3
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         // today's tag to collapse duplicate cron runs
         const digestTag = `expiration-digest-${todayStr}`
 
-        const fridgesSnap = await adminDb.collection(COLLECTIONS.FRIDGES).get()
+        const fridgesSnap = await fridgesAdminCollection().get()
         if (fridgesSnap.empty) return Response.json({ ok: true, processed: 0 })
 
         interface ExpiringItem { name: string; expiryDate: string; fridgeId: string }
@@ -43,8 +43,8 @@ export async function GET(request: Request) {
             await Promise.all(batch.map(async (fridgeDoc) => {
                 const fridgeData = fridgeDoc.data()
                 const fridgeId = fridgeDoc.id
-                const ownerUid: string = fridgeData.userId
-                const sharedEmails: string[] = fridgeData.sharedWithEmails ?? []
+                const ownerUid = fridgeData.userId
+                const sharedEmails = fridgeData.sharedWithEmails
 
                 // Query items expiring within the max window (string comparison works for ISO dates)
                 const itemsSnap = await adminDb
@@ -99,8 +99,8 @@ export async function GET(request: Request) {
 
             const uid = data.uid
             sendPromises.push((async () => {
-                const userSnap = await adminDb.collection(COLLECTIONS.USERS).doc(uid).get()
-                const prefs = userSnap.data()?.notificationPreferences as NotificationPreferences | undefined
+                const userSnap = await userAdminDoc(uid).get()
+                const prefs = userSnap.data()?.notificationPreferences
 
                 if (prefs?.expirationAlerts === false) return
 

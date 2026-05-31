@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic'
 
-import { COLLECTIONS } from '@/lib/constants'
 import { requireAuth } from '@/lib/server/auth'
-import { adminDb } from '@/lib/server/firebaseAdmin'
+import { fridgeAdminDoc } from '@/lib/server/refs'
 import { actorDisplayName, findUidByEmail, sendToUser } from '@/lib/server/sendNotification'
 
 type Action = 'item_added' | 'item_removed' | 'item_checked'
@@ -22,20 +21,18 @@ export async function POST(request: Request) {
             return Response.json({ error: 'Missing fields' }, { status: 400 })
         }
 
-        const fridgeSnap = await adminDb.collection(COLLECTIONS.FRIDGES).doc(body.fridgeId).get()
-        if (!fridgeSnap.exists) return Response.json({ error: 'Not found' }, { status: 404 })
-
-        const fridgeData = fridgeSnap.data()!
-        const ownerUid = fridgeData.userId as string
-        const sharedEmails: string[] = fridgeData.sharedWithEmails ?? []
-
-        // Caller must be owner or a shared member
+        const fridgeData = (await fridgeAdminDoc(body.fridgeId).get()).data()
         const callerEmail_lower = callerEmail?.toLowerCase()
-        const isOwner = ownerUid === uid
-        const isShared = callerEmail_lower ? sharedEmails.includes(callerEmail_lower) : false
-        if (!isOwner && !isShared) {
+        const isOwner = fridgeData?.userId === uid
+        const isShared = !!(callerEmail_lower && fridgeData?.sharedWithEmails.includes(callerEmail_lower))
+
+        // Single 403 for "missing" or "not a member" — don't reveal which.
+        if (!fridgeData || (!isOwner && !isShared)) {
             return Response.json({ error: 'Forbidden' }, { status: 403 })
         }
+
+        const ownerUid = fridgeData.userId
+        const sharedEmails = fridgeData.sharedWithEmails
 
         const baseKey = ACTION_KEYS[body.action]
         const who = actorDisplayName(callerName, callerEmail)

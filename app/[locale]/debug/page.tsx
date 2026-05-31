@@ -1,5 +1,6 @@
 'use client'
 
+import { notFound } from 'next/navigation'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { db } from '@/lib/firebase'
@@ -18,6 +19,8 @@ import { Trash2, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react'
 import { Link } from '@/i18n/navigation'
 
 export default function DebugPage() {
+    if (process.env.NODE_ENV === 'production') notFound()
+
     const { user } = useAuth()
     const t = useTranslations('debug')
     const [status, setStatus] = useState<'idle' | 'deleting' | 'success' | 'error'>('idle')
@@ -58,15 +61,6 @@ export default function DebugPage() {
 
                 await deleteDoc(doc(db, COLLECTIONS.FRIDGES, fridgeId))
                 deletedCount++
-            }
-
-            try {
-                const productsSnap = await getDocs(collection(db, COLLECTIONS.PRODUCTS))
-                for (const productDoc of productsSnap.docs) {
-                    await deleteDoc(doc(db, COLLECTIONS.PRODUCTS, productDoc.id))
-                }
-            } catch (cacheErr) {
-                console.warn(t('cacheWarn'), cacheErr)
             }
 
             setStatus('success')

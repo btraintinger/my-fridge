@@ -1,8 +1,12 @@
 import { getTranslations } from 'next-intl/server'
 import type { NotificationDoc, NotificationPreferences } from '../types'
-import { COLLECTIONS } from '../constants'
 import { routing } from '../../i18n/routing'
-import { adminAuth, adminDb, adminMessaging } from './firebaseAdmin'
+import { adminAuth, adminMessaging } from './firebaseAdmin'
+import {
+    userAdminDoc,
+    userFcmTokenAdminRef,
+    userFcmTokensAdminRef,
+} from './refs'
 
 type SupportedLocale = (typeof routing.locales)[number]
 
@@ -41,9 +45,8 @@ export interface OutgoingNotification {
 
 export async function sendToUser(uid: string, n: OutgoingNotification): Promise<void> {
     // 1. Load user doc once (for preferences + locale)
-    const userSnap = await adminDb.collection(COLLECTIONS.USERS).doc(uid).get()
-    const userData = userSnap.data()
-    const prefs = userData?.notificationPreferences as NotificationPreferences | undefined
+    const userData = (await userAdminDoc(uid).get()).data()
+    const prefs = userData?.notificationPreferences
     const locale: SupportedLocale = isSupportedLocale(userData?.locale)
         ? userData.locale
         : routing.defaultLocale
@@ -68,11 +71,7 @@ export async function sendToUser(uid: string, n: OutgoingNotification): Promise<
     const body = t(n.bodyKey as Parameters<typeof t>[0], params)
 
     // Load FCM tokens
-    const tokensSnap = await adminDb
-        .collection(COLLECTIONS.USERS)
-        .doc(uid)
-        .collection(COLLECTIONS.FCM_TOKENS)
-        .get()
+    const tokensSnap = await userFcmTokensAdminRef(uid).get()
 
     if (tokensSnap.empty) return
 
@@ -100,14 +99,7 @@ export async function sendToUser(uid: string, n: OutgoingNotification): Promise<
         const deletes: Promise<FirebaseFirestore.WriteResult>[] = []
         response.responses.forEach((r, idx) => {
             if (!r.success && r.error?.code && DEAD_TOKEN_CODES.has(r.error.code)) {
-                deletes.push(
-                    adminDb
-                        .collection(COLLECTIONS.USERS)
-                        .doc(uid)
-                        .collection(COLLECTIONS.FCM_TOKENS)
-                        .doc(batch[idx])
-                        .delete()
-                )
+                deletes.push(userFcmTokenAdminRef(uid, batch[idx]).delete())
             }
         })
         await Promise.all(deletes)

@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic'
 
-import { COLLECTIONS } from '@/lib/constants'
 import { requireAuth } from '@/lib/server/auth'
-import { adminDb } from '@/lib/server/firebaseAdmin'
+import { fridgeAdminDoc } from '@/lib/server/refs'
 import { actorDisplayName, findUidByEmail, sendToUser } from '@/lib/server/sendNotification'
 
 export async function POST(request: Request) {
@@ -15,8 +14,8 @@ export async function POST(request: Request) {
         }
 
         // Verify caller owns the fridge
-        const fridgeSnap = await adminDb.collection(COLLECTIONS.FRIDGES).doc(body.fridgeId).get()
-        if (!fridgeSnap.exists || fridgeSnap.data()?.userId !== uid) {
+        const fridgeData = (await fridgeAdminDoc(body.fridgeId).get()).data()
+        if (!fridgeData || fridgeData.userId !== uid) {
             return Response.json({ error: 'Forbidden' }, { status: 403 })
         }
 
@@ -25,14 +24,14 @@ export async function POST(request: Request) {
             return Response.json({ ok: true }) // user not registered — silent no-op
         }
 
-        const fridgeName = fridgeSnap.data()?.name as string | undefined
+        const fridgeName = fridgeData.name
         await sendToUser(inviteeUid, {
             type: 'fridge_invite',
             titleKey: 'fridgeInvite.title',
             bodyKey: 'fridgeInvite.body',
             params: {
                 who: actorDisplayName(callerName, callerEmail),
-                fridgeName: fridgeName ?? '@@unnamedFridge',
+                fridgeName: fridgeName || '@@unnamedFridge',
             },
             link: `/fridges/${body.fridgeId}`,
             tag: `fridge-invite-${body.fridgeId}`,
