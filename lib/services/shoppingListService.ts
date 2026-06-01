@@ -97,6 +97,16 @@ export async function deleteShoppingItem(
     return result
 }
 
+export async function updateShoppingItemName(
+    fridgeId: string,
+    itemId: string,
+    name: string
+) {
+    return runFirebaseAction(() =>
+        updateDoc(shoppingItemDoc(fridgeId, itemId), { name })
+    )
+}
+
 export async function moveShoppingItemToFridge(
     fridgeId: string,
     itemId: string,

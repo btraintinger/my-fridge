@@ -1,5 +1,8 @@
-import { ScanLine, Trash2 } from 'lucide-react'
+'use client'
+
+import { Pencil, ScanLine, Trash2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
 
 interface ShoppingListItemProps {
@@ -7,6 +10,7 @@ interface ShoppingListItemProps {
     onToggle: (itemId: string, checked: boolean) => void
     onScan: (itemId: string) => void
     onDelete: (itemId: string) => void
+    onRename: (itemId: string, name: string) => Promise<void>
 }
 
 export function ShoppingListItem({
@@ -14,8 +18,28 @@ export function ShoppingListItem({
     onToggle,
     onScan,
     onDelete,
+    onRename,
 }: ShoppingListItemProps) {
     const t = useTranslations('shoppingList')
+    const [editing, setEditing] = useState(false)
+    const [draft, setDraft] = useState(item.name)
+    const [saving, setSaving] = useState(false)
+
+    const saveEdit = async () => {
+        const trimmed = draft.trim()
+        if (!trimmed || trimmed === item.name) {
+            setEditing(false)
+            setDraft(item.name)
+            return
+        }
+        setSaving(true)
+        try {
+            await onRename(item.id!, trimmed)
+            setEditing(false)
+        } finally {
+            setSaving(false)
+        }
+    }
 
     if (item.checked) {
         return (
@@ -57,22 +81,66 @@ export function ShoppingListItem({
                 onClick={() => onToggle(item.id!, item.checked)}
                 className="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-400 flex-shrink-0 transition-all active:scale-90"
             />
-            <span className="flex-1 text-slate-900 dark:text-slate-100 font-medium">
-                {item.name}
-            </span>
-            <button
-                onClick={() => onScan(item.id!)}
-                className="text-emerald-500 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 p-2 rounded-xl transition-all active:scale-95"
-                title={t('itemScanTooltip')}
-            >
-                <ScanLine size={18} />
-            </button>
-            <button
-                onClick={() => onDelete(item.id!)}
-                className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-2 rounded-xl transition-all active:scale-95"
-            >
-                <Trash2 size={18} />
-            </button>
+            {editing ? (
+                <form
+                    className="flex-1 flex items-center gap-2"
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        saveEdit()
+                    }}
+                >
+                    <input
+                        autoFocus
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                                setEditing(false)
+                                setDraft(item.name)
+                            }
+                        }}
+                        className="flex-1 text-sm font-medium text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-emerald-400/50"
+                    />
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-2 py-1 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors disabled:opacity-50"
+                    >
+                        {t('saveItemName')}
+                    </button>
+                </form>
+            ) : (
+                <span className="flex-1 text-slate-900 dark:text-slate-100 font-medium">
+                    {item.name}
+                </span>
+            )}
+            {!editing && (
+                <>
+                    <button
+                        onClick={() => {
+                            setDraft(item.name)
+                            setEditing(true)
+                        }}
+                        className="text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 p-2 rounded-xl transition-all active:scale-95 opacity-0 group-hover:opacity-100"
+                        title={t('editItemName')}
+                    >
+                        <Pencil size={16} />
+                    </button>
+                    <button
+                        onClick={() => onScan(item.id!)}
+                        className="text-emerald-500 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 p-2 rounded-xl transition-all active:scale-95"
+                        title={t('itemScanTooltip')}
+                    >
+                        <ScanLine size={18} />
+                    </button>
+                    <button
+                        onClick={() => onDelete(item.id!)}
+                        className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-2 rounded-xl transition-all active:scale-95"
+                    >
+                        <Trash2 size={18} />
+                    </button>
+                </>
+            )}
         </div>
     )
 }

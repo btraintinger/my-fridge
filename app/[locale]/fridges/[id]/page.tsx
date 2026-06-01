@@ -31,6 +31,7 @@ import {
     Search,
     ScanLine,
     Share2,
+    ShoppingCart,
     Trash2,
     User,
     UserPlus,
@@ -43,6 +44,7 @@ import {
 } from '@/lib/validations'
 import { notify } from '@/lib/notify'
 import { modalFromCounts } from '@/lib/utils'
+import { addShoppingItem } from '@/lib/services/shoppingListService'
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
     dairy: [
@@ -337,6 +339,12 @@ export default function FridgeDetail({
         } finally {
             setSavingQuantityItemId(null)
         }
+    }
+
+    const addToShoppingList = async (item: FridgeItem) => {
+        if (!user) return
+        await addShoppingItem(id, user.uid, item.product.product_name)
+        notify.success(t('fridges.detail.addedToShoppingList'))
     }
 
     const deleteFridgeItem = async (itemId: string) => {
@@ -1091,6 +1099,24 @@ export default function FridgeDetail({
                                                                                         )}
                                                                                     </span>
                                                                                 )}
+                                                                                <button
+                                                                                    onClick={() =>
+                                                                                        addToShoppingList(
+                                                                                            item
+                                                                                        )
+                                                                                    }
+                                                                                    className="flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-900/50 px-2 py-0.5 rounded-md hover:bg-emerald-100 dark:hover:bg-emerald-950/50 transition-colors whitespace-nowrap"
+                                                                                    title={t(
+                                                                                        'fridges.detail.addToShoppingListTooltip'
+                                                                                    )}
+                                                                                >
+                                                                                    <ShoppingCart
+                                                                                        size={11}
+                                                                                    />
+                                                                                    {t(
+                                                                                        'fridges.detail.addToShoppingList'
+                                                                                    )}
+                                                                                </button>
                                                                             </>
                                                                         )}
                                                                     </div>
@@ -1142,6 +1168,9 @@ export default function FridgeDetail({
                     onDelete={async () => {
                         setSelectedItem(null)
                         setItemToDelete(selectedItem)
+                    }}
+                    onAddToShoppingList={async () => {
+                        await addToShoppingList(selectedItem)
                     }}
                     onClose={() => setSelectedItem(null)}
                 />

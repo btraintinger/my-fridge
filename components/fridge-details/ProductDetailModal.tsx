@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertCircle, ChefHat, Info, Trash2, X } from 'lucide-react'
+import { AlertCircle, ChefHat, Info, ShoppingCart, Trash2, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '../ui/Button'
@@ -23,6 +23,7 @@ interface ProductDetailModalProps {
         quantity: number
     ) => Promise<void>
     onDelete?: (itemId: string, fridgeId: string) => Promise<void>
+    onAddToShoppingList?: () => Promise<void>
     onClose: () => void
 }
 
@@ -59,6 +60,7 @@ export function ProductDetailModal({
     fridgeId,
     onQuantityChange,
     onDelete,
+    onAddToShoppingList,
     onClose,
 }: ProductDetailModalProps) {
     const t = useTranslations()
@@ -66,6 +68,7 @@ export function ProductDetailModal({
     const [editingQuantity, setEditingQuantity] = useState(false)
     const [quantityDraft, setQuantityDraft] = useState(String(quantity))
     const [savingQuantity, setSavingQuantity] = useState(false)
+    const [addingToList, setAddingToList] = useState(false)
     const itemQuantitySchema = useMemo(() => createItemQuantitySchema(t), [t])
 
     const saveQuantity = async () => {
@@ -380,6 +383,27 @@ export function ProductDetailModal({
                                 {product.ingredients}
                             </p>
                         </div>
+                    )}
+
+                    {onAddToShoppingList && (
+                        <Button
+                            onClick={async () => {
+                                setAddingToList(true)
+                                try {
+                                    await onAddToShoppingList()
+                                } finally {
+                                    setAddingToList(false)
+                                }
+                            }}
+                            disabled={addingToList}
+                            className="w-full h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 border-emerald-200 dark:border-emerald-900/50"
+                            variant="outline"
+                        >
+                            <ShoppingCart size={18} className="mr-2" />
+                            {addingToList
+                                ? t('common.saving')
+                                : t('productModal.addToShoppingList')}
+                        </Button>
                     )}
 
                     <div className="flex gap-3">
