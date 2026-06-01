@@ -23,7 +23,7 @@
   <a href="#what-it-does">What it does</a> ·
   <a href="#stack">Stack</a> ·
   <a href="#getting-started">Getting started</a> ·
-  <a href="#layout">Layout</a> ·
+  <a href="#layout">Layout</a>
 </sub>
 
 </div>
