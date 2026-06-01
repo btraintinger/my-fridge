@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { NutriScoreBadge } from './NutriScoreComponents'
+import { DatePicker } from '../ui/DatePicker'
 import type { Product } from '@/lib/types'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import { createItemQuantitySchema } from '@/lib/validations'
@@ -15,12 +16,18 @@ import Image from 'next/image'
 interface ProductDetailModalProps {
     product: Product
     quantity?: number
+    expiryDate?: string
     itemId?: string
     fridgeId?: string
     onQuantityChange?: (
         itemId: string,
         fridgeId: string,
         quantity: number
+    ) => Promise<void>
+    onExpiryDateChange?: (
+        itemId: string,
+        fridgeId: string,
+        expiryDate: string
     ) => Promise<void>
     onDelete?: (itemId: string, fridgeId: string) => Promise<void>
     onClose: () => void
@@ -55,9 +62,11 @@ function FlagBadge({
 export function ProductDetailModal({
     product,
     quantity = 1,
+    expiryDate = '',
     itemId,
     fridgeId,
     onQuantityChange,
+    onExpiryDateChange,
     onDelete,
     onClose,
 }: ProductDetailModalProps) {
@@ -66,6 +75,7 @@ export function ProductDetailModal({
     const [editingQuantity, setEditingQuantity] = useState(false)
     const [quantityDraft, setQuantityDraft] = useState(String(quantity))
     const [savingQuantity, setSavingQuantity] = useState(false)
+    const [savingExpiryDate, setSavingExpiryDate] = useState(false)
     const itemQuantitySchema = useMemo(() => createItemQuantitySchema(t), [t])
 
     const saveQuantity = async () => {
@@ -181,6 +191,33 @@ export function ProductDetailModal({
                                         count: quantity,
                                     })}
                                 </button>
+                            )}
+
+                            {itemId && fridgeId && (
+                                <div className="mt-4 pt-4 border-t border-emerald-200/50 dark:border-emerald-900/50">
+                                    <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
+                                        Ablaufdatum (optional)
+                                    </h3>
+                                    <DatePicker
+                                        value={expiryDate}
+                                        onChange={async (val) => {
+                                            if (!onExpiryDateChange) return
+                                            setSavingExpiryDate(true)
+                                            try {
+                                                await onExpiryDateChange(itemId, fridgeId, val)
+                                                notify.success('Ablaufdatum aktualisiert')
+                                            } catch (error) {
+                                                notify.error('Fehler beim Aktualisieren')
+                                            } finally {
+                                                setSavingExpiryDate(false)
+                                            }
+                                        }}
+                                        placeholder="Ablaufdatum wählen"
+                                        min={new Date().toISOString().split('T')[0]}
+                                        disabled={savingExpiryDate}
+                                        className="w-full sm:w-64"
+                                    />
+                                </div>
                             )}
                         </div>
                     )}

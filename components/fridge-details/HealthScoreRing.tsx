@@ -12,7 +12,8 @@ export function HealthScoreRing({ score }: { score: number }) {
                     cy="64"
                     r={radius}
                     fill="none"
-                    stroke="#e2e8f0"
+                    stroke="currentColor"
+                    className="text-slate-200 dark:text-slate-800 opacity-30"
                     strokeWidth="10"
                 />
                 <circle
@@ -30,10 +31,10 @@ export function HealthScoreRing({ score }: { score: number }) {
                 />
             </svg>
             <div className="absolute flex flex-col items-center">
-                <span className="text-3xl font-bold text-slate-900">
+                <span className="text-3xl font-bold text-inherit">
                     {score}
                 </span>
-                <span className="text-xs font-semibold text-slate-400 uppercase">
+                <span className="text-xs font-semibold opacity-60 uppercase">
                     / 100
                 </span>
             </div>

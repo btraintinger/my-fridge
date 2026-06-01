@@ -222,3 +222,13 @@ export async function updateItemQuantity(
         await batch.commit()
     }, 'Menge aktualisiert')
 }
+
+export async function updateItemExpiryDate(
+    fridgeId: string,
+    itemId: string,
+    expiryDate: string
+) {
+    return runFirebaseAction(async () => {
+        await updateDoc(itemDoc(fridgeId, itemId), { expiryDate })
+    }, 'Ablaufdatum aktualisiert')
+}

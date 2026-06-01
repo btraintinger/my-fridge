@@ -14,6 +14,9 @@ interface ScannerModalProps {
     isOpen: boolean
     onClose: () => void
     onScan: (barcode: string) => void
+    isMultiScan?: boolean
+    onComplete?: () => void
+    scannedCount?: number
 }
 
 const ScannerContainer = memo(() => (
@@ -39,7 +42,14 @@ type ExtendedCapabilities = MediaTrackCapabilities & {
 type ScannerInternal = Html5Qrcode & { _videoTrack?: MediaStreamTrack }
 type CameraConfig = string | { facingMode: string } | { deviceId: string }
 
-export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
+export function ScannerModal({
+    isOpen,
+    onClose,
+    onScan,
+    isMultiScan,
+    onComplete,
+    scannedCount,
+}: ScannerModalProps) {
     const t = useTranslations('scanner.modal')
     const [scannerReady, setScannerReady] = useState(false)
     const [error, setError] = useState('')
@@ -55,6 +65,8 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
     const currentIdxRef = useRef(0)
     const hasScannedRef = useRef(false)
     const switchCameraRef = useRef<() => void>(() => {})
+    const lastScannedCodeRef = useRef<string | null>(null)
+    const lastScannedTimeRef = useRef<number>(0)
 
     const onScanRef = useRef(onScan)
     const onCloseRef = useRef(onClose)
@@ -187,19 +199,33 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                             // aspectRatio entfernt, da es auf iOS zu OverconstrainedError führt
                         },
                         (text) => {
-                            if (hasScannedRef.current) return
-                            hasScannedRef.current = true
+                            if (!isMultiScan) {
+                                if (hasScannedRef.current) return
+                                hasScannedRef.current = true
+                            }
 
-                            stopScanner().then(() => {
-                                onCloseRef.current()
-                                setTimeout(
-                                    () =>
-                                        onScanRef.current(
-                                            normalizeDigits(text)
-                                        ),
-                                    100
-                                )
-                            })
+                            const normalized = normalizeDigits(text)
+
+                            if (isMultiScan) {
+                                const now = Date.now()
+                                if (
+                                    lastScannedCodeRef.current === normalized &&
+                                    now - lastScannedTimeRef.current < 2000
+                                ) {
+                                    return
+                                }
+                                lastScannedCodeRef.current = normalized
+                                lastScannedTimeRef.current = now
+                                onScanRef.current(normalized)
+                            } else {
+                                stopScanner().then(() => {
+                                    onCloseRef.current()
+                                    setTimeout(
+                                        () => onScanRef.current(normalized),
+                                        100
+                                    )
+                                })
+                            }
                         },
                         () => {}
                     )
@@ -378,13 +404,20 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                         </Button>
                     </div>
 
-                    <Button
-                        variant="ghost"
-                        className="w-full text-slate-400 text-xs"
-                        onClick={onClose}
-                    >
-                        {t('cancel')}
-                    </Button>
+                    {isMultiScan && onComplete ? (
+                        <Button className="w-full" onClick={onComplete}>
+                            {t('complete')}{' '}
+                            {scannedCount ? `(${scannedCount})` : ''}
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="ghost"
+                            className="w-full text-slate-400 text-xs"
+                            onClick={onClose}
+                        >
+                            {t('cancel')}
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
