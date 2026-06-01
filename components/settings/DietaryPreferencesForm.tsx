@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/Input'
 
 export function DietaryPreferencesForm() {
     const t = useTranslations('settings.sections.dietary') // Assuming we will add translations
-    const { dietaryPreferences, updateDietaryPreferences, loading } = useUserPreferences()
+    const { dietaryPreferences, updateDietaryPreferences, loading } =
+        useUserPreferences()
     const [newAllergy, setNewAllergy] = useState('')
     const [isSaving, setIsSaving] = useState(false)
 
@@ -44,7 +45,7 @@ export function DietaryPreferencesForm() {
         setIsSaving(true)
         try {
             await updateDietaryPreferences({
-                allergies: [...currentAllergies, newAllergy.trim()]
+                allergies: [...currentAllergies, newAllergy.trim()],
             })
             setNewAllergy('')
         } finally {
@@ -57,7 +58,9 @@ export function DietaryPreferencesForm() {
         setIsSaving(true)
         try {
             await updateDietaryPreferences({
-                allergies: currentAllergies.filter(a => a !== allergyToRemove)
+                allergies: currentAllergies.filter(
+                    (a) => a !== allergyToRemove
+                ),
             })
         } finally {
             setIsSaving(false)
@@ -86,7 +89,10 @@ export function DietaryPreferencesForm() {
                         {t('title', { defaultMessage: 'Dietary Preferences' })}
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                        {t('description', { defaultMessage: 'Set your dietary requirements to receive product warnings.' })}
+                        {t('description', {
+                            defaultMessage:
+                                'Set your dietary requirements to receive product warnings.',
+                        })}
                     </p>
                 </div>
             </div>
@@ -108,7 +114,9 @@ export function DietaryPreferencesForm() {
                             disabled={isSaving}
                             className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 disabled:opacity-50"
                         />
-                        <span className={`font-medium ${dietaryPreferences[key] ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                        <span
+                            className={`font-medium ${dietaryPreferences[key] ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}
+                        >
                             {t(`options.${key}`, { defaultMessage: label })}
                         </span>
                     </label>
@@ -117,27 +125,35 @@ export function DietaryPreferencesForm() {
 
             <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
                 <h4 className="font-bold text-slate-900 dark:text-slate-50 mb-4">
-                    {t('allergies.title', { defaultMessage: 'Custom Allergies' })}
+                    {t('allergies.title', {
+                        defaultMessage: 'Custom Allergies',
+                    })}
                 </h4>
-                
+
                 <form onSubmit={addAllergy} className="flex gap-2 mb-4">
                     <Input
                         type="text"
-                        placeholder={t('allergies.placeholder', { defaultMessage: 'e.g. Shellfish, Peanuts...' })}
+                        placeholder={t('allergies.placeholder', {
+                            defaultMessage: 'e.g. Shellfish, Peanuts...',
+                        })}
                         value={newAllergy}
                         onChange={(e) => setNewAllergy(e.target.value)}
                         disabled={isSaving}
                         className="flex-1"
                     />
-                    <Button type="submit" disabled={isSaving || !newAllergy.trim()}>
+                    <Button
+                        type="submit"
+                        disabled={isSaving || !newAllergy.trim()}
+                    >
                         <Plus size={18} className="mr-1" />
                         {t('allergies.add', { defaultMessage: 'Add' })}
                     </Button>
                 </form>
 
-                {dietaryPreferences.allergies && dietaryPreferences.allergies.length > 0 ? (
+                {dietaryPreferences.allergies &&
+                dietaryPreferences.allergies.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                        {dietaryPreferences.allergies.map(allergy => (
+                        {dietaryPreferences.allergies.map((allergy) => (
                             <span
                                 key={allergy}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium border border-slate-200 dark:border-slate-700"
@@ -147,7 +163,9 @@ export function DietaryPreferencesForm() {
                                     onClick={() => removeAllergy(allergy)}
                                     disabled={isSaving}
                                     className="p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-red-500 transition-colors"
-                                    title={t('allergies.remove', { defaultMessage: 'Remove' })}
+                                    title={t('allergies.remove', {
+                                        defaultMessage: 'Remove',
+                                    })}
                                 >
                                     <X size={14} />
                                 </button>
@@ -156,7 +174,9 @@ export function DietaryPreferencesForm() {
                     </div>
                 ) : (
                     <p className="text-sm text-slate-500 italic">
-                        {t('allergies.empty', { defaultMessage: 'No custom allergies added yet.' })}
+                        {t('allergies.empty', {
+                            defaultMessage: 'No custom allergies added yet.',
+                        })}
                     </p>
                 )}
             </div>

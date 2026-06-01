@@ -4,25 +4,72 @@ import type { FridgeItem } from '@/lib/types'
 
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
     dairy: [
-        'milch', 'käse', 'joghurt', 'butter', 'sahne', 'quark',
-        'milk', 'cheese', 'yogurt', 'dairy',
+        'milch',
+        'käse',
+        'joghurt',
+        'butter',
+        'sahne',
+        'quark',
+        'milk',
+        'cheese',
+        'yogurt',
+        'dairy',
     ],
     meat: [
-        'fleisch', 'wurst', 'schinken', 'hähnchen', 'rind', 'schwein',
-        'meat', 'chicken', 'beef', 'pork', 'speck',
+        'fleisch',
+        'wurst',
+        'schinken',
+        'hähnchen',
+        'rind',
+        'schwein',
+        'meat',
+        'chicken',
+        'beef',
+        'pork',
+        'speck',
     ],
     veg: [
-        'gemüse', 'tomate', 'gurke', 'paprika', 'salat', 'karotte',
-        'vegetable', 'tomato', 'cucumber', 'pepper', 'salad', 'carrot',
-        'zwiebel', 'knoblauch',
+        'gemüse',
+        'tomate',
+        'gurke',
+        'paprika',
+        'salat',
+        'karotte',
+        'vegetable',
+        'tomato',
+        'cucumber',
+        'pepper',
+        'salad',
+        'carrot',
+        'zwiebel',
+        'knoblauch',
     ],
     fruit: [
-        'obst', 'apfel', 'banane', 'orange', 'beere',
-        'fruit', 'apple', 'banana', 'orange', 'berry', 'zitrone',
+        'obst',
+        'apfel',
+        'banane',
+        'orange',
+        'beere',
+        'fruit',
+        'apple',
+        'banana',
+        'orange',
+        'berry',
+        'zitrone',
     ],
     drinks: [
-        'saft', 'wasser', 'cola', 'limo', 'bier', 'wein',
-        'drink', 'water', 'juice', 'beer', 'wine', 'getränk',
+        'saft',
+        'wasser',
+        'cola',
+        'limo',
+        'bier',
+        'wein',
+        'drink',
+        'water',
+        'juice',
+        'beer',
+        'wine',
+        'getränk',
     ],
 }
 
@@ -31,7 +78,10 @@ export function useFridgeProducts(items: FridgeItem[]) {
 
     const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
         if (typeof window === 'undefined') return 'grid'
-        return (localStorage.getItem('fridgeViewMode') as 'grid' | 'list') || 'grid'
+        return (
+            (localStorage.getItem('fridgeViewMode') as 'grid' | 'list') ||
+            'grid'
+        )
     })
     const [searchQuery, setSearchQuery] = useState('')
     const [sortBy, setSortBy] = useState<string>(() => {
@@ -74,13 +124,21 @@ export function useFridgeProducts(items: FridgeItem[]) {
         result.sort((a, b) => {
             switch (sortBy) {
                 case 'name-asc':
-                    return (a.product.product_name || '').localeCompare(b.product.product_name || '')
+                    return (a.product.product_name || '').localeCompare(
+                        b.product.product_name || ''
+                    )
                 case 'name-desc':
-                    return (b.product.product_name || '').localeCompare(a.product.product_name || '')
+                    return (b.product.product_name || '').localeCompare(
+                        a.product.product_name || ''
+                    )
                 case 'category-asc':
-                    return (a.product.category || '').localeCompare(b.product.category || '')
+                    return (a.product.category || '').localeCompare(
+                        b.product.category || ''
+                    )
                 case 'category-desc':
-                    return (b.product.category || '').localeCompare(a.product.category || '')
+                    return (b.product.category || '').localeCompare(
+                        a.product.category || ''
+                    )
                 case 'quantity-asc':
                     return (a.quantity ?? 1) - (b.quantity ?? 1)
                 case 'quantity-desc':
@@ -96,13 +154,21 @@ export function useFridgeProducts(items: FridgeItem[]) {
                     return gradeB.localeCompare(gradeA)
                 }
                 case 'expiry-asc': {
-                    const dateA = a.expiryDate ? new Date(a.expiryDate).getTime() : Infinity
-                    const dateB = b.expiryDate ? new Date(b.expiryDate).getTime() : Infinity
+                    const dateA = a.expiryDate
+                        ? new Date(a.expiryDate).getTime()
+                        : Infinity
+                    const dateB = b.expiryDate
+                        ? new Date(b.expiryDate).getTime()
+                        : Infinity
                     return dateA - dateB
                 }
                 case 'expiry-desc': {
-                    const dateA = a.expiryDate ? new Date(a.expiryDate).getTime() : -Infinity
-                    const dateB = b.expiryDate ? new Date(b.expiryDate).getTime() : -Infinity
+                    const dateA = a.expiryDate
+                        ? new Date(a.expiryDate).getTime()
+                        : -Infinity
+                    const dateB = b.expiryDate
+                        ? new Date(b.expiryDate).getTime()
+                        : -Infinity
                     return dateB - dateA
                 }
                 case 'added-desc': {
@@ -124,7 +190,8 @@ export function useFridgeProducts(items: FridgeItem[]) {
     const groupedItems = useMemo(() => {
         const groups: Record<string, FridgeItem[]> = {}
         filteredAndSortedItems.forEach((item) => {
-            const cat = item.product.category || t('fridges.detail.categories.other')
+            const cat =
+                item.product.category || t('fridges.detail.categories.other')
             if (!groups[cat]) groups[cat] = []
             groups[cat].push(item)
         })

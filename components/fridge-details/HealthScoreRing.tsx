@@ -31,9 +31,7 @@ export function HealthScoreRing({ score }: { score: number }) {
                 />
             </svg>
             <div className="absolute flex flex-col items-center">
-                <span className="text-3xl font-bold text-inherit">
-                    {score}
-                </span>
+                <span className="text-3xl font-bold text-inherit">{score}</span>
                 <span className="text-xs font-semibold opacity-60 uppercase">
                     / 100
                 </span>

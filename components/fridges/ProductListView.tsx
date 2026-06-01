@@ -27,25 +27,27 @@ export function ProductListView({
     const t = useTranslations()
 
     // Keep track of which items are currently being updated to show a loading state
-    const [updatingItems, setUpdatingItems] = useState<Record<string, boolean>>({})
+    const [updatingItems, setUpdatingItems] = useState<Record<string, boolean>>(
+        {}
+    )
 
     const handleQuantityChange = async (itemId: string, val: string) => {
         const num = parseInt(val, 10)
         if (isNaN(num) || num < 1) return
-        setUpdatingItems(prev => ({ ...prev, [itemId]: true }))
+        setUpdatingItems((prev) => ({ ...prev, [itemId]: true }))
         try {
             await onQuantityChange(itemId, num)
         } finally {
-            setUpdatingItems(prev => ({ ...prev, [itemId]: false }))
+            setUpdatingItems((prev) => ({ ...prev, [itemId]: false }))
         }
     }
 
     const handleExpiryChange = async (itemId: string, date: string) => {
-        setUpdatingItems(prev => ({ ...prev, [itemId]: true }))
+        setUpdatingItems((prev) => ({ ...prev, [itemId]: true }))
         try {
             await onExpiryDateChange(itemId, date)
         } finally {
-            setUpdatingItems(prev => ({ ...prev, [itemId]: false }))
+            setUpdatingItems((prev) => ({ ...prev, [itemId]: false }))
         }
     }
 
@@ -59,21 +61,37 @@ export function ProductListView({
                                 {t('productModal.productInfo')}
                             </th>
                             <th scope="col" className="px-4 py-3 font-semibold">
-                                {t('fridges.detail.sort.nameAsc').split(' ')[0]} {/* "Name" */}
+                                {t('fridges.detail.sort.nameAsc').split(' ')[0]}{' '}
+                                {/* "Name" */}
                             </th>
                             <th scope="col" className="px-4 py-3 font-semibold">
                                 Kategorie
                             </th>
-                            <th scope="col" className="px-4 py-3 font-semibold w-24">
-                                {t('productModal.quantity', { count: 0 }).replace('0', '').trim()} {/* "Menge" */}
+                            <th
+                                scope="col"
+                                className="px-4 py-3 font-semibold w-24"
+                            >
+                                {t('productModal.quantity', { count: 0 })
+                                    .replace('0', '')
+                                    .trim()}{' '}
+                                {/* "Menge" */}
                             </th>
-                            <th scope="col" className="px-4 py-3 font-semibold w-24 text-center">
+                            <th
+                                scope="col"
+                                className="px-4 py-3 font-semibold w-24 text-center"
+                            >
                                 {t('productModal.nutriScore')}
                             </th>
-                            <th scope="col" className="px-4 py-3 font-semibold w-40">
+                            <th
+                                scope="col"
+                                className="px-4 py-3 font-semibold w-40"
+                            >
                                 Ablaufdatum
                             </th>
-                            <th scope="col" className="px-4 py-3 font-semibold text-right">
+                            <th
+                                scope="col"
+                                className="px-4 py-3 font-semibold text-right"
+                            >
                                 Aktionen
                             </th>
                         </tr>
@@ -84,7 +102,10 @@ export function ProductListView({
                                 key={item.id}
                                 className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors group"
                             >
-                                <td className="px-4 py-2" onClick={() => onItemClick(item)}>
+                                <td
+                                    className="px-4 py-2"
+                                    onClick={() => onItemClick(item)}
+                                >
                                     <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer">
                                         {item.product?.image_url ? (
                                             <Image
@@ -95,12 +116,21 @@ export function ProductListView({
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <ChefHat size={14} className="text-slate-400" />
+                                            <ChefHat
+                                                size={14}
+                                                className="text-slate-400"
+                                            />
                                         )}
                                     </div>
                                 </td>
-                                <td className="px-4 py-2 font-medium text-slate-900 dark:text-slate-50 cursor-pointer" onClick={() => onItemClick(item)}>
-                                    <div className="truncate max-w-[200px]" title={item.product.product_name}>
+                                <td
+                                    className="px-4 py-2 font-medium text-slate-900 dark:text-slate-50 cursor-pointer"
+                                    onClick={() => onItemClick(item)}
+                                >
+                                    <div
+                                        className="truncate max-w-[200px]"
+                                        title={item.product.product_name}
+                                    >
                                         {item.product.product_name}
                                     </div>
                                     <div className="text-xs text-slate-400 font-normal truncate max-w-[200px]">
@@ -109,7 +139,10 @@ export function ProductListView({
                                 </td>
                                 <td className="px-4 py-2 text-slate-600 dark:text-slate-300">
                                     <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md text-xs">
-                                        {item.product.category || t('fridges.detail.categories.other')}
+                                        {item.product.category ||
+                                            t(
+                                                'fridges.detail.categories.other'
+                                            )}
                                     </span>
                                 </td>
                                 <td className="px-4 py-2">
@@ -117,18 +150,28 @@ export function ProductListView({
                                         type="number"
                                         min="1"
                                         value={item.quantity ?? 1}
-                                        onChange={(e) => handleQuantityChange(item.id!, e.target.value)}
+                                        onChange={(e) =>
+                                            handleQuantityChange(
+                                                item.id!,
+                                                e.target.value
+                                            )
+                                        }
                                         disabled={updatingItems[item.id!]}
                                         className="w-20 h-8 text-center px-1"
                                     />
                                 </td>
                                 <td className="px-4 py-2 flex justify-center">
-                                    <NutriScoreBadge grade={item.product.nutriscore_grade} size="sm" />
+                                    <NutriScoreBadge
+                                        grade={item.product.nutriscore_grade}
+                                        size="sm"
+                                    />
                                 </td>
                                 <td className="px-4 py-2">
                                     <DatePicker
                                         value={item.expiryDate || ''}
-                                        onChange={(val) => handleExpiryChange(item.id!, val)}
+                                        onChange={(val) =>
+                                            handleExpiryChange(item.id!, val)
+                                        }
                                         disabled={updatingItems[item.id!]}
                                         className="h-8 min-w-[140px] text-xs"
                                     />

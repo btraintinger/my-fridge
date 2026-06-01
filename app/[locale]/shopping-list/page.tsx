@@ -105,7 +105,10 @@ export default function ShoppingList() {
         await updateShoppingItemName(selectedFridge, itemId, name)
     }
 
-    const updateItemDetails = async (itemId: string, details: { quantity?: number; unit?: string }) => {
+    const updateItemDetails = async (
+        itemId: string,
+        details: { quantity?: number; unit?: string }
+    ) => {
         await updateShoppingItemDetails(selectedFridge, itemId, details)
     }
 
@@ -264,7 +267,9 @@ export default function ShoppingList() {
                                                 }}
                                                 onDelete={deleteItem}
                                                 onRename={renameItem}
-                                                onUpdateDetails={updateItemDetails}
+                                                onUpdateDetails={
+                                                    updateItemDetails
+                                                }
                                             />
                                         ))}
                                     </div>
@@ -288,7 +293,9 @@ export default function ShoppingList() {
                                                 }}
                                                 onDelete={deleteItem}
                                                 onRename={renameItem}
-                                                onUpdateDetails={updateItemDetails}
+                                                onUpdateDetails={
+                                                    updateItemDetails
+                                                }
                                             />
                                         ))}
                                     </div>

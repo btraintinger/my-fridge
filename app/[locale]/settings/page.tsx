@@ -105,8 +105,13 @@ export default function Settings() {
 
                 <section className="space-y-3">
                     <SectionHeading
-                        title={t('sections.dietary.title', { defaultMessage: 'Dietary & Allergies' })}
-                        description={t('sections.dietary.description', { defaultMessage: 'Manage your dietary preferences for product warnings.' })}
+                        title={t('sections.dietary.title', {
+                            defaultMessage: 'Dietary & Allergies',
+                        })}
+                        description={t('sections.dietary.description', {
+                            defaultMessage:
+                                'Manage your dietary preferences for product warnings.',
+                        })}
                     />
                     <DietaryPreferencesForm />
                 </section>

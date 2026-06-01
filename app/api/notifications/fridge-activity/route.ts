@@ -57,7 +57,9 @@ export async function POST(request: Request) {
         if (ownerUid !== uid) recipients.push(ownerUid)
 
         // Resolve shared member emails to uids (skip caller's own email)
-        const otherEmails = sharedEmails.filter((e) => e !== callerEmail_lower)
+        const otherEmails = sharedEmails.filter(
+            (e: string) => e !== callerEmail_lower
+        )
         const uidResults = await Promise.all(otherEmails.map(findUidByEmail))
         for (const u of uidResults) {
             if (u && u !== uid) recipients.push(u)

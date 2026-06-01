@@ -11,7 +11,10 @@ interface ShoppingListItemProps {
     onScan: (itemId: string) => void
     onDelete: (itemId: string) => void
     onRename: (itemId: string, name: string) => Promise<void>
-    onUpdateDetails: (itemId: string, details: { quantity?: number; unit?: string }) => Promise<void>
+    onUpdateDetails: (
+        itemId: string,
+        details: { quantity?: number; unit?: string }
+    ) => Promise<void>
 }
 
 export function ShoppingListItem({
@@ -27,7 +30,9 @@ export function ShoppingListItem({
     const [draft, setDraft] = useState(item.name)
     const [saving, setSaving] = useState(false)
     const [editingDetails, setEditingDetails] = useState(false)
-    const [qtyDraft, setQtyDraft] = useState(item.quantity != null ? String(item.quantity) : '')
+    const [qtyDraft, setQtyDraft] = useState(
+        item.quantity != null ? String(item.quantity) : ''
+    )
     const [unitDraft, setUnitDraft] = useState(item.unit ?? '')
     const [savingDetails, setSavingDetails] = useState(false)
 
@@ -59,7 +64,9 @@ export function ShoppingListItem({
             const qty = qtyDraft.trim() ? parseFloat(qtyDraft) : undefined
             const unit = unitDraft.trim() || undefined
             await onUpdateDetails(item.id!, {
-                ...(qty != null && !isNaN(qty) ? { quantity: qty } : { quantity: undefined }),
+                ...(qty != null && !isNaN(qty)
+                    ? { quantity: qty }
+                    : { quantity: undefined }),
                 unit,
             })
             setEditingDetails(false)
@@ -82,7 +89,17 @@ export function ShoppingListItem({
                     onClick={() => onToggle(item.id!, item.checked)}
                     className="w-6 h-6 rounded-full bg-emerald-500 flex-shrink-0 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
                         <polyline points="20 6 9 17 4 12" />
                     </svg>
                 </button>
@@ -115,14 +132,20 @@ export function ShoppingListItem({
                 {editing ? (
                     <form
                         className="flex-1 flex items-center gap-2"
-                        onSubmit={(e) => { e.preventDefault(); saveEdit() }}
+                        onSubmit={(e) => {
+                            e.preventDefault()
+                            saveEdit()
+                        }}
                     >
                         <input
                             autoFocus
                             value={draft}
                             onChange={(e) => setDraft(e.target.value)}
                             onKeyDown={(e) => {
-                                if (e.key === 'Escape') { setEditing(false); setDraft(item.name) }
+                                if (e.key === 'Escape') {
+                                    setEditing(false)
+                                    setDraft(item.name)
+                                }
                             }}
                             className="flex-1 text-sm font-medium text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-emerald-400/50"
                         />
@@ -151,7 +174,10 @@ export function ShoppingListItem({
                             </button>
                         )}
                         <button
-                            onClick={() => { setDraft(item.name); setEditing(true) }}
+                            onClick={() => {
+                                setDraft(item.name)
+                                setEditing(true)
+                            }}
                             className="text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 p-2 rounded-xl transition-all active:scale-95 opacity-0 group-hover:opacity-100"
                             title={t('editItemName')}
                         >
@@ -180,7 +206,10 @@ export function ShoppingListItem({
                     {editingDetails ? (
                         <form
                             className="flex items-center gap-2"
-                            onSubmit={(e) => { e.preventDefault(); saveDetails() }}
+                            onSubmit={(e) => {
+                                e.preventDefault()
+                                saveDetails()
+                            }}
                         >
                             <input
                                 autoFocus
@@ -189,7 +218,10 @@ export function ShoppingListItem({
                                 step="any"
                                 value={qtyDraft}
                                 onChange={(e) => setQtyDraft(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Escape') setEditingDetails(false) }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape')
+                                        setEditingDetails(false)
+                                }}
                                 placeholder={t('quantityPlaceholder')}
                                 className="w-20 text-xs font-medium text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-800 border border-violet-300 dark:border-violet-700 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-violet-400/50"
                             />
@@ -197,7 +229,10 @@ export function ShoppingListItem({
                                 type="text"
                                 value={unitDraft}
                                 onChange={(e) => setUnitDraft(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === 'Escape') setEditingDetails(false) }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape')
+                                        setEditingDetails(false)
+                                }}
                                 placeholder={t('unitPlaceholder')}
                                 className="w-20 text-xs font-medium text-slate-900 dark:text-slate-100 bg-slate-50 dark:bg-slate-800 border border-violet-300 dark:border-violet-700 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-violet-400/50"
                             />

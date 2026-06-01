@@ -10,10 +10,17 @@ export function NutriScoreBadge({
     size?: 'sm' | 'md'
 }) {
     const normalizedGrade = grade?.toLowerCase()
-    
+
     // Default or unknown state
-    if (!normalizedGrade || normalizedGrade === 'unknown' || normalizedGrade === '-') {
-        const sizeClasses = size === 'sm' ? 'w-6 h-6 rounded-lg text-[10px]' : 'w-10 h-10 rounded-xl text-base'
+    if (
+        !normalizedGrade ||
+        normalizedGrade === 'unknown' ||
+        normalizedGrade === '-'
+    ) {
+        const sizeClasses =
+            size === 'sm'
+                ? 'w-6 h-6 rounded-lg text-[10px]'
+                : 'w-10 h-10 rounded-xl text-base'
         return (
             <div
                 className={`${sizeClasses} flex items-center justify-center text-white font-bold uppercase shadow-sm bg-slate-400 dark:bg-slate-500`}
@@ -25,9 +32,12 @@ export function NutriScoreBadge({
     }
 
     const g = NUTRI_GRADES.find((x) => x.grade === normalizedGrade)
-    const sizeClasses = size === 'sm' ? 'px-2 py-0.5 rounded-lg text-[11px]' : 'px-3 py-1 rounded-xl text-lg'
-    
-    // If we use precise colors, ensure good contrast. 
+    const sizeClasses =
+        size === 'sm'
+            ? 'px-2 py-0.5 rounded-lg text-[11px]'
+            : 'px-3 py-1 rounded-xl text-lg'
+
+    // If we use precise colors, ensure good contrast.
     // The official colors look best with white text, but we add a tiny text-shadow for WCAG contrast on lighter colors (like C)
     const bgClass = g?.bg ?? 'bg-slate-400'
 
@@ -65,7 +75,10 @@ export function NutriScoreDistribution({ items }: { items: FridgeItem[] }) {
                         <div
                             key={g.grade}
                             className={`${g.bg} flex items-center justify-center text-white font-bold text-xs transition-all`}
-                            style={{ flex: g.count, textShadow: '0 1px 1px rgba(0,0,0,0.2)' }}
+                            style={{
+                                flex: g.count,
+                                textShadow: '0 1px 1px rgba(0,0,0,0.2)',
+                            }}
                             title={`${g.label}: ${g.count}`}
                         >
                             {g.label}

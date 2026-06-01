@@ -1,7 +1,13 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { LayoutGrid, List as ListIcon, Search, Filter, ArrowUpDown } from 'lucide-react'
+import {
+    LayoutGrid,
+    List as ListIcon,
+    Search,
+    Filter,
+    ArrowUpDown,
+} from 'lucide-react'
 import type { FridgeItem } from '@/lib/types'
 import { useFridgeProducts } from '@/hooks/useFridgeProducts'
 import { Input } from '@/components/ui/Input'
@@ -92,7 +98,9 @@ export function FridgeView({
                         options={[
                             {
                                 value: 'all',
-                                label: t('fridges.detail.filters.allCategories'),
+                                label: t(
+                                    'fridges.detail.filters.allCategories'
+                                ),
                             },
                             {
                                 value: 'dairy',

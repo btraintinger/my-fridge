@@ -26,6 +26,12 @@ function initAdminApp() {
 const adminApp = initAdminApp()
 
 // Fallback to dummy objects if admin SDK is not configured (e.g. local dev)
-export const adminAuth = adminApp ? getAuth(adminApp) : ({} as any)
-export const adminDb = adminApp ? getFirestore(adminApp) : ({} as any)
-export const adminMessaging = adminApp ? getMessaging(adminApp) : ({} as any)
+export const adminAuth = adminApp
+    ? getAuth(adminApp)
+    : ({} as ReturnType<typeof getAuth>)
+export const adminDb = adminApp
+    ? getFirestore(adminApp)
+    : ({} as ReturnType<typeof getFirestore>)
+export const adminMessaging = adminApp
+    ? getMessaging(adminApp)
+    : ({} as ReturnType<typeof getMessaging>)

@@ -121,14 +121,16 @@ export default function Scanner() {
 
             if (scanMode === 'multi') {
                 if (processingBarcodesRef.current.has(trimmedCode)) return
-                
+
                 const existing = scannedItems.find(
                     (i) => i.barcode === trimmedCode
                 )
                 if (existing) {
                     if (existing.status === 'success') {
                         updateQuantity(trimmedCode, existing.quantity + 1)
-                        notify.success(`+1 ${existing.product?.product_name || trimmedCode} (${existing.quantity + 1}x)`)
+                        notify.success(
+                            `+1 ${existing.product?.product_name || trimmedCode} (${existing.quantity + 1}x)`
+                        )
                     } else if (existing.status === 'error') {
                         notify.error(t('scanner.errors.notFound'))
                     }
@@ -159,7 +161,7 @@ export default function Scanner() {
                         })
                         notify.error(t('scanner.errors.notFound'))
                     }
-                } catch (err) {
+                } catch {
                     updateItem(trimmedCode, {
                         status: 'error',
                         error: 'API Error',
@@ -209,7 +211,15 @@ export default function Scanner() {
                 setSearching(false)
             }
         },
-        [searching, t, scanMode, scannedItems, addItem, updateItem]
+        [
+            searching,
+            t,
+            scanMode,
+            scannedItems,
+            addItem,
+            updateItem,
+            updateQuantity,
+        ]
     )
 
     const handleAddToFridge = async () => {
@@ -236,7 +246,7 @@ export default function Scanner() {
             notify.success(t('scanner.addedToFridge'))
             clearItems()
             setScanMode('single')
-        } catch (e) {
+        } catch {
             notify.error(t('scanner.errors.addFailed'))
         } finally {
             setIsAddingMulti(false)
@@ -254,7 +264,7 @@ export default function Scanner() {
             updateItem(manualProduct.barcode, {
                 product: manualProduct,
                 status: 'success',
-                quantity: options.quantity || 1
+                quantity: options.quantity || 1,
             })
             setManualModalOpen(false)
             return
@@ -585,7 +595,11 @@ export default function Scanner() {
                                                 value={expiryDate}
                                                 onChange={setExpiryDate}
                                                 placeholder="Datum wählen..."
-                                                min={new Date().toISOString().split('T')[0]}
+                                                min={
+                                                    new Date()
+                                                        .toISOString()
+                                                        .split('T')[0]
+                                                }
                                             />
                                         </div>
                                         {fridges.length > 0 && (
@@ -596,10 +610,12 @@ export default function Scanner() {
                                                 <Select
                                                     value={selectedFridge}
                                                     onChange={setSelectedFridge}
-                                                    options={fridges.map((f) => ({
-                                                        value: f.id!,
-                                                        label: f.name,
-                                                    }))}
+                                                    options={fridges.map(
+                                                        (f) => ({
+                                                            value: f.id!,
+                                                            label: f.name,
+                                                        })
+                                                    )}
                                                 />
                                             </div>
                                         )}

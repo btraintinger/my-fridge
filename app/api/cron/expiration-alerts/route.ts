@@ -1,11 +1,13 @@
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore'
 import { requireCronSecret } from '@/lib/server/auth'
 import { adminDb } from '@/lib/server/firebaseAdmin'
 import { fridgesAdminCollection, userAdminDoc } from '@/lib/server/refs'
 import { findUidByEmail, sendToUser } from '@/lib/server/sendNotification'
 import { COLLECTIONS } from '@/lib/constants'
+import type { Fridge } from '@/lib/schemas'
 
 const DEFAULT_LEAD_DAYS = 3
 const MAX_LEAD_DAYS = 7
@@ -48,7 +50,7 @@ export async function GET(request: Request) {
             const batch = fridgeDocs.slice(i, i + BATCH_SIZE)
 
             await Promise.all(
-                batch.map(async (fridgeDoc) => {
+                batch.map(async (fridgeDoc: QueryDocumentSnapshot<Fridge>) => {
                     const fridgeData = fridgeDoc.data()
                     const fridgeId = fridgeDoc.id
                     const ownerUid = fridgeData.userId
@@ -66,7 +68,7 @@ export async function GET(request: Request) {
                     if (itemsSnap.empty) return
 
                     const expiringItems: ExpiringItem[] = itemsSnap.docs.map(
-                        (d) => ({
+                        (d: QueryDocumentSnapshot) => ({
                             name:
                                 d.data().product?.product_name ??
                                 d.data().product?.id ??

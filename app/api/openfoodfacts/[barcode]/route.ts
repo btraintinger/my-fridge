@@ -218,8 +218,14 @@ export async function GET(
         )
 
         if (error) {
-            const err = error as any
-            if (err?.status === 0 || err?.status_verbose === 'product not found') {
+            const err = error as {
+                status?: number
+                status_verbose?: string
+            }
+            if (
+                err?.status === 0 ||
+                err?.status_verbose === 'product not found'
+            ) {
                 return NextResponse.json({ product: null })
             }
             console.error('Open Food Facts SDK error:', error)
@@ -243,9 +249,10 @@ export async function GET(
 
         const productName = normalizeOffString(p.product_name)
 
-        const rawUnit = typeof (p as Record<string, unknown>).quantity === 'string'
-            ? ((p as Record<string, unknown>).quantity as string).trim()
-            : undefined
+        const rawUnit =
+            typeof (p as Record<string, unknown>).quantity === 'string'
+                ? ((p as Record<string, unknown>).quantity as string).trim()
+                : undefined
 
         const productData = {
             barcode: normalizedBarcode,

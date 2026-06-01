@@ -367,6 +367,7 @@
         "submitting": "Adding...",
         "submit": "Add to Fridge",
         "manualLabel": "Manual",
+        "advancedData": "Health & Nutrition Data",
         "categories": {
             "dairy": "Dairy",
             "meatFish": "Meat & Fish",

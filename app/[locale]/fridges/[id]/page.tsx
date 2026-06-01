@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useMemo, useRef, useState, useEffect } from 'react'
+import { use, useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -14,23 +14,14 @@ import {
 import { useFridge } from '@/hooks/useFridges'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
 import { NutriScoreBadge } from '@/components/fridge-details/NutriScoreComponents'
 import { ProductDetailModal } from '@/components/fridge-details/ProductDetailModal'
 import { FridgeView } from '@/components/fridges/FridgeView'
 import { Link, useRouter } from '@/i18n/navigation'
-import Image from 'next/image'
 import {
     AlertCircle,
     ArrowLeft,
-    ArrowUpDown,
     BarChart3,
-    ChefHat,
-    ChevronDown,
-    ChevronRight,
-    Filter,
-    Info,
-    Search,
     ScanLine,
     Share2,
     Trash2,
@@ -39,12 +30,9 @@ import {
     X,
 } from 'lucide-react'
 import type { FridgeItem } from '@/lib/types'
-import {
-    createShareFridgeSchema,
-} from '@/lib/validations'
+import { createShareFridgeSchema } from '@/lib/validations'
 import { notify } from '@/lib/notify'
 import { modalFromCounts } from '@/lib/utils'
-
 
 export default function FridgeDetail({
     params,
@@ -67,8 +55,6 @@ export default function FridgeDetail({
     const [itemToDelete, setItemToDelete] = useState<FridgeItem | null>(null)
 
     const shareFridgeSchema = useMemo(() => createShareFridgeSchema(t), [t])
-
-    
 
     const fridgeNutriScore =
         (fridge?.gradeCounts
@@ -99,8 +85,6 @@ export default function FridgeDetail({
         if (!user || !fridge || fridge.userId !== user.uid) return
         await unshareFridge(id, email)
     }
-
-    
 
     if (loading) {
         return (
@@ -331,7 +315,11 @@ export default function FridgeDetail({
                             quantity: selectedItem.quantity ?? 1,
                         })
                     }}
-                    onExpiryDateChange={async (itemId, fridgeId, expiryDate) => {
+                    onExpiryDateChange={async (
+                        itemId,
+                        fridgeId,
+                        expiryDate
+                    ) => {
                         await updateItemExpiryDate(fridgeId, itemId, expiryDate)
                     }}
                     onDelete={async () => {
@@ -460,9 +448,11 @@ export default function FridgeDetail({
                                 className="flex-1 bg-rose-500 hover:bg-rose-600 text-white border-transparent"
                                 onClick={async () => {
                                     await deleteItem(id, itemToDelete.id!, {
-                                        grade: itemToDelete.nutriscore_grade,
-                                        quantity: itemToDelete.quantity,
-                                        itemName: itemToDelete.product_name,
+                                        grade: itemToDelete.product
+                                            .nutriscore_grade,
+                                        quantity: itemToDelete.quantity ?? 1,
+                                        itemName:
+                                            itemToDelete.product.product_name,
                                     })
                                     setItemToDelete(null)
                                 }}

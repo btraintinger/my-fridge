@@ -21,7 +21,9 @@ export function ProductGridView({
 }: ProductGridViewProps) {
     const t = useTranslations()
 
-    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({})
+    const [expandedCategories, setExpandedCategories] = useState<
+        Record<string, boolean>
+    >({})
     const [swipeItemId, setSwipeItemId] = useState<string | null>(null)
     const [swipeOffset, setSwipeOffset] = useState(0)
     const swipeOffsetRef = useRef(0)
@@ -41,9 +43,19 @@ export function ProductGridView({
         }))
     }
 
-
-    const beginSwipe = (itemId: string, pointerId: number, clientX: number, clientY: number) => {
-        swipeSessionRef.current = { itemId, pointerId, startX: clientX, startY: clientY, active: true }
+    const beginSwipe = (
+        itemId: string,
+        pointerId: number,
+        clientX: number,
+        clientY: number
+    ) => {
+        swipeSessionRef.current = {
+            itemId,
+            pointerId,
+            startX: clientX,
+            startY: clientY,
+            active: true,
+        }
         setSwipeItemId(itemId)
         setSwipeOffset(0)
         swipeOffsetRef.current = 0
@@ -85,7 +97,9 @@ export function ProductGridView({
             suppressNextClickRef.current = itemId
             // Find the item to delete
             for (const category of sortedCategories) {
-                const itemToDel = groupedItems[category].find((i) => i.id === itemId)
+                const itemToDel = groupedItems[category].find(
+                    (i) => i.id === itemId
+                )
                 if (itemToDel) {
                     onDeleteRequest(itemToDel)
                     break
@@ -99,24 +113,31 @@ export function ProductGridView({
         }
     }
 
-    const handleItemPointerDown = (itemId: string, event: React.PointerEvent<HTMLDivElement>) => {
+    const handleItemPointerDown = (
+        itemId: string,
+        event: React.PointerEvent<HTMLDivElement>
+    ) => {
         if (event.pointerType !== 'touch') return
         event.currentTarget.setPointerCapture(event.pointerId)
         beginSwipe(itemId, event.pointerId, event.clientX, event.clientY)
     }
 
-    const handleItemPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const handleItemPointerMove = (
+        event: React.PointerEvent<HTMLDivElement>
+    ) => {
         if (event.pointerType !== 'touch') return
         if (swipeSessionRef.current?.pointerId !== event.pointerId) return
         updateSwipe(event.clientX, event.clientY)
     }
 
-    const handleItemPointerUp = async (event: React.PointerEvent<HTMLDivElement>) => {
+    const handleItemPointerUp = async (
+        event: React.PointerEvent<HTMLDivElement>
+    ) => {
         if (event.pointerType !== 'touch') return
         if (swipeSessionRef.current?.pointerId !== event.pointerId) return
         try {
             event.currentTarget.releasePointerCapture(event.pointerId)
-        } catch { }
+        } catch {}
         await endSwipe()
     }
 
@@ -139,9 +160,15 @@ export function ProductGridView({
                     >
                         <div className="flex items-center gap-2">
                             {expandedCategories[category] ? (
-                                <ChevronDown size={20} className="text-slate-400" />
+                                <ChevronDown
+                                    size={20}
+                                    className="text-slate-400"
+                                />
                             ) : (
-                                <ChevronRight size={20} className="text-slate-400" />
+                                <ChevronRight
+                                    size={20}
+                                    className="text-slate-400"
+                                />
                             )}
                             <h4 className="font-bold text-slate-700 dark:text-slate-300">
                                 {category}
@@ -170,7 +197,9 @@ export function ProductGridView({
                                                 onDeleteRequest(item)
                                             }}
                                             className="p-2 bg-white/90 dark:bg-slate-800/90 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-full shadow-sm backdrop-blur-sm border border-slate-200 dark:border-slate-700 transition-colors"
-                                            title={t('fridges.detail.deleteProductTooltip')}
+                                            title={t(
+                                                'fridges.detail.deleteProductTooltip'
+                                            )}
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -179,7 +208,10 @@ export function ProductGridView({
                                     <div
                                         className="absolute inset-y-0 right-0 w-20 flex items-center justify-center rounded-r-2xl bg-rose-500/95 text-white opacity-0 transition-opacity"
                                         aria-hidden="true"
-                                        style={{ opacity: swipeItemId === item.id ? 1 : 0 }}
+                                        style={{
+                                            opacity:
+                                                swipeItemId === item.id ? 1 : 0,
+                                        }}
                                     >
                                         <div className="flex flex-col items-center gap-1 text-[10px] font-semibold uppercase tracking-wider">
                                             <Trash2 size={16} />
@@ -188,31 +220,51 @@ export function ProductGridView({
                                     </div>
                                     <div
                                         onClick={() => handleItemClick(item)}
-                                        onPointerDown={(event) => handleItemPointerDown(item.id!, event)}
+                                        onPointerDown={(event) =>
+                                            handleItemPointerDown(
+                                                item.id!,
+                                                event
+                                            )
+                                        }
                                         onPointerMove={handleItemPointerMove}
                                         onPointerUp={handleItemPointerUp}
                                         onPointerCancel={handleItemPointerUp}
                                         className={`group p-3 cursor-pointer active:scale-[0.98] flex items-center gap-3 ${swipeItemId === item.id ? 'touch-none' : ''}`}
                                         style={{
-                                            transform: swipeItemId === item.id ? `translateX(${swipeOffset}px)` : undefined,
-                                            transition: swipeItemId === item.id ? 'none' : 'transform 180ms ease',
+                                            transform:
+                                                swipeItemId === item.id
+                                                    ? `translateX(${swipeOffset}px)`
+                                                    : undefined,
+                                            transition:
+                                                swipeItemId === item.id
+                                                    ? 'none'
+                                                    : 'transform 180ms ease',
                                             touchAction: 'pan-y',
-                                            willChange: swipeItemId === item.id ? 'transform' : undefined,
-                                            backgroundColor: 'var(--card)'
+                                            willChange:
+                                                swipeItemId === item.id
+                                                    ? 'transform'
+                                                    : undefined,
+                                            backgroundColor: 'var(--card)',
                                         }}
                                     >
                                         <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">
                                             {item.product?.image_url ? (
                                                 <Image
                                                     src={item.product.image_url}
-                                                    alt={item.product.product_name}
+                                                    alt={
+                                                        item.product
+                                                            .product_name
+                                                    }
                                                     width={56}
                                                     height={56}
                                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex flex-col items-center justify-center text-[9px] text-slate-300 dark:text-slate-600 p-1 text-center font-bold uppercase leading-tight">
-                                                    <ChefHat size={16} className="mb-0.5" />
+                                                    <ChefHat
+                                                        size={16}
+                                                        className="mb-0.5"
+                                                    />
                                                     {t('productModal.noImage')}
                                                 </div>
                                             )}

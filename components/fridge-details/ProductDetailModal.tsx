@@ -204,16 +204,28 @@ export function ProductDetailModal({
                                             if (!onExpiryDateChange) return
                                             setSavingExpiryDate(true)
                                             try {
-                                                await onExpiryDateChange(itemId, fridgeId, val)
-                                                notify.success('Ablaufdatum aktualisiert')
-                                            } catch (error) {
-                                                notify.error('Fehler beim Aktualisieren')
+                                                await onExpiryDateChange(
+                                                    itemId,
+                                                    fridgeId,
+                                                    val
+                                                )
+                                                notify.success(
+                                                    'Ablaufdatum aktualisiert'
+                                                )
+                                            } catch {
+                                                notify.error(
+                                                    'Fehler beim Aktualisieren'
+                                                )
                                             } finally {
                                                 setSavingExpiryDate(false)
                                             }
                                         }}
                                         placeholder="Ablaufdatum wählen"
-                                        min={new Date().toISOString().split('T')[0]}
+                                        min={
+                                            new Date()
+                                                .toISOString()
+                                                .split('T')[0]
+                                        }
                                         disabled={savingExpiryDate}
                                         className="w-full sm:w-64"
                                     />

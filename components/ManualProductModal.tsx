@@ -111,8 +111,8 @@ export function ManualProductModal({
                 origin_country: '',
                 sold_in_countries: '',
                 dietary_flags: {
-                    vegan: data.vegan ? 'en:vegan' : null,
-                    vegetarian: data.vegetarian ? 'en:vegetarian' : null,
+                    vegan: data.vegan ? true : null,
+                    vegetarian: data.vegetarian ? true : null,
                     palm_oil_free: null,
                 },
                 nutriments: {
@@ -239,21 +239,26 @@ export function ManualProductModal({
                         />
                     </FormField>
 
-                    
                     <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
                         <button
                             type="button"
                             onClick={() => setShowAdvanced(!showAdvanced)}
                             className="flex items-center justify-between w-full p-4 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium text-slate-700 dark:text-slate-300"
                         >
-                            {t('manualProduct.advancedData', { defaultMessage: 'Health & Nutrition Data' })}
-                            <ChevronDown size={18} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                            {t('manualProduct.advancedData')}
+                            <ChevronDown
+                                size={18}
+                                className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                            />
                         </button>
-                        
+
                         {showAdvanced && (
                             <div className="p-4 space-y-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <FormField label={t('scanner.nutriScore')} error={errors.nutriscore_grade?.message}>
+                                    <FormField
+                                        label={t('scanner.nutriScore')}
+                                        error={errors.nutriscore_grade?.message}
+                                    >
                                         <Controller
                                             control={control}
                                             name="nutriscore_grade"
@@ -262,12 +267,30 @@ export function ManualProductModal({
                                                     value={field.value ?? ''}
                                                     onChange={field.onChange}
                                                     options={[
-                                                        { value: '', label: '-' },
-                                                        { value: 'A', label: 'A' },
-                                                        { value: 'B', label: 'B' },
-                                                        { value: 'C', label: 'C' },
-                                                        { value: 'D', label: 'D' },
-                                                        { value: 'E', label: 'E' }
+                                                        {
+                                                            value: '',
+                                                            label: '-',
+                                                        },
+                                                        {
+                                                            value: 'A',
+                                                            label: 'A',
+                                                        },
+                                                        {
+                                                            value: 'B',
+                                                            label: 'B',
+                                                        },
+                                                        {
+                                                            value: 'C',
+                                                            label: 'C',
+                                                        },
+                                                        {
+                                                            value: 'D',
+                                                            label: 'D',
+                                                        },
+                                                        {
+                                                            value: 'E',
+                                                            label: 'E',
+                                                        },
                                                     ]}
                                                 />
                                             )}
@@ -275,44 +298,128 @@ export function ManualProductModal({
                                     </FormField>
                                     <div className="flex flex-col justify-center space-y-2 mt-2">
                                         <label className="flex items-center gap-2 cursor-pointer">
-                                            <input type="checkbox" {...register('vegan')} className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('scanner.flags.vegan')}</span>
+                                            <input
+                                                type="checkbox"
+                                                {...register('vegan')}
+                                                className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                {t('scanner.flags.vegan')}
+                                            </span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer">
-                                            <input type="checkbox" {...register('vegetarian')} className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('scanner.flags.vegetarian')}</span>
+                                            <input
+                                                type="checkbox"
+                                                {...register('vegetarian')}
+                                                className="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                {t('scanner.flags.vegetarian')}
+                                            </span>
                                         </label>
                                     </div>
                                 </div>
-                                
-                                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-2">{t('scanner.nutritionTitle')}</h4>
+
+                                <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-2">
+                                    {t('scanner.nutritionTitle')}
+                                </h4>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <FormField label={t('scanner.energy')} error={errors.energy_kcal?.message}>
-                                        <Input type="number" min="0" step="0.1" {...register('energy_kcal', { valueAsNumber: true })} />
+                                    <FormField
+                                        label={t('scanner.energy')}
+                                        error={errors.energy_kcal?.message}
+                                    >
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            {...register('energy_kcal', {
+                                                valueAsNumber: true,
+                                            })}
+                                        />
                                     </FormField>
-                                    <FormField label={t('scanner.fat')} error={errors.fat?.message}>
-                                        <Input type="number" min="0" step="0.1" {...register('fat', { valueAsNumber: true })} />
+                                    <FormField
+                                        label={t('scanner.fat')}
+                                        error={errors.fat?.message}
+                                    >
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            {...register('fat', {
+                                                valueAsNumber: true,
+                                            })}
+                                        />
                                     </FormField>
-                                    <FormField label={t('scanner.saturatedFat')} error={errors.saturated_fat?.message}>
-                                        <Input type="number" min="0" step="0.1" {...register('saturated_fat', { valueAsNumber: true })} />
+                                    <FormField
+                                        label={t('scanner.saturatedFat')}
+                                        error={errors.saturated_fat?.message}
+                                    >
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            {...register('saturated_fat', {
+                                                valueAsNumber: true,
+                                            })}
+                                        />
                                     </FormField>
-                                    <FormField label={t('scanner.carbohydrates')} error={errors.carbohydrates?.message}>
-                                        <Input type="number" min="0" step="0.1" {...register('carbohydrates', { valueAsNumber: true })} />
+                                    <FormField
+                                        label={t('scanner.carbohydrates')}
+                                        error={errors.carbohydrates?.message}
+                                    >
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            {...register('carbohydrates', {
+                                                valueAsNumber: true,
+                                            })}
+                                        />
                                     </FormField>
-                                    <FormField label={t('scanner.sugars')} error={errors.sugars?.message}>
-                                        <Input type="number" min="0" step="0.1" {...register('sugars', { valueAsNumber: true })} />
+                                    <FormField
+                                        label={t('scanner.sugars')}
+                                        error={errors.sugars?.message}
+                                    >
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            {...register('sugars', {
+                                                valueAsNumber: true,
+                                            })}
+                                        />
                                     </FormField>
-                                    <FormField label={t('scanner.proteins')} error={errors.proteins?.message}>
-                                        <Input type="number" min="0" step="0.1" {...register('proteins', { valueAsNumber: true })} />
+                                    <FormField
+                                        label={t('scanner.proteins')}
+                                        error={errors.proteins?.message}
+                                    >
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            {...register('proteins', {
+                                                valueAsNumber: true,
+                                            })}
+                                        />
                                     </FormField>
-                                    <FormField label={t('scanner.salt')} error={errors.salt?.message}>
-                                        <Input type="number" min="0" step="0.1" {...register('salt', { valueAsNumber: true })} />
+                                    <FormField
+                                        label={t('scanner.salt')}
+                                        error={errors.salt?.message}
+                                    >
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            {...register('salt', {
+                                                valueAsNumber: true,
+                                            })}
+                                        />
                                     </FormField>
                                 </div>
                             </div>
                         )}
                     </div>
-<div className="pt-2">
+                    <div className="pt-2">
                         <Button
                             type="submit"
                             disabled={isSubmitting || !isValid}

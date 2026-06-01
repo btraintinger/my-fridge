@@ -110,8 +110,17 @@ export function ScannedProductsList({
                                         className="h-8 py-1 px-2 min-h-0 text-xs w-36"
                                         placeholder="Ablaufdatum"
                                         value={item.expiryDate || ''}
-                                        onChange={(val) => onUpdateExpiryDate(item.barcode, val)}
-                                        min={new Date().toISOString().split('T')[0]}
+                                        onChange={(val) =>
+                                            onUpdateExpiryDate(
+                                                item.barcode,
+                                                val
+                                            )
+                                        }
+                                        min={
+                                            new Date()
+                                                .toISOString()
+                                                .split('T')[0]
+                                        }
                                     />
                                 </div>
                             )}

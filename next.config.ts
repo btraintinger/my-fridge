@@ -8,7 +8,6 @@ const firebaseAuthDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
 
 const nextConfig: NextConfig = {
     // Allows Turbopack to serve dev resources to mobile devices on the network
-    // @ts-expect-error - Next.js 16 expects this for mobile dev, but types may lag
     allowedDevOrigins: ['192.168.0.175:3000', '192.168.0.175'],
     images: {
         remotePatterns: [

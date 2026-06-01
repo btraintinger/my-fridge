@@ -273,7 +273,7 @@ export function ScannerModal({
                 }
             })()
         },
-        [isOpen, stopScanner, t]
+        [isOpen, stopScanner, t, isMultiScan]
     )
 
     const switchCamera = useCallback(() => {

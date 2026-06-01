@@ -1,2 +1,2 @@
 import type { NextConfig } from 'next'
-const config: NextConfig = { allowedDevOrigins: ['foo'] }
+export const config: NextConfig = { allowedDevOrigins: ['foo'] }

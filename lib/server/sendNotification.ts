@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server'
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore'
 import type { NotificationDoc, NotificationPreferences } from '../types'
 import { routing } from '../../i18n/routing'
 import { adminAuth, adminMessaging } from './firebaseAdmin'
@@ -86,7 +87,7 @@ export async function sendToUser(
 
     if (tokensSnap.empty) return
 
-    const tokens = tokensSnap.docs.map((d) => d.id)
+    const tokens = tokensSnap.docs.map((d: QueryDocumentSnapshot) => d.id)
 
     // Send in batches of 500 (Firebase hard limit)
     for (let i = 0; i < tokens.length; i += 500) {
@@ -108,15 +109,17 @@ export async function sendToUser(
 
         // Clean up dead tokens
         const deletes: Promise<FirebaseFirestore.WriteResult>[] = []
-        response.responses.forEach((r, idx) => {
-            if (
-                !r.success &&
-                r.error?.code &&
-                DEAD_TOKEN_CODES.has(r.error.code)
-            ) {
-                deletes.push(userFcmTokenAdminRef(uid, batch[idx]).delete())
+        response.responses.forEach(
+            (r: (typeof response.responses)[number], idx: number) => {
+                if (
+                    !r.success &&
+                    r.error?.code &&
+                    DEAD_TOKEN_CODES.has(r.error.code)
+                ) {
+                    deletes.push(userFcmTokenAdminRef(uid, batch[idx]).delete())
+                }
             }
-        })
+        )
         await Promise.all(deletes)
     }
 }

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { subscribeToUserPreferences, updateUserPreferences } from '@/lib/services/userService'
+import {
+    subscribeToUserPreferences,
+    updateUserPreferences,
+} from '@/lib/services/userService'
 import type { UserPreferences, DietaryPreferences } from '@/lib/types'
 
 export function useUserPreferences() {
@@ -12,7 +15,6 @@ export function useUserPreferences() {
         if (!user) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setPreferences(null)
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(false)
             return
         }
@@ -32,7 +34,9 @@ export function useUserPreferences() {
         return () => unsubscribe()
     }, [user])
 
-    const updateDietaryPreferences = async (dietaryPreferences: Partial<DietaryPreferences>) => {
+    const updateDietaryPreferences = async (
+        dietaryPreferences: Partial<DietaryPreferences>
+    ) => {
         if (!user) return
 
         const newDietary = {
@@ -40,7 +44,9 @@ export function useUserPreferences() {
             ...dietaryPreferences,
         }
 
-        await updateUserPreferences(user.uid, { dietaryPreferences: newDietary as DietaryPreferences })
+        await updateUserPreferences(user.uid, {
+            dietaryPreferences: newDietary as DietaryPreferences,
+        })
     }
 
     return {
