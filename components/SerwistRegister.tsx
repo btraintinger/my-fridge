@@ -36,7 +36,7 @@ export function SerwistRegister({ children }: { children: ReactNode }) {
             register={true}
             cacheOnNavigation={true}
             reloadOnOnline={false}
-            disable={false}
+            disable={process.env.NODE_ENV === 'development'}
         >
             {children}
         </SerwistProvider>

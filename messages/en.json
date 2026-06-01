@@ -334,7 +334,9 @@
         "errors": {
             "offline": "Only previously saved products are available offline.",
             "notFound": "Product not found. Please add manually.",
-            "searchFailed": "Error searching product."
+            "searchFailed": "Error searching product.",
+            "alreadyScanned": "Product already scanned",
+            "addFailed": "Failed to add products"
         },
         "modal": {
             "title": "Scanner",
@@ -347,8 +349,11 @@
             "flashOn": "Flash on",
             "flashOff": "Flash off",
             "switchLens": "Switch lens",
-            "cancel": "Cancel"
-        }
+            "cancel": "Cancel",
+            "complete": "Done"
+        },
+        "multiScan": "Multi-Scan",
+        "multiScanReview": "Scanned Products"
     },
     "manualProduct": {
         "title": "Add product manually",
@@ -443,6 +448,27 @@
             "notifications": {
                 "title": "Notifications",
                 "description": "Manage push notification preferences."
+            },
+            "dietary": {
+                "title": "Dietary & Allergies",
+                "description": "Manage your dietary preferences for product warnings.",
+                "options": {
+                    "vegan": "Vegan",
+                    "vegetarian": "Vegetarian",
+                    "glutenFree": "Gluten-Free",
+                    "lactoseFree": "Lactose-Free",
+                    "nutFree": "Nut-Free",
+                    "kosher": "Kosher",
+                    "halal": "Halal",
+                    "diabetes": "Diabetes"
+                },
+                "allergies": {
+                    "title": "Custom Allergies",
+                    "placeholder": "e.g. Shellfish, Peanuts...",
+                    "add": "Add",
+                    "remove": "Remove",
+                    "empty": "No custom allergies added yet."
+                }
             }
         },
         "profile": {

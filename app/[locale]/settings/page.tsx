@@ -21,6 +21,7 @@ import { PasswordChangeModal } from '@/components/settings/PasswordChangeModal'
 import { ProfileSummaryCard } from '@/components/settings/ProfileSummaryCard'
 import { ThemePreferenceCard } from '@/components/settings/ThemePreferenceCard'
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
+import { DietaryPreferencesForm } from '@/components/settings/DietaryPreferencesForm'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { auth } from '@/lib/firebase'
@@ -100,6 +101,14 @@ export default function Settings() {
                         darkMode={darkMode}
                         onToggle={() => void toggleDarkMode()}
                     />
+                </section>
+
+                <section className="space-y-3">
+                    <SectionHeading
+                        title={t('sections.dietary.title', { defaultMessage: 'Dietary & Allergies' })}
+                        description={t('sections.dietary.description', { defaultMessage: 'Manage your dietary preferences for product warnings.' })}
+                    />
+                    <DietaryPreferencesForm />
                 </section>
 
                 <section className="space-y-3">

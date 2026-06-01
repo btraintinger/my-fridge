@@ -100,12 +100,25 @@ export const NotificationPreferencesSchema = z.object({
     expirationLeadDays: z.number(),
 })
 
+export const DietaryPreferencesSchema = z.object({
+    vegan: z.boolean().default(false),
+    vegetarian: z.boolean().default(false),
+    glutenFree: z.boolean().default(false),
+    lactoseFree: z.boolean().default(false),
+    nutFree: z.boolean().default(false),
+    kosher: z.boolean().default(false),
+    halal: z.boolean().default(false),
+    diabetes: z.boolean().default(false),
+    allergies: z.array(z.string()).default([]),
+})
+
 export const UserPreferencesSchema = z.object({
     userId: z.string(),
     darkMode: z.boolean().default(false),
     locale: z.enum(['en', 'de']).optional(),
     updatedAt: TimestampType.optional(),
     notificationPreferences: NotificationPreferencesSchema.optional(),
+    dietaryPreferences: DietaryPreferencesSchema.optional(),
 })
 
 export const FcmTokenDocSchema = z.object({
@@ -138,6 +151,7 @@ export type ShoppingListItem = z.infer<typeof ShoppingListItemSchema>
 export type NotificationPreferences = z.infer<
     typeof NotificationPreferencesSchema
 >
+export type DietaryPreferences = z.infer<typeof DietaryPreferencesSchema>
 export type UserPreferences = z.infer<typeof UserPreferencesSchema>
 export type FcmTokenDoc = z.infer<typeof FcmTokenDocSchema>
 export type NotificationDoc = z.infer<typeof NotificationDocSchema>

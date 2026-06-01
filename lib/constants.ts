@@ -8,17 +8,17 @@ export const COLLECTIONS = {
 } as const
 
 export const NUTRI_GRADES = [
-    { grade: 'a', bg: 'bg-green-500', label: 'A' },
-    { grade: 'b', bg: 'bg-lime-500', label: 'B' },
-    { grade: 'c', bg: 'bg-yellow-400', label: 'C' },
-    { grade: 'd', bg: 'bg-orange-500', label: 'D' },
-    { grade: 'e', bg: 'bg-red-500', label: 'E' },
+    { grade: 'a', bg: 'bg-[#108c47]', label: 'A' },
+    { grade: 'b', bg: 'bg-[#9ace21]', label: 'B' },
+    { grade: 'c', bg: 'bg-[#fcb514]', label: 'C' },
+    { grade: 'd', bg: 'bg-[#ee8100]', label: 'D' },
+    { grade: 'e', bg: 'bg-[#e63e1b]', label: 'E' },
 ] as const
 
 export const GRADE_COLORS: Record<string, string> = {
-    a: 'bg-green-500',
-    b: 'bg-lime-500',
-    c: 'bg-yellow-400',
-    d: 'bg-orange-500',
-    e: 'bg-red-500',
+    a: 'bg-[#108c47]',
+    b: 'bg-[#9ace21]',
+    c: 'bg-[#fcb514]',
+    d: 'bg-[#ee8100]',
+    e: 'bg-[#e63e1b]',
 }

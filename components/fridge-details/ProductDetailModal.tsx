@@ -1,11 +1,12 @@
 'use client'
 
-import { AlertCircle, ChefHat, Info, ShoppingCart, Trash2, X } from 'lucide-react'
+import { AlertCircle, ChefHat, Info, Trash2, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { NutriScoreBadge } from './NutriScoreComponents'
+import { DatePicker } from '../ui/DatePicker'
 import type { Product } from '@/lib/types'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import { createItemQuantitySchema } from '@/lib/validations'
@@ -15,6 +16,7 @@ import Image from 'next/image'
 interface ProductDetailModalProps {
     product: Product
     quantity?: number
+    expiryDate?: string
     itemId?: string
     fridgeId?: string
     onQuantityChange?: (
@@ -22,8 +24,12 @@ interface ProductDetailModalProps {
         fridgeId: string,
         quantity: number
     ) => Promise<void>
+    onExpiryDateChange?: (
+        itemId: string,
+        fridgeId: string,
+        expiryDate: string
+    ) => Promise<void>
     onDelete?: (itemId: string, fridgeId: string) => Promise<void>
-    onAddToShoppingList?: () => Promise<void>
     onClose: () => void
 }
 
@@ -56,11 +62,12 @@ function FlagBadge({
 export function ProductDetailModal({
     product,
     quantity = 1,
+    expiryDate = '',
     itemId,
     fridgeId,
     onQuantityChange,
+    onExpiryDateChange,
     onDelete,
-    onAddToShoppingList,
     onClose,
 }: ProductDetailModalProps) {
     const t = useTranslations()
@@ -68,7 +75,7 @@ export function ProductDetailModal({
     const [editingQuantity, setEditingQuantity] = useState(false)
     const [quantityDraft, setQuantityDraft] = useState(String(quantity))
     const [savingQuantity, setSavingQuantity] = useState(false)
-    const [addingToList, setAddingToList] = useState(false)
+    const [savingExpiryDate, setSavingExpiryDate] = useState(false)
     const itemQuantitySchema = useMemo(() => createItemQuantitySchema(t), [t])
 
     const saveQuantity = async () => {
@@ -184,6 +191,33 @@ export function ProductDetailModal({
                                         count: quantity,
                                     })}
                                 </button>
+                            )}
+
+                            {itemId && fridgeId && (
+                                <div className="mt-4 pt-4 border-t border-emerald-200/50 dark:border-emerald-900/50">
+                                    <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
+                                        Ablaufdatum (optional)
+                                    </h3>
+                                    <DatePicker
+                                        value={expiryDate}
+                                        onChange={async (val) => {
+                                            if (!onExpiryDateChange) return
+                                            setSavingExpiryDate(true)
+                                            try {
+                                                await onExpiryDateChange(itemId, fridgeId, val)
+                                                notify.success('Ablaufdatum aktualisiert')
+                                            } catch (error) {
+                                                notify.error('Fehler beim Aktualisieren')
+                                            } finally {
+                                                setSavingExpiryDate(false)
+                                            }
+                                        }}
+                                        placeholder="Ablaufdatum wählen"
+                                        min={new Date().toISOString().split('T')[0]}
+                                        disabled={savingExpiryDate}
+                                        className="w-full sm:w-64"
+                                    />
+                                </div>
                             )}
                         </div>
                     )}
@@ -383,27 +417,6 @@ export function ProductDetailModal({
                                 {product.ingredients}
                             </p>
                         </div>
-                    )}
-
-                    {onAddToShoppingList && (
-                        <Button
-                            onClick={async () => {
-                                setAddingToList(true)
-                                try {
-                                    await onAddToShoppingList()
-                                } finally {
-                                    setAddingToList(false)
-                                }
-                            }}
-                            disabled={addingToList}
-                            className="w-full h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 border-emerald-200 dark:border-emerald-900/50"
-                            variant="outline"
-                        >
-                            <ShoppingCart size={18} className="mr-2" />
-                            {addingToList
-                                ? t('common.saving')
-                                : t('productModal.addToShoppingList')}
-                        </Button>
                     )}
 
                     <div className="flex gap-3">

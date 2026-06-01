@@ -334,7 +334,9 @@
         "errors": {
             "offline": "Offline sind nur bereits gespeicherte Produkte verfügbar.",
             "notFound": "Produkt nicht gefunden. Bitte manuell anlegen.",
-            "searchFailed": "Fehler bei der Produktsuche."
+            "searchFailed": "Fehler bei der Produktsuche.",
+            "alreadyScanned": "Produkt bereits gescannt",
+            "addFailed": "Fehler beim Hinzufügen"
         },
         "modal": {
             "title": "Scanner",
@@ -347,8 +349,11 @@
             "flashOn": "Blitz An",
             "flashOff": "Blitz Aus",
             "switchLens": "Linse wechseln",
-            "cancel": "Abbrechen"
-        }
+            "cancel": "Abbrechen",
+            "complete": "Fertig"
+        },
+        "multiScan": "Multi-Scan",
+        "multiScanReview": "Gescannte Produkte"
     },
     "manualProduct": {
         "title": "Produkt manuell anlegen",
@@ -443,6 +448,27 @@
             "notifications": {
                 "title": "Benachrichtigungen",
                 "description": "Benachrichtigungseinstellungen verwalten."
+            },
+            "dietary": {
+                "title": "Ernährung & Allergien",
+                "description": "Verwalte deine Ernährungspräferenzen für Produktwarnungen.",
+                "options": {
+                    "vegan": "Vegan",
+                    "vegetarian": "Vegetarisch",
+                    "glutenFree": "Glutenfrei",
+                    "lactoseFree": "Laktosefrei",
+                    "nutFree": "Nussfrei",
+                    "kosher": "Koscher",
+                    "halal": "Halal",
+                    "diabetes": "Diabetes"
+                },
+                "allergies": {
+                    "title": "Eigene Allergien",
+                    "placeholder": "z.B. Erdnüsse, Schalentiere...",
+                    "add": "Hinzufügen",
+                    "remove": "Entfernen",
+                    "empty": "Noch keine eigenen Allergien hinzugefügt."
+                }
             }
         },
         "profile": {

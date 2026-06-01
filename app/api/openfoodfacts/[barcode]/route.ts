@@ -218,6 +218,10 @@ export async function GET(
         )
 
         if (error) {
+            const err = error as any
+            if (err?.status === 0 || err?.status_verbose === 'product not found') {
+                return NextResponse.json({ product: null })
+            }
             console.error('Open Food Facts SDK error:', error)
             return NextResponse.json({ product: null }, { status: 502 })
         }
