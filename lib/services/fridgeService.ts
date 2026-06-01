@@ -30,6 +30,7 @@ import { normalizeGrade } from '../utils'
 
 export type NewItemOptions = {
     quantity?: number
+    unit?: string
     expiryDate?: string
     notes?: string
 }
@@ -38,9 +39,11 @@ export function newItemPayload(product: Product, options: NewItemOptions = {}) {
     // Strip cache metadata before embedding — it only makes sense on /products docs.
     const embedded = { ...product }
     delete embedded.updatedAt
+    const unit = options.unit ?? product.unit
     return {
         product: embedded,
         quantity: options.quantity || 1,
+        ...(unit ? { unit } : {}),
         ...(options.expiryDate && { expiryDate: options.expiryDate }),
         ...(options.notes && { notes: options.notes }),
         addedAt: serverTimestamp(),
@@ -221,4 +224,15 @@ export async function updateItemQuantity(
         if (delta) batch.update(fridgeDoc(fridgeId), delta)
         await batch.commit()
     }, 'Menge aktualisiert')
+}
+
+export async function updateItemUnit(
+    fridgeId: string,
+    itemId: string,
+    unit: string
+) {
+    return runFirebaseAction(
+        () => updateDoc(itemDoc(fridgeId, itemId), { unit }),
+        'Einheit aktualisiert'
+    )
 }

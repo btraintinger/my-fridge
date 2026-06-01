@@ -9,6 +9,7 @@ import {
     shareFridge,
     unshareFridge,
     updateItemQuantity,
+    updateItemUnit,
 } from '@/lib/services/fridgeService'
 import { useFridge } from '@/hooks/useFridges'
 import { Button } from '@/components/ui/Button'
@@ -142,6 +143,9 @@ export default function FridgeDetail({
     const [savingQuantityItemId, setSavingQuantityItemId] = useState<
         string | null
     >(null)
+    const [editingUnitItemId, setEditingUnitItemId] = useState<string | null>(null)
+    const [unitDraft, setUnitDraft] = useState('')
+    const [savingUnitItemId, setSavingUnitItemId] = useState<string | null>(null)
     const [swipeItemId, setSwipeItemId] = useState<string | null>(null)
     const [swipeOffset, setSwipeOffset] = useState(0)
     const swipeOffsetRef = useRef(0)
@@ -343,8 +347,24 @@ export default function FridgeDetail({
 
     const addToShoppingList = async (item: FridgeItem) => {
         if (!user) return
-        await addShoppingItem(id, user.uid, item.product.product_name)
+        const unit = item.unit ?? item.product.unit
+        await addShoppingItem(id, user.uid, item.product.product_name, { unit })
         notify.success(t('fridges.detail.addedToShoppingList'))
+    }
+
+    const startUnitEdit = (item: FridgeItem) => {
+        setEditingUnitItemId(item.id ?? null)
+        setUnitDraft(item.unit ?? item.product.unit ?? '')
+    }
+
+    const saveUnit = async (itemId: string) => {
+        setSavingUnitItemId(itemId)
+        try {
+            await updateItemUnit(id, itemId, unitDraft.trim())
+            setEditingUnitItemId(null)
+        } finally {
+            setSavingUnitItemId(null)
+        }
     }
 
     const deleteFridgeItem = async (itemId: string) => {
@@ -1072,6 +1092,46 @@ export default function FridgeDetail({
                                                                                         }
                                                                                     )}
                                                                                 </button>
+                                                                                {editingUnitItemId === item.id ? (
+                                                                                    <div className="flex items-center gap-1">
+                                                                                        <Input
+                                                                                            autoFocus
+                                                                                            type="text"
+                                                                                            value={unitDraft}
+                                                                                            onChange={(e) => setUnitDraft(e.target.value)}
+                                                                                            onKeyDown={(e) => {
+                                                                                                if (e.key === 'Enter') { e.preventDefault(); saveUnit(item.id!) }
+                                                                                                if (e.key === 'Escape') setEditingUnitItemId(null)
+                                                                                            }}
+                                                                                            placeholder={t('fridges.detail.unitPlaceholder')}
+                                                                                            className="h-7 w-24 text-xs"
+                                                                                        />
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            className="h-7 px-2 text-xs"
+                                                                                            disabled={savingUnitItemId === item.id}
+                                                                                            onClick={() => saveUnit(item.id!)}
+                                                                                        >
+                                                                                            {t('fridges.detail.saveUnit')}
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            variant="outline"
+                                                                                            className="h-7 px-2 text-xs"
+                                                                                            onClick={() => setEditingUnitItemId(null)}
+                                                                                        >
+                                                                                            {t('fridges.detail.cancelQuantity')}
+                                                                                        </Button>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <button
+                                                                                        className="text-xs font-semibold text-violet-700 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/30 border border-violet-200/70 dark:border-violet-900/50 px-2 py-0.5 rounded-md hover:bg-violet-100 dark:hover:bg-violet-950/50 transition-colors whitespace-nowrap"
+                                                                                        onClick={() => startUnitEdit(item)}
+                                                                                        title={t('fridges.detail.unitTooltip')}
+                                                                                    >
+                                                                                        {item.unit ?? item.product.unit ?? t('fridges.detail.unitEmpty')}
+                                                                                    </button>
+                                                                                )}
                                                                                 <NutriScoreBadge
                                                                                     grade={
                                                                                         item

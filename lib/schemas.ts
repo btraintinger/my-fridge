@@ -47,6 +47,7 @@ export const ProductSchema = z.object({
     nutriments: NutrimentsSchema,
     ecoscore_grade: z.string().nullable().default(null),
     category: z.string().default('Sonstiges'),
+    unit: z.string().optional(),
     // Cache metadata — only set by client-side cache writes.
     updatedAt: TimestampType.optional(),
 })
@@ -74,6 +75,7 @@ export const FridgeItemSchema = z.object({
     userId: z.string().optional(),
     addedAt: TimestampType.optional(),
     quantity: z.number().int().positive().optional(),
+    unit: z.string().optional(),
     expiryDate: z.string().optional(),
     notes: z.string().optional(),
     product: ProductSchema,
@@ -86,6 +88,8 @@ export const ShoppingListItemSchema = z.object({
     userId: z.string(),
     checked: z.boolean().default(false),
     createdAt: TimestampType.optional(),
+    quantity: z.number().positive().optional(),
+    unit: z.string().optional(),
 })
 
 export const NotificationPreferencesSchema = z.object({

@@ -190,6 +190,10 @@
             "quantityLabel": "Q: {count}",
             "veganBadge": "Vegan",
             "manualBadge": "Manual",
+            "saveUnit": "OK",
+            "unitPlaceholder": "e.g. 500 g",
+            "unitTooltip": "Edit contents",
+            "unitEmpty": "Contents?",
             "addToShoppingList": "Add to list",
             "addToShoppingListTooltip": "Add to shopping list",
             "addedToShoppingList": "Added to shopping list",
@@ -409,7 +413,12 @@
         "scanTooltip": "Scan product and move to fridge",
         "itemScanTooltip": "Scan to move to fridge",
         "editItemName": "Edit name",
-        "saveItemName": "Save"
+        "saveItemName": "Save",
+        "editDetails": "Edit quantity/unit",
+        "addDetails": "Quantity & unit",
+        "quantityPlaceholder": "Amount",
+        "unitPlaceholder": "Unit",
+        "cancelEdit": "Cancel"
     },
     "settings": {
         "title": "Settings",
