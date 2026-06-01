@@ -6,9 +6,14 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 
 const firebaseAuthDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
 
+const devOrigins =
+    process.env.DEV_ORIGINS?.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean) ?? []
+
 const nextConfig: NextConfig = {
     // Allows Turbopack to serve dev resources to mobile devices on the network
-    allowedDevOrigins: ['192.168.0.175:3000', '192.168.0.175'],
+    allowedDevOrigins: devOrigins,
     images: {
         remotePatterns: [
             {
@@ -38,11 +43,7 @@ const nextConfig: NextConfig = {
     // Server Actions allowed origins allows cross-device requests to mutate data without CSRF errors
     experimental: {
         serverActions: {
-            allowedOrigins: [
-                'localhost:3000',
-                '192.168.0.175:3000',
-                '192.168.0.175',
-            ],
+            allowedOrigins: ['localhost:3000', ...devOrigins],
         },
     },
 }
