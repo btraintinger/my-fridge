@@ -3,11 +3,10 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
-import { ChefHat, Trash2 } from 'lucide-react'
+import { ChefHat, Minus, Plus, Trash2 } from 'lucide-react'
 import type { FridgeItem } from '@/lib/types'
 import { NutriScoreBadge } from '../fridge-details/NutriScoreComponents'
 import { DatePicker } from '../ui/DatePicker'
-import { Input } from '../ui/Input'
 
 interface ProductListViewProps {
     items: FridgeItem[]
@@ -31,9 +30,8 @@ export function ProductListView({
         {}
     )
 
-    const handleQuantityChange = async (itemId: string, val: string) => {
-        const num = parseInt(val, 10)
-        if (isNaN(num) || num < 1) return
+    const handleQuantityChange = async (itemId: string, num: number) => {
+        if (num < 1) return
         setUpdatingItems((prev) => ({ ...prev, [itemId]: true }))
         try {
             await onQuantityChange(itemId, num)
@@ -100,10 +98,10 @@ export function ProductListView({
                         {items.map((item) => (
                             <tr
                                 key={item.id}
-                                className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors group"
+                                className="border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors group align-middle"
                             >
                                 <td
-                                    className="px-4 py-2"
+                                    className="px-4 py-2 align-middle"
                                     onClick={() => onItemClick(item)}
                                 >
                                     <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer">
@@ -124,7 +122,7 @@ export function ProductListView({
                                     </div>
                                 </td>
                                 <td
-                                    className="px-4 py-2 font-medium text-slate-900 dark:text-slate-50 cursor-pointer"
+                                    className="px-4 py-2 align-middle font-medium text-slate-900 dark:text-slate-50 cursor-pointer"
                                     onClick={() => onItemClick(item)}
                                 >
                                     <div
@@ -137,7 +135,7 @@ export function ProductListView({
                                         {item.product.brands || '-'}
                                     </div>
                                 </td>
-                                <td className="px-4 py-2 text-slate-600 dark:text-slate-300">
+                                <td className="px-4 py-2 align-middle text-slate-600 dark:text-slate-300">
                                     <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md text-xs">
                                         {item.product.category ||
                                             t(
@@ -145,28 +143,55 @@ export function ProductListView({
                                             )}
                                     </span>
                                 </td>
-                                <td className="px-4 py-2">
-                                    <Input
-                                        type="number"
-                                        min="1"
-                                        value={item.quantity ?? 1}
-                                        onChange={(e) =>
-                                            handleQuantityChange(
-                                                item.id!,
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={updatingItems[item.id!]}
-                                        className="w-20 h-8 text-center px-1"
-                                    />
+                                <td className="px-4 py-2 align-middle">
+                                    <div className="inline-flex items-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+                                        <button
+                                            type="button"
+                                            aria-label={t('common.decrease')}
+                                            onClick={() =>
+                                                handleQuantityChange(
+                                                    item.id!,
+                                                    (item.quantity ?? 1) - 1
+                                                )
+                                            }
+                                            disabled={
+                                                updatingItems[item.id!] ||
+                                                (item.quantity ?? 1) <= 1
+                                            }
+                                            className="h-8 w-8 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <Minus size={14} />
+                                        </button>
+                                        <div className="h-8 min-w-[2rem] px-2 flex items-center justify-center text-sm font-semibold text-slate-900 dark:text-slate-100 border-x border-slate-200 dark:border-slate-800 tabular-nums">
+                                            {item.quantity ?? 1}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            aria-label={t('common.increase')}
+                                            onClick={() =>
+                                                handleQuantityChange(
+                                                    item.id!,
+                                                    (item.quantity ?? 1) + 1
+                                                )
+                                            }
+                                            disabled={updatingItems[item.id!]}
+                                            className="h-8 w-8 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <Plus size={14} />
+                                        </button>
+                                    </div>
                                 </td>
-                                <td className="px-4 py-2 flex justify-center">
-                                    <NutriScoreBadge
-                                        grade={item.product.nutriscore_grade}
-                                        size="sm"
-                                    />
+                                <td className="px-4 py-2 align-middle text-center">
+                                    <div className="inline-flex">
+                                        <NutriScoreBadge
+                                            grade={
+                                                item.product.nutriscore_grade
+                                            }
+                                            size="sm"
+                                        />
+                                    </div>
                                 </td>
-                                <td className="px-4 py-2">
+                                <td className="px-4 py-2 align-middle">
                                     <DatePicker
                                         value={item.expiryDate || ''}
                                         onChange={(val) =>
@@ -176,7 +201,7 @@ export function ProductListView({
                                         className="h-8 min-w-[140px] text-xs"
                                     />
                                 </td>
-                                <td className="px-4 py-2 text-right">
+                                <td className="px-4 py-2 align-middle text-right">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation()

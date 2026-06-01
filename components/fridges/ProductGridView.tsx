@@ -244,7 +244,6 @@ export function ProductGridView({
                                                 swipeItemId === item.id
                                                     ? 'transform'
                                                     : undefined,
-                                            backgroundColor: 'var(--card)',
                                         }}
                                     >
                                         <div className="w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden">

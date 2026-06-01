@@ -51,8 +51,16 @@ export default function FridgeDetail({
     const [showShare, setShowShare] = useState(false)
     const [shareEmail, setShareEmail] = useState('')
     const [sharing, setSharing] = useState(false)
-    const [selectedItem, setSelectedItem] = useState<FridgeItem | null>(null)
+    const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
     const [itemToDelete, setItemToDelete] = useState<FridgeItem | null>(null)
+
+    const selectedItem = useMemo(
+        () =>
+            selectedItemId
+                ? (items.find((i) => i.id === selectedItemId) ?? null)
+                : null,
+        [items, selectedItemId]
+    )
 
     const shareFridgeSchema = useMemo(() => createShareFridgeSchema(t), [t])
 
@@ -284,7 +292,9 @@ export default function FridgeDetail({
 
                     <FridgeView
                         items={items}
-                        onItemClick={setSelectedItem}
+                        onItemClick={(item) =>
+                            setSelectedItemId(item.id ?? null)
+                        }
                         onDeleteRequest={setItemToDelete}
                         onQuantityChange={async (itemId, quantity) => {
                             const item = items.find((i) => i.id === itemId)
@@ -323,10 +333,10 @@ export default function FridgeDetail({
                         await updateItemExpiryDate(fridgeId, itemId, expiryDate)
                     }}
                     onDelete={async () => {
-                        setSelectedItem(null)
+                        setSelectedItemId(null)
                         setItemToDelete(selectedItem)
                     }}
-                    onClose={() => setSelectedItem(null)}
+                    onClose={() => setSelectedItemId(null)}
                 />
             )}
 

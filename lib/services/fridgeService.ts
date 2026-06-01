@@ -220,7 +220,7 @@ export async function updateItemQuantity(
         const delta = gradeCountDelta(prev.grade, quantity - prev.quantity)
         if (delta) batch.update(fridgeDoc(fridgeId), delta)
         await batch.commit()
-    }, 'Menge aktualisiert')
+    })
 }
 
 export async function updateItemExpiryDate(
@@ -230,7 +230,7 @@ export async function updateItemExpiryDate(
 ) {
     return runFirebaseAction(async () => {
         await updateDoc(itemDoc(fridgeId, itemId), { expiryDate })
-    }, 'Ablaufdatum aktualisiert')
+    })
 }
 
 export async function updateItemUnit(

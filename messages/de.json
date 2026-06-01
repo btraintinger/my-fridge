@@ -21,7 +21,9 @@
         "remove": "Entfernen",
         "edit": "Bearbeiten",
         "oops": "Hoppla",
-        "today": "Heute"
+        "today": "Heute",
+        "increase": "Erhöhen",
+        "decrease": "Verringern"
     },
     "nav": {
         "fridges": "Kühlschränke",
@@ -403,7 +405,11 @@
         "allergens": "Allergene",
         "noAllergens": "Keine angegeben",
         "ingredients": "Zutaten",
-        "addToShoppingList": "Zur Einkaufsliste hinzufügen"
+        "addToShoppingList": "Zur Einkaufsliste hinzufügen",
+        "expiryDateOptional": "Ablaufdatum (optional)",
+        "expiryDatePlaceholder": "Ablaufdatum wählen",
+        "expiryDateUpdated": "Ablaufdatum aktualisiert",
+        "expiryDateUpdateError": "Fehler beim Aktualisieren"
     },
     "shoppingList": {
         "title": "Einkaufsliste",
@@ -453,6 +459,7 @@
             "dietary": {
                 "title": "Ernährung & Allergien",
                 "description": "Verwalte deine Ernährungspräferenzen für Produktwarnungen.",
+                "activeCount": "{count, plural, one {# Präferenz aktiv} other {# Präferenzen aktiv}}",
                 "options": {
                     "vegan": "Vegan",
                     "vegetarian": "Vegetarisch",
@@ -538,6 +545,7 @@
         "notifications": {
             "title": "Push-Benachrichtigungen",
             "description": "Erhalte Benachrichtigungen über Kühlschrankaktivitäten und ablaufende Lebensmittel.",
+            "activeCount": "{count, plural, =0 {Keine Kategorien aktiv} one {# Kategorie aktiv} other {# Kategorien aktiv}}",
             "enable": "Benachrichtigungen aktivieren",
             "disable": "Benachrichtigungen deaktivieren",
             "enabling": "Wird aktiviert…",

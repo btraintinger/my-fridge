@@ -21,7 +21,9 @@
         "remove": "Remove",
         "edit": "Edit",
         "oops": "Oops",
-        "today": "Today"
+        "today": "Today",
+        "increase": "Increase",
+        "decrease": "Decrease"
     },
     "nav": {
         "fridges": "Fridges",
@@ -403,7 +405,11 @@
         "allergens": "Allergens",
         "noAllergens": "None reported",
         "ingredients": "Ingredients",
-        "addToShoppingList": "Add to shopping list"
+        "addToShoppingList": "Add to shopping list",
+        "expiryDateOptional": "Expiry date (optional)",
+        "expiryDatePlaceholder": "Pick expiry date",
+        "expiryDateUpdated": "Expiry date updated",
+        "expiryDateUpdateError": "Failed to update expiry date"
     },
     "shoppingList": {
         "title": "Shopping List",
@@ -453,6 +459,7 @@
             "dietary": {
                 "title": "Dietary & Allergies",
                 "description": "Manage your dietary preferences for product warnings.",
+                "activeCount": "{count, plural, one {# preference active} other {# preferences active}}",
                 "options": {
                     "vegan": "Vegan",
                     "vegetarian": "Vegetarian",
@@ -538,6 +545,7 @@
         "notifications": {
             "title": "Push Notifications",
             "description": "Get notified about fridge activity and expiring items.",
+            "activeCount": "{count, plural, =0 {No categories active} one {# category active} other {# categories active}}",
             "enable": "Enable notifications",
             "disable": "Disable notifications",
             "enabling": "Enabling…",

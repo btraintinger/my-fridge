@@ -1,15 +1,21 @@
 'use client'
 
-import { AlertCircle, ChefHat, Info, Trash2, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+    AlertCircle,
+    ChefHat,
+    Info,
+    Minus,
+    Plus,
+    Trash2,
+    X,
+} from 'lucide-react'
+import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '../ui/Button'
-import { Input } from '../ui/Input'
 import { NutriScoreBadge } from './NutriScoreComponents'
 import { DatePicker } from '../ui/DatePicker'
 import type { Product } from '@/lib/types'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
-import { createItemQuantitySchema } from '@/lib/validations'
 import { notify } from '@/lib/notify'
 import Image from 'next/image'
 
@@ -72,27 +78,15 @@ export function ProductDetailModal({
 }: ProductDetailModalProps) {
     const t = useTranslations()
     const warnings = getNutrimentWarnings(product)
-    const [editingQuantity, setEditingQuantity] = useState(false)
-    const [quantityDraft, setQuantityDraft] = useState(String(quantity))
     const [savingQuantity, setSavingQuantity] = useState(false)
     const [savingExpiryDate, setSavingExpiryDate] = useState(false)
-    const itemQuantitySchema = useMemo(() => createItemQuantitySchema(t), [t])
 
-    const saveQuantity = async () => {
-        if (!itemId || !fridgeId) return
-
-        const parsed = itemQuantitySchema.safeParse({
-            quantity: Number.parseInt(quantityDraft, 10),
-        })
-        if (!parsed.success) {
-            notify.error(parsed.error.issues[0].message)
-            return
-        }
-
+    const commitQuantity = async (next: number) => {
+        if (!itemId || !fridgeId || !onQuantityChange) return
+        if (next < 1 || next === quantity) return
         setSavingQuantity(true)
         try {
-            await onQuantityChange?.(itemId, fridgeId, parsed.data.quantity)
-            setEditingQuantity(false)
+            await onQuantityChange(itemId, fridgeId, next)
         } finally {
             setSavingQuantity(false)
         }
@@ -141,62 +135,50 @@ export function ProductDetailModal({
                     </div>
 
                     {typeof quantity === 'number' && (
-                        <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl p-4 border border-emerald-200/70 dark:border-emerald-900/50">
-                            <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
-                                {t('productModal.inventory')}
-                            </h3>
-                            {editingQuantity ? (
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        type="number"
-                                        min={1}
-                                        step={1}
-                                        value={quantityDraft}
-                                        onChange={(e) =>
-                                            setQuantityDraft(e.target.value)
-                                        }
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                e.preventDefault()
-                                                saveQuantity()
-                                            }
-                                        }}
-                                        className="h-8 w-24 text-sm"
-                                    />
-                                    <Button
-                                        size="sm"
-                                        className="h-8 px-3 text-xs"
-                                        disabled={savingQuantity}
-                                        onClick={saveQuantity}
-                                    >
-                                        {t('common.save')}
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-8 px-3 text-xs"
+                        <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl p-4 border border-emerald-200/70 dark:border-emerald-900/50 space-y-4">
+                            <div>
+                                <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
+                                    {t('productModal.inventory')}
+                                </h3>
+                                <div className="inline-flex items-center gap-0 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
+                                    <button
+                                        type="button"
+                                        aria-label={t('common.decrease')}
                                         onClick={() =>
-                                            setEditingQuantity(false)
+                                            commitQuantity(quantity - 1)
                                         }
+                                        disabled={
+                                            savingQuantity ||
+                                            quantity <= 1 ||
+                                            !onQuantityChange
+                                        }
+                                        className="h-10 w-10 flex items-center justify-center text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                     >
-                                        {t('common.cancel')}
-                                    </Button>
+                                        <Minus size={18} />
+                                    </button>
+                                    <div className="h-10 min-w-[3.5rem] px-3 flex items-center justify-center text-base font-bold text-emerald-900 dark:text-emerald-100 border-x border-emerald-200 dark:border-emerald-900/60 tabular-nums">
+                                        {quantity}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        aria-label={t('common.increase')}
+                                        onClick={() =>
+                                            commitQuantity(quantity + 1)
+                                        }
+                                        disabled={
+                                            savingQuantity || !onQuantityChange
+                                        }
+                                        className="h-10 w-10 flex items-center justify-center text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        <Plus size={18} />
+                                    </button>
                                 </div>
-                            ) : (
-                                <button
-                                    className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 px-3 py-2 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-950/70 transition-colors"
-                                    onClick={() => setEditingQuantity(true)}
-                                >
-                                    {t('productModal.quantity', {
-                                        count: quantity,
-                                    })}
-                                </button>
-                            )}
+                            </div>
 
                             {itemId && fridgeId && (
-                                <div className="mt-4 pt-4 border-t border-emerald-200/50 dark:border-emerald-900/50">
+                                <div className="pt-4 border-t border-emerald-200/50 dark:border-emerald-900/50">
                                     <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
-                                        Ablaufdatum (optional)
+                                        {t('productModal.expiryDateOptional')}
                                     </h3>
                                     <DatePicker
                                         value={expiryDate}
@@ -209,18 +191,19 @@ export function ProductDetailModal({
                                                     fridgeId,
                                                     val
                                                 )
-                                                notify.success(
-                                                    'Ablaufdatum aktualisiert'
-                                                )
                                             } catch {
                                                 notify.error(
-                                                    'Fehler beim Aktualisieren'
+                                                    t(
+                                                        'productModal.expiryDateUpdateError'
+                                                    )
                                                 )
                                             } finally {
                                                 setSavingExpiryDate(false)
                                             }
                                         }}
-                                        placeholder="Ablaufdatum wählen"
+                                        placeholder={t(
+                                            'productModal.expiryDatePlaceholder'
+                                        )}
                                         min={
                                             new Date()
                                                 .toISOString()
