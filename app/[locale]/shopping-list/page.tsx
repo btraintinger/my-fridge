@@ -11,6 +11,7 @@ import {
     subscribeToShoppingList,
     toggleShoppingItem,
     updateShoppingItemName,
+    updateShoppingItemDetails,
 } from '@/lib/services/shoppingListService'
 import { cacheProduct, getCachedProduct } from '@/lib/services/productService'
 import { useFridges } from '@/hooks/useFridges'
@@ -99,6 +100,10 @@ export default function ShoppingList() {
 
     const renameItem = async (itemId: string, name: string) => {
         await updateShoppingItemName(selectedFridge, itemId, name)
+    }
+
+    const updateItemDetails = async (itemId: string, details: { quantity?: number; unit?: string }) => {
+        await updateShoppingItemDetails(selectedFridge, itemId, details)
     }
 
     const handleScan = async (barcode: string) => {
@@ -255,6 +260,7 @@ export default function ShoppingList() {
                                             }}
                                             onDelete={deleteItem}
                                             onRename={renameItem}
+                                        onUpdateDetails={updateItemDetails}
                                         />
                                     ))}
                                 </div>
@@ -278,6 +284,7 @@ export default function ShoppingList() {
                                             }}
                                             onDelete={deleteItem}
                                             onRename={renameItem}
+                                        onUpdateDetails={updateItemDetails}
                                         />
                                     ))}
                                 </div>

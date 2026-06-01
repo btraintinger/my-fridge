@@ -45,7 +45,8 @@ export function subscribeToShoppingList(
 export async function addShoppingItem(
     fridgeId: string,
     userId: string,
-    name: string
+    name: string,
+    options: { quantity?: number; unit?: string } = {}
 ) {
     const result = await runFirebaseAction(() =>
         addDoc(shoppingListCollection(fridgeId), {
@@ -53,6 +54,8 @@ export async function addShoppingItem(
             userId,
             checked: false,
             createdAt: serverTimestamp(),
+            ...(options.quantity != null ? { quantity: options.quantity } : {}),
+            ...(options.unit ? { unit: options.unit } : {}),
         })
     )
     postNotify('shopping-list-activity', { fridgeId, action: 'item_added', itemName: name })
@@ -93,6 +96,16 @@ export async function updateShoppingItemName(
 ) {
     return runFirebaseAction(() =>
         updateDoc(shoppingItemDoc(fridgeId, itemId), { name })
+    )
+}
+
+export async function updateShoppingItemDetails(
+    fridgeId: string,
+    itemId: string,
+    details: { quantity?: number; unit?: string }
+) {
+    return runFirebaseAction(() =>
+        updateDoc(shoppingItemDoc(fridgeId, itemId), details)
     )
 }
 

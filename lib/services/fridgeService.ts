@@ -33,14 +33,17 @@ import { postNotify } from '../notificationsClient'
 
 export type NewItemOptions = {
     quantity?: number
+    unit?: string
     expiryDate?: string
     notes?: string
 }
 
 export function newItemPayload(product: Product, options: NewItemOptions = {}) {
+    const unit = options.unit ?? product.unit
     return {
         productId: product.barcode,
         quantity: options.quantity || 1,
+        ...(unit ? { unit } : {}),
         ...(options.expiryDate && { expiryDate: options.expiryDate }),
         ...(options.notes && { notes: options.notes }),
         addedAt: serverTimestamp(),
@@ -186,5 +189,16 @@ export async function updateItemQuantity(
     return runFirebaseAction(
         () => updateDoc(itemDoc(fridgeId, itemId), { quantity }),
         'Menge aktualisiert'
+    )
+}
+
+export async function updateItemUnit(
+    fridgeId: string,
+    itemId: string,
+    unit: string
+) {
+    return runFirebaseAction(
+        () => updateDoc(itemDoc(fridgeId, itemId), { unit }),
+        'Einheit aktualisiert'
     )
 }

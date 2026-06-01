@@ -188,6 +188,10 @@
             "saveQuantity": "Speichern",
             "cancelQuantity": "Abbrechen",
             "quantityLabel": "M: {count}",
+            "saveUnit": "Speichern",
+            "unitPlaceholder": "z.B. 500 g",
+            "unitTooltip": "Inhalt bearbeiten",
+            "unitEmpty": "Inhalt?",
             "veganBadge": "Vegan",
             "manualBadge": "Manuell",
             "addToShoppingList": "Zur Einkaufsliste",
@@ -410,7 +414,12 @@
         "scanTooltip": "Produkt scannen und in Kühlschrank verschieben",
         "itemScanTooltip": "Scannen, um in Kühlschrank zu verschieben",
         "editItemName": "Name bearbeiten",
-        "saveItemName": "Speichern"
+        "saveItemName": "Speichern",
+        "editDetails": "Menge/Einheit bearbeiten",
+        "addDetails": "Menge & Einheit hinzufügen",
+        "quantityPlaceholder": "Menge",
+        "unitPlaceholder": "Einheit",
+        "cancelEdit": "Abbrechen"
     },
     "settings": {
         "title": "Einstellungen",
