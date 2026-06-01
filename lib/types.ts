@@ -7,5 +7,6 @@ export type {
     FcmTokenDoc,
     NotificationDoc,
     NotificationPreferences,
+    DietaryPreferences,
     UserPreferences,
 } from './schemas'
