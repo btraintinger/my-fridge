@@ -190,6 +190,13 @@
             "quantityLabel": "Q: {count}",
             "veganBadge": "Vegan",
             "manualBadge": "Manual",
+            "saveUnit": "OK",
+            "unitPlaceholder": "e.g. 500 g",
+            "unitTooltip": "Edit contents",
+            "unitEmpty": "Contents?",
+            "addToShoppingList": "Add to list",
+            "addToShoppingListTooltip": "Add to shopping list",
+            "addedToShoppingList": "Added to shopping list",
             "filters": {
                 "allCategories": "All categories",
                 "dairy": "Dairy",
@@ -394,7 +401,8 @@
         "salt": "Salt",
         "allergens": "Allergens",
         "noAllergens": "None reported",
-        "ingredients": "Ingredients"
+        "ingredients": "Ingredients",
+        "addToShoppingList": "Add to shopping list"
     },
     "shoppingList": {
         "title": "Shopping List",
@@ -408,7 +416,14 @@
         "recentlyAdded": "Recently Added",
         "addPlaceholder": "Add an item...",
         "scanTooltip": "Scan product and move to fridge",
-        "itemScanTooltip": "Scan to move to fridge"
+        "itemScanTooltip": "Scan to move to fridge",
+        "editItemName": "Edit name",
+        "saveItemName": "Save",
+        "editDetails": "Edit quantity/unit",
+        "addDetails": "Quantity & unit",
+        "quantityPlaceholder": "Amount",
+        "unitPlaceholder": "Unit",
+        "cancelEdit": "Cancel"
     },
     "settings": {
         "title": "Settings",

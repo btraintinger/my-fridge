@@ -190,6 +190,13 @@
             "quantityLabel": "M: {count}",
             "veganBadge": "Vegan",
             "manualBadge": "Manuell",
+            "saveUnit": "OK",
+            "unitPlaceholder": "z.B. 500 g",
+            "unitTooltip": "Inhalt bearbeiten",
+            "unitEmpty": "Inhalt?",
+            "addToShoppingList": "Zur Einkaufsliste",
+            "addToShoppingListTooltip": "Zur Einkaufsliste hinzufügen",
+            "addedToShoppingList": "Zur Einkaufsliste hinzugefügt",
             "filters": {
                 "allCategories": "Alle Kategorien",
                 "dairy": "Milchprodukte",
@@ -394,7 +401,8 @@
         "salt": "Salz",
         "allergens": "Allergene",
         "noAllergens": "Keine angegeben",
-        "ingredients": "Zutaten"
+        "ingredients": "Zutaten",
+        "addToShoppingList": "Zur Einkaufsliste hinzufügen"
     },
     "shoppingList": {
         "title": "Einkaufsliste",
@@ -408,7 +416,14 @@
         "recentlyAdded": "Zuletzt hinzugefügt",
         "addPlaceholder": "Eintrag hinzufügen...",
         "scanTooltip": "Produkt scannen und in Kühlschrank verschieben",
-        "itemScanTooltip": "Scannen, um in Kühlschrank zu verschieben"
+        "itemScanTooltip": "Scannen, um in Kühlschrank zu verschieben",
+        "editItemName": "Name bearbeiten",
+        "saveItemName": "Speichern",
+        "editDetails": "Menge/Einheit bearbeiten",
+        "addDetails": "Menge & Einheit",
+        "quantityPlaceholder": "Menge",
+        "unitPlaceholder": "Einheit",
+        "cancelEdit": "Abbrechen"
     },
     "settings": {
         "title": "Einstellungen",

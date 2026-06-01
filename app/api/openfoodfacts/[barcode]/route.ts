@@ -24,6 +24,7 @@ const OFF_FIELDS = [
     'ingredients_analysis_tags',
     'nutriments',
     'ecoscore_grade',
+    'quantity',
 ].join(',')
 
 const REQUEST_TIMEOUT_MS = 9000
@@ -242,9 +243,14 @@ export async function GET(
 
         const productName = normalizeOffString(p.product_name)
 
+        const rawUnit = typeof (p as Record<string, unknown>).quantity === 'string'
+            ? ((p as Record<string, unknown>).quantity as string).trim()
+            : undefined
+
         const productData = {
             barcode: normalizedBarcode,
             product_name: productName,
+            ...(rawUnit ? { unit: rawUnit } : {}),
             brands: normalizeOffString(p.brands),
             image_url: normalizeOffString(p.image_front_url),
             nutriscore_grade: normalizeOffString(p.nutriscore_grade),

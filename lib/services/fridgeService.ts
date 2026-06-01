@@ -232,3 +232,14 @@ export async function updateItemExpiryDate(
         await updateDoc(itemDoc(fridgeId, itemId), { expiryDate })
     }, 'Ablaufdatum aktualisiert')
 }
+
+export async function updateItemUnit(
+    fridgeId: string,
+    itemId: string,
+    unit: string
+) {
+    return runFirebaseAction(
+        () => updateDoc(itemDoc(fridgeId, itemId), { unit }),
+        'Einheit aktualisiert'
+    )
+}
