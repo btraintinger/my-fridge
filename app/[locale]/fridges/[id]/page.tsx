@@ -282,7 +282,7 @@ export default function FridgeDetail({
                                     <NutriScoreBadge grade={fridgeNutriScore} />
                                     <span className="text-sm text-slate-500 dark:text-slate-400">
                                         {t('fridges.detail.productsCount', {
-                                            count: filteredAndSortedItems.length,
+                                            count: items.length,
                                         })}
                                     </span>
                                 </div>
@@ -459,7 +459,11 @@ export default function FridgeDetail({
                             <Button
                                 className="flex-1 bg-rose-500 hover:bg-rose-600 text-white border-transparent"
                                 onClick={async () => {
-                                    await deleteFridgeItem(itemToDelete.id!)
+                                    await deleteItem(id, itemToDelete.id!, {
+                                        grade: itemToDelete.nutriscore_grade,
+                                        quantity: itemToDelete.quantity,
+                                        itemName: itemToDelete.product_name,
+                                    })
                                     setItemToDelete(null)
                                 }}
                             >

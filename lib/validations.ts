@@ -109,6 +109,16 @@ export const createManualProductSchema = (t: Translator) =>
             .string()
             .max(500, t('validation.product.notesMax', { max: 500 }))
             .optional(),
+        nutriscore_grade: z.enum(['A', 'B', 'C', 'D', 'E', 'a', 'b', 'c', 'd', 'e']).nullable().optional(),
+        vegan: z.boolean().default(false).optional(),
+        vegetarian: z.boolean().default(false).optional(),
+        energy_kcal: z.number().min(0).optional(),
+        fat: z.number().min(0).optional(),
+        saturated_fat: z.number().min(0).optional(),
+        carbohydrates: z.number().min(0).optional(),
+        sugars: z.number().min(0).optional(),
+        proteins: z.number().min(0).optional(),
+        salt: z.number().min(0).optional(),
     })
 
 export type ManualProductFormData = z.infer<

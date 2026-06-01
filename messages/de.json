@@ -433,6 +433,27 @@
             "notifications": {
                 "title": "Benachrichtigungen",
                 "description": "Benachrichtigungseinstellungen verwalten."
+            },
+            "dietary": {
+                "title": "Ernährung & Allergien",
+                "description": "Verwalte deine Ernährungspräferenzen für Produktwarnungen.",
+                "options": {
+                    "vegan": "Vegan",
+                    "vegetarian": "Vegetarisch",
+                    "glutenFree": "Glutenfrei",
+                    "lactoseFree": "Laktosefrei",
+                    "nutFree": "Nussfrei",
+                    "kosher": "Koscher",
+                    "halal": "Halal",
+                    "diabetes": "Diabetes"
+                },
+                "allergies": {
+                    "title": "Eigene Allergien",
+                    "placeholder": "z.B. Erdnüsse, Schalentiere...",
+                    "add": "Hinzufügen",
+                    "remove": "Entfernen",
+                    "empty": "Noch keine eigenen Allergien hinzugefügt."
+                }
             }
         },
         "profile": {

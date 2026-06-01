@@ -433,6 +433,27 @@
             "notifications": {
                 "title": "Notifications",
                 "description": "Manage push notification preferences."
+            },
+            "dietary": {
+                "title": "Dietary & Allergies",
+                "description": "Manage your dietary preferences for product warnings.",
+                "options": {
+                    "vegan": "Vegan",
+                    "vegetarian": "Vegetarian",
+                    "glutenFree": "Gluten-Free",
+                    "lactoseFree": "Lactose-Free",
+                    "nutFree": "Nut-Free",
+                    "kosher": "Kosher",
+                    "halal": "Halal",
+                    "diabetes": "Diabetes"
+                },
+                "allergies": {
+                    "title": "Custom Allergies",
+                    "placeholder": "e.g. Shellfish, Peanuts...",
+                    "add": "Add",
+                    "remove": "Remove",
+                    "empty": "No custom allergies added yet."
+                }
             }
         },
         "profile": {

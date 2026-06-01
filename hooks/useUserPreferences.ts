@@ -10,7 +10,9 @@ export function useUserPreferences() {
 
     useEffect(() => {
         if (!user) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setPreferences(null)
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(false)
             return
         }
