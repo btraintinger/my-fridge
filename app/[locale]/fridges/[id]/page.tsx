@@ -44,6 +44,77 @@ import {
 import { notify } from '@/lib/notify'
 import { modalFromCounts } from '@/lib/utils'
 
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+    dairy: [
+        'milch',
+        'käse',
+        'joghurt',
+        'butter',
+        'sahne',
+        'quark',
+        'milk',
+        'cheese',
+        'yogurt',
+        'dairy',
+    ],
+    meat: [
+        'fleisch',
+        'wurst',
+        'schinken',
+        'hähnchen',
+        'rind',
+        'schwein',
+        'meat',
+        'chicken',
+        'beef',
+        'pork',
+        'speck',
+    ],
+    veg: [
+        'gemüse',
+        'tomate',
+        'gurke',
+        'paprika',
+        'salat',
+        'karotte',
+        'vegetable',
+        'tomato',
+        'cucumber',
+        'pepper',
+        'salad',
+        'carrot',
+        'zwiebel',
+        'knoblauch',
+    ],
+    fruit: [
+        'obst',
+        'apfel',
+        'banane',
+        'orange',
+        'beere',
+        'fruit',
+        'apple',
+        'banana',
+        'orange',
+        'berry',
+        'zitrone',
+    ],
+    drinks: [
+        'saft',
+        'wasser',
+        'cola',
+        'limo',
+        'bier',
+        'wein',
+        'drink',
+        'water',
+        'juice',
+        'beer',
+        'wine',
+        'getränk',
+    ],
+}
+
 export default function FridgeDetail({
     params,
 }: {
@@ -82,9 +153,11 @@ export default function FridgeDetail({
     const suppressNextClickRef = useRef<string | null>(null)
 
     const [searchQuery, setSearchQuery] = useState('')
-    const [sortBy, setSortBy] = useState<string>('name-asc')
+    const [sortBy, setSortBy] = useState<string>(() => {
+        if (typeof window === 'undefined') return 'name-asc'
+        return localStorage.getItem('fridgeSortPreference') || 'name-asc'
+    })
     const [filterCategory, setFilterCategory] = useState<string>('all')
-    const [isSortInitialized, setIsSortInitialized] = useState(false)
     const [expandedCategories, setExpandedCategories] = useState<
         Record<string, boolean>
     >({})
@@ -94,89 +167,8 @@ export default function FridgeDetail({
     const itemQuantitySchema = useMemo(() => createItemQuantitySchema(t), [t])
 
     useEffect(() => {
-        const savedSort = localStorage.getItem('fridgeSortPreference')
-        if (savedSort) {
-            setSortBy(savedSort)
-        }
-        setIsSortInitialized(true)
-    }, [])
-
-    useEffect(() => {
-        if (isSortInitialized) {
-            localStorage.setItem('fridgeSortPreference', sortBy)
-        }
-    }, [sortBy, isSortInitialized])
-
-    const CATEGORY_KEYWORDS: Record<string, string[]> = {
-        dairy: [
-            'milch',
-            'käse',
-            'joghurt',
-            'butter',
-            'sahne',
-            'quark',
-            'milk',
-            'cheese',
-            'yogurt',
-            'dairy',
-        ],
-        meat: [
-            'fleisch',
-            'wurst',
-            'schinken',
-            'hähnchen',
-            'rind',
-            'schwein',
-            'meat',
-            'chicken',
-            'beef',
-            'pork',
-            'speck',
-        ],
-        veg: [
-            'gemüse',
-            'tomate',
-            'gurke',
-            'paprika',
-            'salat',
-            'karotte',
-            'vegetable',
-            'tomato',
-            'cucumber',
-            'pepper',
-            'salad',
-            'carrot',
-            'zwiebel',
-            'knoblauch',
-        ],
-        fruit: [
-            'obst',
-            'apfel',
-            'banane',
-            'orange',
-            'beere',
-            'fruit',
-            'apple',
-            'banana',
-            'orange',
-            'berry',
-            'zitrone',
-        ],
-        drinks: [
-            'saft',
-            'wasser',
-            'cola',
-            'limo',
-            'bier',
-            'wein',
-            'drink',
-            'water',
-            'juice',
-            'beer',
-            'wine',
-            'getränk',
-        ],
-    }
+        localStorage.setItem('fridgeSortPreference', sortBy)
+    }, [sortBy])
 
     const filteredAndSortedItems = useMemo(() => {
         let result = [...items]

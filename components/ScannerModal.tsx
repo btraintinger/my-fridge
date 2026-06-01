@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState, memo } from 'react'
 import {
     Html5Qrcode,
-    Html5QrcodeResult,
     Html5QrcodeSupportedFormats,
+    type CameraDevice,
 } from 'html5-qrcode'
 import { useTranslations } from 'next-intl'
 import { Camera, X, Loader2 } from 'lucide-react'
@@ -32,6 +32,13 @@ function normalizeDigits(value: string): string {
     return value.replace(/\s+/g, '')
 }
 
+type ExtendedCapabilities = MediaTrackCapabilities & {
+    torch?: boolean
+    zoom?: { max: number }
+}
+type ScannerInternal = Html5Qrcode & { _videoTrack?: MediaStreamTrack }
+type CameraConfig = string | { facingMode: string } | { deviceId: string }
+
 export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
     const t = useTranslations('scanner.modal')
     const [scannerReady, setScannerReady] = useState(false)
@@ -44,9 +51,10 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
     const scannerRef = useRef<Html5Qrcode | null>(null)
     const transitionRef = useRef<Promise<void> | null>(null)
     const isInitializedRef = useRef(false)
-    const camerasRef = useRef<any[]>([])
+    const camerasRef = useRef<CameraDevice[]>([])
     const currentIdxRef = useRef(0)
     const hasScannedRef = useRef(false)
+    const switchCameraRef = useRef<() => void>(() => {})
 
     const onScanRef = useRef(onScan)
     const onCloseRef = useRef(onClose)
@@ -126,7 +134,9 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     })
                     scannerRef.current = scanner
 
-                    let cameraConfig: any = { facingMode: 'environment' }
+                    let cameraConfig: CameraConfig = {
+                        facingMode: 'environment',
+                    }
 
                     // Versuche spezifische Kamera-ID zu finden (oft auf Android/Desktop nützlich)
                     try {
@@ -196,17 +206,20 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
 
                     // Makro-Zoom & Torch für unterstützte Geräte
                     try {
-                        const track = (scanner as any)._videoTrack
+                        const track = (scanner as ScannerInternal)._videoTrack
                         if (
                             track &&
                             typeof track.getCapabilities === 'function'
                         ) {
-                            const caps = track.getCapabilities()
+                            const caps =
+                                track.getCapabilities() as ExtendedCapabilities
                             setTorchSupported(!!caps.torch)
                             if (caps.zoom) {
                                 await track.applyConstraints({
                                     advanced: [
-                                        { zoom: Math.min(2.0, caps.zoom.max) },
+                                        {
+                                            zoom: Math.min(2.0, caps.zoom.max),
+                                        } as MediaTrackConstraintSet,
                                     ],
                                 })
                             }
@@ -216,7 +229,7 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                     }
 
                     setScannerReady(true)
-                } catch (err: any) {
+                } catch (err) {
                     console.error('Start failed:', err)
                     setError(t('starting'))
                     isInitializedRef.current = false
@@ -227,7 +240,8 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                         camerasRef.current.length > 1
                     ) {
                         setTimeout(() => {
-                            if (isOpen && !hasScannedRef.current) switchCamera()
+                            if (isOpen && !hasScannedRef.current)
+                                switchCameraRef.current()
                         }, 3000)
                     }
                 }
@@ -245,6 +259,10 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
         stopScanner().then(() => startScanner(currentIdxRef.current))
     }, [stopScanner, startScanner, t])
 
+    useEffect(() => {
+        switchCameraRef.current = switchCamera
+    }, [switchCamera])
+
     const toggleTorch = useCallback(async () => {
         if (!scannerRef.current || torchBusy) return
         const currentTransition = transitionRef.current
@@ -253,10 +271,13 @@ export function ScannerModal({ isOpen, onClose, onScan }: ScannerModalProps) {
                 if (currentTransition) await currentTransition
                 setTorchBusy(true)
                 const newState = !torchEnabled
-                const track = (scannerRef.current as any)._videoTrack
+                const track = (scannerRef.current as ScannerInternal)
+                    ._videoTrack
                 if (track) {
                     await track.applyConstraints({
-                        advanced: [{ torch: newState }],
+                        advanced: [
+                            { torch: newState } as MediaTrackConstraintSet,
+                        ],
                     })
                     setTorchEnabled(newState)
                 }

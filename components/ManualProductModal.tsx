@@ -24,6 +24,10 @@ interface ManualProductModalProps {
     ) => Promise<void>
 }
 
+function generateManualBarcode(): string {
+    return `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`
+}
+
 export function ManualProductModal({
     onClose,
     onSubmit,
@@ -85,7 +89,7 @@ export function ManualProductModal({
     const onFormSubmit = async (data: ManualProductFormData) => {
         try {
             const dummyProduct: Product = {
-                barcode: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+                barcode: generateManualBarcode(),
                 product_name: data.name.trim(),
                 brands: '-',
                 labels: ['Manuell'],

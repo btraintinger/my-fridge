@@ -7,6 +7,7 @@ import {
     useLayoutEffect,
     useRef,
     useState,
+    useSyncExternalStore,
 } from 'react'
 import { createPortal } from 'react-dom'
 import { Check, ChevronDown } from 'lucide-react'
@@ -33,6 +34,10 @@ export interface SelectProps {
 
 const POPOVER_MAX_HEIGHT = 288 // ~max-h-72
 
+function emptySubscribe() {
+    return () => {}
+}
+
 export function Select({
     value,
     onChange,
@@ -48,7 +53,11 @@ export function Select({
 }: SelectProps) {
     const [open, setOpen] = useState(false)
     const [activeIndex, setActiveIndex] = useState(-1)
-    const [mounted, setMounted] = useState(false)
+    const mounted = useSyncExternalStore(
+        emptySubscribe,
+        () => true,
+        () => false
+    )
     const triggerRef = useRef<HTMLButtonElement>(null)
     const popoverRef = useRef<HTMLDivElement>(null)
     const listRef = useRef<HTMLDivElement>(null)
@@ -61,10 +70,6 @@ export function Select({
     } | null>(null)
 
     const selected = options.find((o) => o.value === value)
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
 
     const measure = useCallback(() => {
         const trigger = triggerRef.current
@@ -110,12 +115,15 @@ export function Select({
         return () => document.removeEventListener('mousedown', handler)
     }, [open])
 
-    useEffect(() => {
+    const [wasOpen, setWasOpen] = useState(false)
+    if (open !== wasOpen) {
+        setWasOpen(open)
         if (open) {
             const idx = options.findIndex((o) => o.value === value)
-            setActiveIndex(idx >= 0 ? idx : 0)
+            const next = idx >= 0 ? idx : 0
+            if (next !== activeIndex) setActiveIndex(next)
         }
-    }, [open, options, value])
+    }
 
     useEffect(() => {
         if (!open) return

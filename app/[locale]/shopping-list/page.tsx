@@ -22,7 +22,6 @@ import { AddItemForm } from '@/components/shopping-list/AddItemForm'
 import { createShoppingItemSchema } from '@/lib/validations'
 import { notify } from '@/lib/notify'
 import type {
-    Fridge,
     Product,
     ShoppingListItem as ShoppingListItemType,
 } from '@/lib/types'
@@ -33,44 +32,43 @@ export default function ShoppingList() {
     const t = useTranslations('shoppingList')
     const tAll = useTranslations()
     const schema = useMemo(() => createShoppingItemSchema(tAll), [tAll])
-    const [fridges, setFridges] = useState<Fridge[]>([])
+    const fridges = userFridges
     const [selectedFridge, setSelectedFridge] = useState('')
     const [items, setItems] = useState<ShoppingListItemType[]>([])
     const [newItem, setNewItem] = useState('')
-    const [loading, setLoading] = useState(true)
+    const [loadedFridge, setLoadedFridge] = useState<string | null>(null)
+    const [loadError, setLoadError] = useState(false)
     const [scannerOpen, setScannerOpen] = useState(false)
     const [scanningItemId, setScanningItemId] = useState<string | null>(null)
     const [movingItem, setMovingItem] = useState(false)
 
-    useEffect(() => {
-        setFridges(userFridges)
-        if (userFridges.length > 0 && !selectedFridge)
-            setSelectedFridge(userFridges[0].id!)
-    }, [userFridges, selectedFridge])
+    if (userFridges.length > 0 && !selectedFridge) {
+        setSelectedFridge(userFridges[0].id!)
+    }
 
     useEffect(() => {
-        if (!user || !selectedFridge) {
-            setLoading(false)
-            setItems([])
-            return
-        }
+        if (!user || !selectedFridge) return
 
-        setLoading(true)
         const unsubscribe = subscribeToShoppingList(
             selectedFridge,
             (data) => {
                 setItems(data)
-                setLoading(false)
+                setLoadedFridge(selectedFridge)
             },
             (err) => {
                 if (err.code === 'permission-denied') return
                 console.error('Error fetching shopping list:', err)
-                setLoading(false)
+                setLoadError(true)
             }
         )
 
         return () => unsubscribe()
     }, [user, selectedFridge])
+
+    const hasActiveList = Boolean(user && selectedFridge)
+    const visibleItems = hasActiveList ? items : []
+    const showLoading =
+        hasActiveList && !loadError && loadedFridge !== selectedFridge
 
     const handleAddItem = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -159,8 +157,8 @@ export default function ShoppingList() {
         }
     }
 
-    const uncheckedItems = items.filter((i) => !i.checked)
-    const checkedItems = items.filter((i) => i.checked)
+    const uncheckedItems = visibleItems.filter((i) => !i.checked)
+    const checkedItems = visibleItems.filter((i) => i.checked)
 
     return (
         <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
@@ -221,11 +219,11 @@ export default function ShoppingList() {
                         />
                     </div>
 
-                    {loading ? (
+                    {showLoading ? (
                         <div className="flex items-center justify-center py-12">
                             <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
                         </div>
-                    ) : items.length === 0 ? (
+                    ) : visibleItems.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500">
                             <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center text-emerald-500 mb-6 shadow-inner">
                                 <ShoppingCart size={48} strokeWidth={1.5} />

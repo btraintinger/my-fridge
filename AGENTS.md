@@ -6,3 +6,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 
 <!-- END:nextjs-agent-rules -->
+
+Always run npm run lint and npm run format before committing.

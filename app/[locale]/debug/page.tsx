@@ -100,17 +100,19 @@ export default function DebugPage() {
 
             setStatus('success')
             setMessage(t('deleteSuccess', { count: deletedCount }))
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err)
             setStatus('error')
-            if (err?.code === 'permission-denied') {
+            const code =
+                err && typeof err === 'object' && 'code' in err
+                    ? (err as { code?: string }).code
+                    : undefined
+            const message =
+                err instanceof Error ? err.message : t('unknownError')
+            if (code === 'permission-denied') {
                 setMessage(t('permissionDenied'))
             } else {
-                setMessage(
-                    t('genericFailure', {
-                        message: err?.message || t('unknownError'),
-                    })
-                )
+                setMessage(t('genericFailure', { message }))
             }
         }
     }

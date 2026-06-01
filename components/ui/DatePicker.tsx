@@ -7,6 +7,7 @@ import {
     useMemo,
     useRef,
     useState,
+    useSyncExternalStore,
 } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -65,6 +66,10 @@ function isSameDay(a: Date, b: Date) {
     )
 }
 
+function emptySubscribe() {
+    return () => {}
+}
+
 const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 const MONTHS = [
     'Januar',
@@ -94,7 +99,11 @@ export function DatePicker({
 }: DatePickerProps) {
     const tCommon = useTranslations('common')
     const [open, setOpen] = useState(false)
-    const [mounted, setMounted] = useState(false)
+    const mounted = useSyncExternalStore(
+        emptySubscribe,
+        () => true,
+        () => false
+    )
     const triggerRef = useRef<HTMLButtonElement>(null)
     const popoverRef = useRef<HTMLDivElement>(null)
 
@@ -110,23 +119,26 @@ export function DatePicker({
         const base = selected ?? today
         return new Date(base.getFullYear(), base.getMonth(), 1)
     })
+    const [wasOpen, setWasOpen] = useState(false)
+    if (open !== wasOpen) {
+        setWasOpen(open)
+        if (open) {
+            const base = selected ?? today
+            const nextView = new Date(base.getFullYear(), base.getMonth(), 1)
+            if (
+                nextView.getFullYear() !== view.getFullYear() ||
+                nextView.getMonth() !== view.getMonth()
+            ) {
+                setView(nextView)
+            }
+        }
+    }
 
     const [position, setPosition] = useState<{
         top: number
         left: number
         placement: 'bottom' | 'top'
     } | null>(null)
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
-
-    useEffect(() => {
-        if (open) {
-            const base = selected ?? today
-            setView(new Date(base.getFullYear(), base.getMonth(), 1))
-        }
-    }, [open])
 
     const measure = useCallback(() => {
         const trigger = triggerRef.current

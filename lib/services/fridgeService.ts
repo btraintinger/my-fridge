@@ -36,7 +36,8 @@ export type NewItemOptions = {
 
 export function newItemPayload(product: Product, options: NewItemOptions = {}) {
     // Strip cache metadata before embedding — it only makes sense on /products docs.
-    const { updatedAt: _ignored, ...embedded } = product
+    const embedded = { ...product }
+    delete embedded.updatedAt
     return {
         product: embedded,
         quantity: options.quantity || 1,

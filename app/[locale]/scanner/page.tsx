@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/contexts/AuthContext'
 import { addItemToFridge } from '@/lib/services/fridgeService'
@@ -83,11 +83,9 @@ export default function Scanner() {
     const { fridges } = useFridges()
     const warnings = product ? getNutrimentWarnings(product) : []
 
-    useEffect(() => {
-        if (fridges.length > 0 && !selectedFridge) {
-            setSelectedFridge(fridges[0].id!)
-        }
-    }, [fridges, selectedFridge])
+    if (fridges.length > 0 && !selectedFridge) {
+        setSelectedFridge(fridges[0].id!)
+    }
 
     const handleSearch = useCallback(
         async (code: string) => {
