@@ -81,7 +81,7 @@ export function ProductDetailModal({
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in slide-in-from-bottom-full duration-300 border-x border-t sm:border border-white/10">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[90dvh] overflow-hidden animate-in slide-in-from-bottom-full duration-300 border-x border-t sm:border border-white/10">
                 <div className="relative h-48 bg-slate-100 dark:bg-slate-800">
                     {product.image_url ? (
                         <Image
@@ -104,7 +104,7 @@ export function ProductDetailModal({
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto space-y-6">
+                <div className="flex-1 min-h-0 overflow-y-auto px-6 pt-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] space-y-6">
                     <div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50 leading-tight mb-1">
                             {product.product_name}

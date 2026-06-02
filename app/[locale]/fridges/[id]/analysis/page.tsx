@@ -160,7 +160,7 @@ export default function FridgeAnalysisPage({
     }
 
     return (
-        <div className="flex-1 min-h-screen bg-gradient-to-b from-slate-50 via-white to-emerald-50/40 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/10 pb-20 lg:pl-20 xl:pl-56">
+        <div className="flex-1 min-h-screen bg-gradient-to-b from-slate-50 via-white to-emerald-50/40 dark:from-slate-950 dark:via-slate-950 dark:to-emerald-950/10 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
             <div className="sticky top-0 z-10 border-b border-white/70 dark:border-slate-800 bg-white/85 dark:bg-slate-950/85 backdrop-blur-xl pt-safe">
                 <div className="pt-12 px-4 sm:px-6 pb-5 flex items-center gap-3">
                     <Link
@@ -525,14 +525,6 @@ export default function FridgeAnalysisPage({
                         </p>
                     </div>
                 </SectionCard>
-
-                <div className="flex justify-end">
-                    <Link href={`/fridges/${id}`}>
-                        <Button variant="outline" className="rounded-xl">
-                            {t('fridges.analysis.backToFridge')}
-                        </Button>
-                    </Link>
-                </div>
             </div>
         </div>
     )

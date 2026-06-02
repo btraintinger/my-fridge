@@ -22,7 +22,7 @@ export default function Navigation() {
     return (
         <>
             {/* ─── Mobile / Tablet: Bottom bar ─── */}
-            <nav className="fixed bottom-0 left-0 right-0 glass pb-safe z-50 lg:hidden">
+            <nav className="fixed bottom-0 left-0 right-0 glass pb-safe z-40 lg:hidden">
                 <div className="max-w-lg mx-auto px-4 sm:px-8 flex justify-around items-center h-16">
                     {navItems.map((item) => {
                         const isActive = pathname.startsWith(item.href)
@@ -58,7 +58,7 @@ export default function Navigation() {
             </nav>
 
             {/* ─── Desktop: Left sidebar ─── */}
-            <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-20 xl:w-56 flex-col items-center xl:items-stretch bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 py-8 px-2 xl:px-4 z-50">
+            <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-20 xl:w-56 flex-col items-center xl:items-stretch bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 py-8 px-2 xl:px-4 z-40">
                 <div className="mb-10 flex items-center justify-center xl:justify-start gap-3 px-2">
                     <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white flex-shrink-0 shadow-sm">
                         <ScanLine size={20} />
