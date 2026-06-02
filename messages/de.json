@@ -302,7 +302,14 @@
                 "great": "Gute Balance! Weiter so."
             },
             "backToFridge": "Zurück zum Kühlschrank",
-            "warningCount": "{count, plural, one {# Warnung} other {# Warnungen}}"
+            "warningCount": "{count, plural, one {# Warnung} other {# Warnungen}}",
+            "allergenAlerts": {
+                "title": "Allergen-Warnungen",
+                "subtitle": "Produkte in diesem Kühlschrank, die deine eingetragenen Allergene enthalten.",
+                "empty": "Keine Allergene erkannt. Gut so!",
+                "noAllergies": "Keine Allergien im Profil eingetragen.",
+                "contains": "Enthält: {allergens}"
+            }
         }
     },
     "scanner": {
@@ -609,6 +616,10 @@
         "unknownError": "Unbekannter Fehler",
         "cancel": "Abbrechen und zurück",
         "cacheWarn": "Produkt-Cache konnte nicht geleert werden (evtl. fehlende Berechtigung):"
+    },
+    "allergenWarning": {
+        "title": "Allergen-Warnung",
+        "body": "Dieses Produkt enthält Allergene aus deinem Profil: {allergens}"
     },
     "nutrimentWarnings": {
         "sugar": {

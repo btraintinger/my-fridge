@@ -17,6 +17,7 @@ import {
     TrendingUp,
 } from 'lucide-react'
 import { useFridge } from '@/hooks/useFridges'
+import { useUserPreferences } from '@/hooks/useUserPreferences'
 import { Button } from '@/components/ui/Button'
 import { HealthScoreRing } from '@/components/fridge-details/HealthScoreRing'
 import {
@@ -26,6 +27,7 @@ import {
 import { calculateHealthScore } from '@/lib/healthScore'
 import { analyzeFridge } from '@/lib/fridgeAnalytics'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
+import { getMatchingAllergens } from '@/lib/allergenWarnings'
 
 export default function FridgeAnalysisPage({
     params,
@@ -35,6 +37,7 @@ export default function FridgeAnalysisPage({
     const { id } = use(params)
     const t = useTranslations()
     const { fridge, items, loading, error } = useFridge(id)
+    const { dietaryPreferences } = useUserPreferences()
 
     const healthScore = calculateHealthScore(items)
     const analytics = analyzeFridge(items)
@@ -129,6 +132,43 @@ export default function FridgeAnalysisPage({
             },
         }
     }, [items])
+
+    const allergenItems = useMemo(() => {
+        const hasAnyPreference =
+            dietaryPreferences.allergies.length > 0 ||
+            dietaryPreferences.vegan ||
+            dietaryPreferences.vegetarian ||
+            dietaryPreferences.glutenFree ||
+            dietaryPreferences.lactoseFree ||
+            dietaryPreferences.nutFree ||
+            dietaryPreferences.kosher ||
+            dietaryPreferences.halal ||
+            dietaryPreferences.diabetes
+        if (!hasAnyPreference) return null
+        const flagKeys = [
+            'vegan',
+            'vegetarian',
+            'glutenFree',
+            'lactoseFree',
+            'nutFree',
+            'kosher',
+            'halal',
+            'diabetes',
+        ]
+        return items
+            .map((item) => ({
+                item,
+                matches: getMatchingAllergens(
+                    item.product,
+                    dietaryPreferences
+                ).map((m) =>
+                    flagKeys.includes(m)
+                        ? t(`settings.sections.dietary.options.${m}` as never)
+                        : m
+                ),
+            }))
+            .filter((entry) => entry.matches.length > 0)
+    }, [items, dietaryPreferences, t])
 
     if (loading) {
         return (
@@ -487,6 +527,44 @@ export default function FridgeAnalysisPage({
                         </div>
                     </SectionCard>
                 )}
+
+                <SectionCard
+                    title={t('fridges.analysis.allergenAlerts.title')}
+                    subtitle={t('fridges.analysis.allergenAlerts.subtitle')}
+                >
+                    {allergenItems === null ? (
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            {t('fridges.analysis.allergenAlerts.noAllergies')}
+                        </p>
+                    ) : allergenItems.length === 0 ? (
+                        <p className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+                            {t('fridges.analysis.allergenAlerts.empty')}
+                        </p>
+                    ) : (
+                        <div className="space-y-2">
+                            {allergenItems.map(({ item, matches }) => (
+                                <div
+                                    key={item.id}
+                                    className="rounded-2xl border border-rose-200/70 dark:border-rose-900/50 bg-rose-50/70 dark:bg-rose-950/20 p-3"
+                                >
+                                    <p className="font-semibold text-rose-900 dark:text-rose-200 text-sm">
+                                        {item.product.product_name}
+                                    </p>
+                                    <p className="text-xs text-rose-700 dark:text-rose-300 mt-1">
+                                        <CircleAlert
+                                            size={12}
+                                            className="inline mr-1"
+                                        />
+                                        {t(
+                                            'fridges.analysis.allergenAlerts.contains',
+                                            { allergens: matches.join(', ') }
+                                        )}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </SectionCard>
 
                 <SectionCard
                     title={t('fridges.analysis.topBrands.title')}

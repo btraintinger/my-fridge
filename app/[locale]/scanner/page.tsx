@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import {
+    AlertCircle,
     Camera,
     Check,
     Package,
@@ -27,6 +28,8 @@ import { DatePicker } from '@/components/ui/DatePicker'
 import type { Product } from '@/lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
+import { getMatchingAllergens } from '@/lib/allergenWarnings'
+import { useUserPreferences } from '@/hooks/useUserPreferences'
 import Image from 'next/image'
 import { notify } from '@/lib/notify'
 
@@ -108,7 +111,28 @@ export default function Scanner() {
     } = useMultiScan()
 
     const { fridges } = useFridges()
+    const { dietaryPreferences } = useUserPreferences()
     const warnings = product ? getNutrimentWarnings(product) : []
+    const allergenMatches = product
+        ? getMatchingAllergens(product, dietaryPreferences)
+        : []
+    const flagKeys = [
+        'vegan',
+        'vegetarian',
+        'glutenFree',
+        'lactoseFree',
+        'nutFree',
+        'kosher',
+        'halal',
+        'diabetes',
+    ]
+    const allergenLabels = allergenMatches
+        .map((m) =>
+            flagKeys.includes(m)
+                ? t(`settings.sections.dietary.options.${m}` as never)
+                : m
+        )
+        .join(', ')
 
     if (fridges.length > 0 && !selectedFridge) {
         setSelectedFridge(fridges[0].id!)
@@ -449,6 +473,20 @@ export default function Scanner() {
                                         }
                                     />
                                 </div>
+
+                                {allergenMatches.length > 0 && (
+                                    <div className="rounded-2xl border border-rose-300/80 bg-rose-50 p-4 dark:border-rose-800/60 dark:bg-rose-950/30">
+                                        <h3 className="text-sm font-semibold text-rose-800 dark:text-rose-300 flex items-center gap-2 mb-1">
+                                            <AlertCircle size={16} />
+                                            {t('allergenWarning.title')}
+                                        </h3>
+                                        <p className="text-sm text-rose-700 dark:text-rose-200">
+                                            {t('allergenWarning.body', {
+                                                allergens: allergenLabels,
+                                            })}
+                                        </p>
+                                    </div>
+                                )}
 
                                 {warnings.length > 0 && (
                                     <div className="space-y-2 rounded-2xl border border-amber-200/80 bg-amber-50/80 p-4 dark:border-amber-900/60 dark:bg-amber-950/20">

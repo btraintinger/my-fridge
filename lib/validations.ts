@@ -113,8 +113,6 @@ export const createManualProductSchema = (t: Translator) =>
             .enum(['A', 'B', 'C', 'D', 'E', 'a', 'b', 'c', 'd', 'e'])
             .nullable()
             .optional(),
-        vegan: z.boolean().default(false).optional(),
-        vegetarian: z.boolean().default(false).optional(),
         energy_kcal: z.number().min(0).optional(),
         fat: z.number().min(0).optional(),
         saturated_fat: z.number().min(0).optional(),

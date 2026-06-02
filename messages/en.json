@@ -302,7 +302,14 @@
                 "great": "Great balance! Keep it up."
             },
             "backToFridge": "Back to fridge",
-            "warningCount": "{count, plural, one {# warning} other {# warnings}}"
+            "warningCount": "{count, plural, one {# warning} other {# warnings}}",
+            "allergenAlerts": {
+                "title": "Allergen Alerts",
+                "subtitle": "Products in this fridge that contain your registered allergens.",
+                "empty": "No allergens detected. All clear!",
+                "noAllergies": "No allergies registered in your profile.",
+                "contains": "Contains: {allergens}"
+            }
         }
     },
     "scanner": {
@@ -609,6 +616,10 @@
         "unknownError": "Unknown error",
         "cancel": "Cancel and go back",
         "cacheWarn": "Product cache could not be cleared (possibly missing permission):"
+    },
+    "allergenWarning": {
+        "title": "Allergen Warning",
+        "body": "This product contains allergens from your profile: {allergens}"
     },
     "nutrimentWarnings": {
         "sugar": {
