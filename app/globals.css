@@ -88,6 +88,22 @@
     }
 }
 
+/* Force html5-qrcode injected scan region to fill the container so the scan
+   box is centred regardless of the camera's native aspect ratio.
+   The library generates IDs like <containerId>__scan_region. */
+#scanner-modal-container__scan_region {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#scanner-modal-container video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
 @layer utilities {
     .glass {
         @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800;

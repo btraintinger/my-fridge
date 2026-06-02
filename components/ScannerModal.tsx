@@ -24,7 +24,7 @@ const SCANNER_CONTAINER_ID = 'scanner-modal-container'
 const ScannerContainer = memo(() => (
     <div
         id={SCANNER_CONTAINER_ID}
-        className="w-full rounded-2xl overflow-hidden border-2 border-emerald-500 bg-black flex items-center justify-center relative"
+        className="w-full rounded-2xl overflow-hidden border-2 border-emerald-500 bg-black relative"
         style={{
             aspectRatio: '1.5',
             maxHeight: '360px',
