@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import Image from 'next/image'
-import { Package, Trash2, Plus, Minus, Check } from 'lucide-react'
+import { Package, Trash2, Plus, Check } from 'lucide-react'
 import { Button } from './ui/Button'
 import { Select } from './ui/Select'
 import { DatePicker } from './ui/DatePicker'
+import { QuantityStepper } from './ui/QuantityStepper'
 import { useTranslations } from 'next-intl'
 import type { ScannedItem } from '@/hooks/useMultiScan'
 import { useFridges } from '@/hooks/useFridges'
@@ -127,34 +128,13 @@ export function ScannedProductsList({
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <div className="flex items-center bg-slate-50 dark:bg-slate-800 rounded-lg p-0.5">
-                                <button
-                                    className="p-1 text-slate-500 hover:text-slate-700 disabled:opacity-50"
-                                    disabled={item.quantity <= 1}
-                                    onClick={() =>
-                                        onUpdateQuantity(
-                                            item.barcode,
-                                            item.quantity - 1
-                                        )
-                                    }
-                                >
-                                    <Minus size={14} />
-                                </button>
-                                <span className="w-6 text-center text-sm font-medium">
-                                    {item.quantity}
-                                </span>
-                                <button
-                                    className="p-1 text-slate-500 hover:text-slate-700"
-                                    onClick={() =>
-                                        onUpdateQuantity(
-                                            item.barcode,
-                                            item.quantity + 1
-                                        )
-                                    }
-                                >
-                                    <Plus size={14} />
-                                </button>
-                            </div>
+                            <QuantityStepper
+                                value={item.quantity}
+                                onChange={(next) =>
+                                    onUpdateQuantity(item.barcode, next)
+                                }
+                                size="sm"
+                            />
 
                             <button
                                 className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors"

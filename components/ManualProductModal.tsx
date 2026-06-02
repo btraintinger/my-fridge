@@ -10,6 +10,7 @@ import { Input } from './ui/Input'
 import { FormField } from './ui/FormField'
 import { Select } from './ui/Select'
 import { DatePicker } from './ui/DatePicker'
+import { QuantityStepper } from './ui/QuantityStepper'
 import {
     createManualProductSchema,
     type ManualProductFormData,
@@ -149,7 +150,7 @@ export function ManualProductModal({
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                        className="inline-flex items-center justify-center h-9 w-9 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -177,14 +178,19 @@ export function ManualProductModal({
                             required
                             error={errors.quantity?.message}
                         >
-                            <Input
-                                type="number"
-                                min="1"
-                                error={!!errors.quantity}
-                                className="h-12"
-                                {...register('quantity', {
-                                    valueAsNumber: true,
-                                })}
+                            <Controller
+                                control={control}
+                                name="quantity"
+                                render={({ field }) => (
+                                    <QuantityStepper
+                                        value={field.value || 1}
+                                        onChange={field.onChange}
+                                        size="lg"
+                                        inputAriaLabel={t(
+                                            'manualProduct.quantityLabel'
+                                        )}
+                                    />
+                                )}
                             />
                         </FormField>
                         <FormField

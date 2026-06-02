@@ -428,9 +428,22 @@
         "saveItemName": "Save",
         "editDetails": "Edit quantity/unit",
         "addDetails": "Quantity & unit",
+        "addDetailsShort": "+ Qty",
         "quantityPlaceholder": "Amount",
         "unitPlaceholder": "Unit",
-        "cancelEdit": "Cancel"
+        "cancelEdit": "Cancel",
+        "units": {
+            "none": "—",
+            "piece": "pcs",
+            "pack": "pack",
+            "can": "can",
+            "bottle": "btl",
+            "bunch": "bunch",
+            "g": "g",
+            "kg": "kg",
+            "ml": "ml",
+            "l": "l"
+        }
     },
     "settings": {
         "title": "Settings",

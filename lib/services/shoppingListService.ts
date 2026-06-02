@@ -115,8 +115,13 @@ export async function updateShoppingItemDetails(
     itemId: string,
     details: { quantity?: number; unit?: string }
 ) {
+    const payload: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(details)) {
+        if (value !== undefined) payload[key] = value
+    }
+    if (Object.keys(payload).length === 0) return
     return runFirebaseAction(() =>
-        updateDoc(shoppingItemDoc(fridgeId, itemId), details)
+        updateDoc(shoppingItemDoc(fridgeId, itemId), payload)
     )
 }
 

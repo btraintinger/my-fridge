@@ -428,9 +428,22 @@
         "saveItemName": "Speichern",
         "editDetails": "Menge/Einheit bearbeiten",
         "addDetails": "Menge & Einheit",
+        "addDetailsShort": "+ Menge",
         "quantityPlaceholder": "Menge",
         "unitPlaceholder": "Einheit",
-        "cancelEdit": "Abbrechen"
+        "cancelEdit": "Abbrechen",
+        "units": {
+            "none": "—",
+            "piece": "Stk",
+            "pack": "Pkg",
+            "can": "Dose",
+            "bottle": "Fl",
+            "bunch": "Bund",
+            "g": "g",
+            "kg": "kg",
+            "ml": "ml",
+            "l": "l"
+        }
     },
     "settings": {
         "title": "Einstellungen",

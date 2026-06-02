@@ -1,19 +1,12 @@
 'use client'
 
-import {
-    AlertCircle,
-    ChefHat,
-    Info,
-    Minus,
-    Plus,
-    Trash2,
-    X,
-} from 'lucide-react'
+import { AlertCircle, ChefHat, Info, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '../ui/Button'
 import { NutriScoreBadge } from './NutriScoreComponents'
 import { DatePicker } from '../ui/DatePicker'
+import { QuantityStepper } from '../ui/QuantityStepper'
 import type { Product } from '@/lib/types'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import { notify } from '@/lib/notify'
@@ -78,18 +71,12 @@ export function ProductDetailModal({
 }: ProductDetailModalProps) {
     const t = useTranslations()
     const warnings = getNutrimentWarnings(product)
-    const [savingQuantity, setSavingQuantity] = useState(false)
     const [savingExpiryDate, setSavingExpiryDate] = useState(false)
 
     const commitQuantity = async (next: number) => {
         if (!itemId || !fridgeId || !onQuantityChange) return
         if (next < 1 || next === quantity) return
-        setSavingQuantity(true)
-        try {
-            await onQuantityChange(itemId, fridgeId, next)
-        } finally {
-            setSavingQuantity(false)
-        }
+        await onQuantityChange(itemId, fridgeId, next)
     }
 
     return (
@@ -111,7 +98,7 @@ export function ProductDetailModal({
                     )}
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm rounded-full text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800"
+                        className="absolute top-4 right-4 inline-flex items-center justify-center h-9 w-9 bg-white/80 dark:bg-slate-900/80 backdrop-blur shadow-sm rounded-full text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800"
                     >
                         <X size={20} />
                     </button>
@@ -140,39 +127,13 @@ export function ProductDetailModal({
                                 <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-100 mb-2">
                                     {t('productModal.inventory')}
                                 </h3>
-                                <div className="inline-flex items-center gap-0 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden">
-                                    <button
-                                        type="button"
-                                        aria-label={t('common.decrease')}
-                                        onClick={() =>
-                                            commitQuantity(quantity - 1)
-                                        }
-                                        disabled={
-                                            savingQuantity ||
-                                            quantity <= 1 ||
-                                            !onQuantityChange
-                                        }
-                                        className="h-10 w-10 flex items-center justify-center text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        <Minus size={18} />
-                                    </button>
-                                    <div className="h-10 min-w-[3.5rem] px-3 flex items-center justify-center text-base font-bold text-emerald-900 dark:text-emerald-100 border-x border-emerald-200 dark:border-emerald-900/60 tabular-nums">
-                                        {quantity}
-                                    </div>
-                                    <button
-                                        type="button"
-                                        aria-label={t('common.increase')}
-                                        onClick={() =>
-                                            commitQuantity(quantity + 1)
-                                        }
-                                        disabled={
-                                            savingQuantity || !onQuantityChange
-                                        }
-                                        className="h-10 w-10 flex items-center justify-center text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        <Plus size={18} />
-                                    </button>
-                                </div>
+                                <QuantityStepper
+                                    value={quantity}
+                                    onChange={commitQuantity}
+                                    disabled={!onQuantityChange}
+                                    tone="emerald"
+                                    inputAriaLabel={t('productModal.inventory')}
+                                />
                             </div>
 
                             {itemId && fridgeId && (

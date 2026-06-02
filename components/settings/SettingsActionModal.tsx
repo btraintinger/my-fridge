@@ -75,7 +75,7 @@ function SettingsActionModal({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300"
+                        className="inline-flex items-center justify-center h-9 w-9 rounded-full text-slate-400 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300"
                         aria-label={t('closeAria')}
                     >
                         <X size={20} />

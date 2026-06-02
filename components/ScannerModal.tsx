@@ -371,7 +371,7 @@ export function ScannerModal({
                     </h3>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="inline-flex items-center justify-center h-10 w-10 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 transition-colors"
                     >
                         <X size={24} />
                     </button>
