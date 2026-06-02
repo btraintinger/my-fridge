@@ -170,7 +170,7 @@ export function ProductListView({
                                             handleExpiryChange(item.id!, val)
                                         }
                                         disabled={updatingItems[item.id!]}
-                                        className="h-8 min-w-[140px] text-xs"
+                                        className="min-w-[140px] text-xs"
                                     />
                                 </td>
                                 <td className="px-4 py-2 align-middle text-right">
