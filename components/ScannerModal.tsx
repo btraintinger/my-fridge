@@ -39,8 +39,31 @@ type ExtendedCapabilities = MediaTrackCapabilities & {
     torch?: boolean
     zoom?: { max: number }
 }
-type ScannerInternal = Html5Qrcode & { _videoTrack?: MediaStreamTrack }
 type CameraConfig = string | { facingMode: string } | { deviceId: string }
+
+function getActiveVideoTrack(): MediaStreamTrack | null {
+    const video = document.querySelector<HTMLVideoElement>(
+        '#scanner-modal-container video'
+    )
+    const stream = video?.srcObject
+    if (stream instanceof MediaStream) {
+        return stream.getVideoTracks()[0] ?? null
+    }
+    return null
+}
+
+function pickBackCameraIndex(cameras: CameraDevice[]): number {
+    // Prefer the standard back camera; avoid ultra-wide / telephoto which
+    // cannot autofocus close enough for barcode scanning on iPhones.
+    const preferred = cameras.findIndex(
+        (d) =>
+            /back|rück|rear/i.test(d.label) &&
+            !/ultra|tele|telephoto|wide angle/i.test(d.label)
+    )
+    if (preferred !== -1) return preferred
+    const anyBack = cameras.findIndex((d) => /back|rück|rear/i.test(d.label))
+    return anyBack !== -1 ? anyBack : 0
+}
 
 export function ScannerModal({
     isOpen,
@@ -64,7 +87,6 @@ export function ScannerModal({
     const camerasRef = useRef<CameraDevice[]>([])
     const currentIdxRef = useRef(0)
     const hasScannedRef = useRef(false)
-    const switchCameraRef = useRef<() => void>(() => {})
     const lastScannedCodeRef = useRef<string | null>(null)
     const lastScannedTimeRef = useRef<number>(0)
 
@@ -150,53 +172,46 @@ export function ScannerModal({
                         facingMode: 'environment',
                     }
 
-                    // Versuche spezifische Kamera-ID zu finden (oft auf Android/Desktop nützlich)
-                    try {
-                        if (camerasRef.current.length === 0) {
-                            camerasRef.current = await Html5Qrcode.getCameras()
-                        }
-
-                        if (camerasRef.current.length > 0) {
-                            // Back-Kamera Logik
-                            if (
-                                idxOverride === undefined &&
-                                currentIdxRef.current === 0
-                            ) {
-                                const backIdx =
-                                    camerasRef.current.findLastIndex((d) =>
-                                        /back|rück|rear/i.test(d.label)
-                                    )
-                                if (backIdx !== -1)
-                                    currentIdxRef.current = backIdx
+                    // On the very first open we keep `facingMode: environment`
+                    // and skip `Html5Qrcode.getCameras()` entirely. iOS Safari
+                    // is far more reliable that way: enumerateDevices() before
+                    // start() can break the user-gesture context for
+                    // getUserMedia and leave a phantom stream open.
+                    // We only resolve a specific deviceId when the user
+                    // actively cycles cameras (idxOverride passed).
+                    if (idxOverride !== undefined) {
+                        try {
+                            if (camerasRef.current.length === 0) {
+                                camerasRef.current =
+                                    await Html5Qrcode.getCameras()
                             }
-
-                            const selectedIdx =
-                                idxOverride !== undefined
-                                    ? idxOverride
-                                    : currentIdxRef.current
-                            const cam = camerasRef.current[selectedIdx]
-
-                            // Wenn Labels auf iOS leer sind (vor Permission), verlasse dich auf facingMode
-                            if (cam && cam.id && cam.label !== '') {
-                                cameraConfig = cam.id
+                            if (camerasRef.current.length > 0) {
+                                const cam =
+                                    camerasRef.current[
+                                        idxOverride % camerasRef.current.length
+                                    ]
+                                if (cam && cam.id) {
+                                    cameraConfig = { deviceId: cam.id }
+                                }
                             }
+                        } catch (e) {
+                            console.warn(
+                                'Failed to enumerate cameras, falling back to facingMode',
+                                e
+                            )
                         }
-                    } catch (e) {
-                        console.warn(
-                            'Fehler beim Abrufen der Kameras, falle zurück auf facingMode',
-                            e
-                        )
                     }
 
                     await scanner.start(
                         cameraConfig,
                         {
-                            fps: 30,
+                            fps: 10,
                             qrbox: (w, h) => ({
                                 width: Math.max(Math.min(w * 0.8, 280), 150),
                                 height: Math.max(Math.min(h * 0.4, 180), 80),
                             }),
-                            // aspectRatio entfernt, da es auf iOS zu OverconstrainedError führt
+                            // aspectRatio omitted on purpose: iOS Safari
+                            // throws OverconstrainedError when it's set.
                         },
                         (text) => {
                             if (!isMultiScan) {
@@ -230,9 +245,11 @@ export function ScannerModal({
                         () => {}
                     )
 
-                    // Makro-Zoom & Torch für unterstützte Geräte
+                    // Macro zoom & torch for supported devices.
+                    // html5-qrcode v2 has no public way to reach the active
+                    // MediaStreamTrack — read it off the <video> element.
                     try {
-                        const track = (scanner as ScannerInternal)._videoTrack
+                        const track = getActiveVideoTrack()
                         if (
                             track &&
                             typeof track.getCapabilities === 'function'
@@ -259,35 +276,34 @@ export function ScannerModal({
                     console.error('Start failed:', err)
                     setError(t('starting'))
                     isInitializedRef.current = false
-
-                    // Endlos-Retry bei Hardware-Fehlern (wie OverconstrainedError) vermeiden
-                    if (
-                        idxOverride === undefined &&
-                        camerasRef.current.length > 1
-                    ) {
-                        setTimeout(() => {
-                            if (isOpen && !hasScannedRef.current)
-                                switchCameraRef.current()
-                        }, 3000)
-                    }
                 }
             })()
         },
         [isOpen, stopScanner, t, isMultiScan]
     )
 
-    const switchCamera = useCallback(() => {
+    const switchCamera = useCallback(async () => {
+        // Lazy-enumerate: cameras aren't requested on the initial start
+        // (iOS reliability fix), so resolve the list on the first switch.
+        if (camerasRef.current.length === 0) {
+            try {
+                camerasRef.current = await Html5Qrcode.getCameras()
+            } catch (e) {
+                console.warn('Cannot list cameras for switch:', e)
+                return
+            }
+            // First switch: jump to the best back camera (skip Ultra
+            // Wide / Telephoto which can't autofocus close enough).
+            currentIdxRef.current = pickBackCameraIndex(camerasRef.current)
+        } else {
+            currentIdxRef.current =
+                (currentIdxRef.current + 1) % camerasRef.current.length
+        }
         if (camerasRef.current.length <= 1) return
-        currentIdxRef.current =
-            (currentIdxRef.current + 1) % camerasRef.current.length
         setOptimizationState(t('optimizingLens'))
         isInitializedRef.current = false
         stopScanner().then(() => startScanner(currentIdxRef.current))
     }, [stopScanner, startScanner, t])
-
-    useEffect(() => {
-        switchCameraRef.current = switchCamera
-    }, [switchCamera])
 
     const toggleTorch = useCallback(async () => {
         if (!scannerRef.current || torchBusy) return
@@ -297,8 +313,7 @@ export function ScannerModal({
                 if (currentTransition) await currentTransition
                 setTorchBusy(true)
                 const newState = !torchEnabled
-                const track = (scannerRef.current as ScannerInternal)
-                    ._videoTrack
+                const track = getActiveVideoTrack()
                 if (track) {
                     await track.applyConstraints({
                         advanced: [
