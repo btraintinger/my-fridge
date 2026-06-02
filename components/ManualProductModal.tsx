@@ -334,10 +334,8 @@ export function ManualProductModal({
                                         label={t('scanner.energy')}
                                         error={errors.energy_kcal?.message}
                                     >
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
+                                        <NutrimentInput
+                                            unit="kcal"
                                             {...register('energy_kcal', {
                                                 valueAsNumber: true,
                                             })}
@@ -347,10 +345,8 @@ export function ManualProductModal({
                                         label={t('scanner.fat')}
                                         error={errors.fat?.message}
                                     >
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
+                                        <NutrimentInput
+                                            unit="g"
                                             {...register('fat', {
                                                 valueAsNumber: true,
                                             })}
@@ -360,10 +356,8 @@ export function ManualProductModal({
                                         label={t('scanner.saturatedFat')}
                                         error={errors.saturated_fat?.message}
                                     >
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
+                                        <NutrimentInput
+                                            unit="g"
                                             {...register('saturated_fat', {
                                                 valueAsNumber: true,
                                             })}
@@ -373,10 +367,8 @@ export function ManualProductModal({
                                         label={t('scanner.carbohydrates')}
                                         error={errors.carbohydrates?.message}
                                     >
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
+                                        <NutrimentInput
+                                            unit="g"
                                             {...register('carbohydrates', {
                                                 valueAsNumber: true,
                                             })}
@@ -386,10 +378,8 @@ export function ManualProductModal({
                                         label={t('scanner.sugars')}
                                         error={errors.sugars?.message}
                                     >
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
+                                        <NutrimentInput
+                                            unit="g"
                                             {...register('sugars', {
                                                 valueAsNumber: true,
                                             })}
@@ -399,10 +389,8 @@ export function ManualProductModal({
                                         label={t('scanner.proteins')}
                                         error={errors.proteins?.message}
                                     >
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
+                                        <NutrimentInput
+                                            unit="g"
                                             {...register('proteins', {
                                                 valueAsNumber: true,
                                             })}
@@ -412,10 +400,8 @@ export function ManualProductModal({
                                         label={t('scanner.salt')}
                                         error={errors.salt?.message}
                                     >
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.1"
+                                        <NutrimentInput
+                                            unit="g"
                                             {...register('salt', {
                                                 valueAsNumber: true,
                                             })}
