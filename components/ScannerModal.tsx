@@ -19,9 +19,11 @@ interface ScannerModalProps {
     scannedCount?: number
 }
 
+const SCANNER_CONTAINER_ID = 'scanner-modal-container'
+
 const ScannerContainer = memo(() => (
     <div
-        id="scanner-modal-container"
+        id={SCANNER_CONTAINER_ID}
         className="w-full rounded-2xl overflow-hidden border-2 border-emerald-500 bg-black flex items-center justify-center relative"
         style={{
             aspectRatio: '1.5',
@@ -35,6 +37,11 @@ function normalizeDigits(value: string): string {
     return value.replace(/\s+/g, '')
 }
 
+function clearScannerContainer() {
+    const container = document.getElementById(SCANNER_CONTAINER_ID)
+    if (container) container.innerHTML = ''
+}
+
 type ExtendedCapabilities = MediaTrackCapabilities & {
     torch?: boolean
     zoom?: { max: number; min?: number; step?: number }
@@ -42,17 +49,6 @@ type ExtendedCapabilities = MediaTrackCapabilities & {
     frameRate?: { max: number }
 }
 type CameraConfig = string | { facingMode: string } | { deviceId: string }
-
-function getActiveVideoTrack(): MediaStreamTrack | null {
-    const video = document.querySelector<HTMLVideoElement>(
-        '#scanner-modal-container video'
-    )
-    const stream = video?.srcObject
-    if (stream instanceof MediaStream) {
-        return stream.getVideoTracks()[0] ?? null
-    }
-    return null
-}
 
 function pickBackCameraIndex(cameras: CameraDevice[]): number {
     // Prefer the standard back camera; avoid ultra-wide / telephoto which
@@ -96,54 +92,86 @@ export function ScannerModal({
     const onCloseRef = useRef(onClose)
     useEffect(() => {
         onScanRef.current = onScan
-    }, [onScan])
-    useEffect(() => {
         onCloseRef.current = onClose
-    }, [onClose])
+    }, [onScan, onClose])
 
-    const stopScanner = useCallback(async () => {
-        const currentTransition = transitionRef.current
-        transitionRef.current = (async () => {
-            try {
-                if (currentTransition) await currentTransition
-                if (scannerRef.current) {
-                    const scanner = scannerRef.current
-                    if (scanner.isScanning) {
-                        await scanner.stop()
-                    }
-                    const container = document.getElementById(
-                        'scanner-modal-container'
-                    )
-                    if (container) {
-                        container.innerHTML = ''
-                    }
-                    scannerRef.current = null
-                }
-            } catch (e) {
-                console.debug('Safe stop error:', e)
-                const container = document.getElementById(
-                    'scanner-modal-container'
-                )
-                if (container) container.innerHTML = ''
-            } finally {
-                isInitializedRef.current = false
-                setScannerReady(false)
-                setTorchEnabled(false)
-                setTorchSupported(false)
-            }
+    // Serialize start/stop/torch operations so html5-qrcode never sees
+    // overlapping state transitions on the same instance.
+    const queueTransition = useCallback((fn: () => Promise<void>) => {
+        const previous = transitionRef.current
+        const next = (async () => {
+            if (previous) await previous
+            await fn()
         })()
-        return transitionRef.current
+        transitionRef.current = next
+        return next
     }, [])
 
+    const stopScanner = useCallback(
+        () =>
+            queueTransition(async () => {
+                try {
+                    const scanner = scannerRef.current
+                    if (scanner) {
+                        if (scanner.isScanning) {
+                            await scanner.stop()
+                        }
+                        clearScannerContainer()
+                        scannerRef.current = null
+                    }
+                } catch (e) {
+                    console.debug('Safe stop error:', e)
+                    clearScannerContainer()
+                } finally {
+                    isInitializedRef.current = false
+                    setScannerReady(false)
+                    setTorchEnabled(false)
+                    setTorchSupported(false)
+                }
+            }),
+        [queueTransition]
+    )
+
+    const handleDecodedText = useCallback(
+        (text: string) => {
+            if (!isMultiScan) {
+                if (hasScannedRef.current) return
+                hasScannedRef.current = true
+            }
+
+            const normalized = normalizeDigits(text)
+
+            if (isMultiScan) {
+                const now = Date.now()
+                if (
+                    lastScannedCodeRef.current === normalized &&
+                    now - lastScannedTimeRef.current < 2000
+                ) {
+                    return
+                }
+                lastScannedCodeRef.current = normalized
+                lastScannedTimeRef.current = now
+                onScanRef.current(normalized)
+            } else {
+                stopScanner().then(() => {
+                    onCloseRef.current()
+                    // Delay onScan so this modal fully unmounts before the
+                    // parent opens the follow-up product modal.
+                    setTimeout(() => onScanRef.current(normalized), 100)
+                })
+            }
+        },
+        [isMultiScan, stopScanner]
+    )
+
     const startScanner = useCallback(
-        async (idxOverride?: number) => {
-            if (isInitializedRef.current && idxOverride === undefined) return
+        (idxOverride?: number) => {
+            if (isInitializedRef.current && idxOverride === undefined)
+                return Promise.resolve()
             isInitializedRef.current = true
 
-            const currentTransition = transitionRef.current
-            transitionRef.current = (async () => {
+            return queueTransition(async () => {
                 try {
-                    if (currentTransition) await currentTransition
                     if (!isOpen) {
                         isInitializedRef.current = false
                         return
@@ -153,13 +181,12 @@ export function ScannerModal({
                     setScannerReady(false)
                     hasScannedRef.current = false
 
-                    const container = document.getElementById(
-                        'scanner-modal-container'
-                    )
+                    const container =
+                        document.getElementById(SCANNER_CONTAINER_ID)
                     if (!container) throw new Error(t('scannerAreaNotFound'))
                     container.innerHTML = ''
 
-                    const scanner = new Html5Qrcode('scanner-modal-container', {
+                    const scanner = new Html5Qrcode(SCANNER_CONTAINER_ID, {
                         verbose: false,
                         formatsToSupport: [
                             Html5QrcodeSupportedFormats.EAN_13,
@@ -170,38 +197,23 @@ export function ScannerModal({
                     })
                     scannerRef.current = scanner
 
+                    // First open uses facingMode and skips enumerateDevices —
+                    // calling getCameras() before start() can break the
+                    // user-gesture context for getUserMedia on iOS Safari.
+                    // switchCamera populates camerasRef before reaching here
+                    // with idxOverride set.
                     let cameraConfig: CameraConfig = {
                         facingMode: 'environment',
                     }
-
-                    // On the very first open we keep `facingMode: environment`
-                    // and skip `Html5Qrcode.getCameras()` entirely. iOS Safari
-                    // is far more reliable that way: enumerateDevices() before
-                    // start() can break the user-gesture context for
-                    // getUserMedia and leave a phantom stream open.
-                    // We only resolve a specific deviceId when the user
-                    // actively cycles cameras (idxOverride passed).
-                    if (idxOverride !== undefined) {
-                        try {
-                            if (camerasRef.current.length === 0) {
-                                camerasRef.current =
-                                    await Html5Qrcode.getCameras()
-                            }
-                            if (camerasRef.current.length > 0) {
-                                const cam =
-                                    camerasRef.current[
-                                        idxOverride % camerasRef.current.length
-                                    ]
-                                if (cam && cam.id) {
-                                    cameraConfig = { deviceId: cam.id }
-                                }
-                            }
-                        } catch (e) {
-                            console.warn(
-                                'Failed to enumerate cameras, falling back to facingMode',
-                                e
-                            )
-                        }
+                    if (
+                        idxOverride !== undefined &&
+                        camerasRef.current.length > 0
+                    ) {
+                        const cam =
+                            camerasRef.current[
+                                idxOverride % camerasRef.current.length
+                            ]
+                        if (cam?.id) cameraConfig = { deviceId: cam.id }
                     }
 
                     await scanner.start(
@@ -212,38 +224,10 @@ export function ScannerModal({
                                 width: Math.max(Math.min(w * 0.8, 280), 150),
                                 height: Math.max(Math.min(h * 0.4, 180), 80),
                             }),
-                            // aspectRatio omitted on purpose: iOS Safari
-                            // throws OverconstrainedError when it's set.
+                            // aspectRatio omitted: iOS Safari throws
+                            // OverconstrainedError when it's set.
                         },
-                        (text) => {
-                            if (!isMultiScan) {
-                                if (hasScannedRef.current) return
-                                hasScannedRef.current = true
-                            }
-
-                            const normalized = normalizeDigits(text)
-
-                            if (isMultiScan) {
-                                const now = Date.now()
-                                if (
-                                    lastScannedCodeRef.current === normalized &&
-                                    now - lastScannedTimeRef.current < 2000
-                                ) {
-                                    return
-                                }
-                                lastScannedCodeRef.current = normalized
-                                lastScannedTimeRef.current = now
-                                onScanRef.current(normalized)
-                            } else {
-                                stopScanner().then(() => {
-                                    onCloseRef.current()
-                                    setTimeout(
-                                        () => onScanRef.current(normalized),
-                                        100
-                                    )
-                                })
-                            }
-                        },
+                        handleDecodedText,
                         () => {}
                     )
 
@@ -269,9 +253,7 @@ export function ScannerModal({
                         }
                         await scanner.applyVideoConstraints({
                             width: { ideal: 1000 },
-                            frameRate: {
-                                ideal: caps.frameRate?.max ?? 30,
-                            },
+                            frameRate: { ideal: caps.frameRate?.max ?? 30 },
                             advanced,
                         })
                     } catch (e) {
@@ -284,9 +266,9 @@ export function ScannerModal({
                     setError(t('starting'))
                     isInitializedRef.current = false
                 }
-            })()
+            })
         },
-        [isOpen, stopScanner, t, isMultiScan]
+        [isOpen, queueTransition, t, handleDecodedText]
     )
 
     const switchCamera = useCallback(async () => {
@@ -309,33 +291,29 @@ export function ScannerModal({
         if (camerasRef.current.length <= 1) return
         setOptimizationState(t('optimizingLens'))
         isInitializedRef.current = false
-        stopScanner().then(() => startScanner(currentIdxRef.current))
+        await stopScanner()
+        await startScanner(currentIdxRef.current)
     }, [stopScanner, startScanner, t])
 
-    const toggleTorch = useCallback(async () => {
+    const toggleTorch = useCallback(() => {
         if (!scannerRef.current || torchBusy) return
-        const currentTransition = transitionRef.current
-        transitionRef.current = (async () => {
+        return queueTransition(async () => {
             try {
-                if (currentTransition) await currentTransition
                 setTorchBusy(true)
+                const scanner = scannerRef.current
+                if (!scanner?.isScanning) return
                 const newState = !torchEnabled
-                const track = getActiveVideoTrack()
-                if (track) {
-                    await track.applyConstraints({
-                        advanced: [
-                            { torch: newState } as MediaTrackConstraintSet,
-                        ],
-                    })
-                    setTorchEnabled(newState)
-                }
+                await scanner.applyVideoConstraints({
+                    advanced: [{ torch: newState } as MediaTrackConstraintSet],
+                })
+                setTorchEnabled(newState)
             } catch (e) {
                 console.error('Torch error:', e)
             } finally {
                 setTorchBusy(false)
             }
-        })()
-    }, [torchEnabled, torchBusy])
+        })
+    }, [torchEnabled, torchBusy, queueTransition])
 
     useEffect(() => {
         if (isOpen) {
