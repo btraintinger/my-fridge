@@ -2,11 +2,16 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { fridgeService, productService } from '../../lib/services/fridgeService'
+import { addItemToFridge } from '../../lib/services/fridgeService'
+import {
+    cacheProduct,
+    getCachedProduct,
+} from '../../lib/services/productService'
 import { useFridges } from '../../hooks/useFridges'
 import { fetchProductByBarcode } from '../../lib/openFoodFacts'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
+import { Select } from '../../components/ui/Select'
 import { Camera, Check, Package, Plus, Search, Edit3 } from 'lucide-react'
 import { ScannerModal } from '../../components/ScannerModal'
 import { ManualProductModal } from '../../components/ManualProductModal'
@@ -14,7 +19,7 @@ import type { Product } from '../../lib/types'
 import { NUTRI_GRADES } from '@/lib/constants'
 import { getNutrimentWarnings } from '@/lib/nutrimentWarnings'
 import Image from 'next/image'
-import { toast } from 'react-hot-toast'
+import { notify } from '../../lib/notify'
 
 function FlagChip({
     label,
@@ -92,7 +97,7 @@ export default function Scanner() {
         const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
         // Check cache first
-        const cached = await productService.getCachedProduct(code.trim())
+        const cached = await getCachedProduct(code.trim())
         if (cached) {
             setProduct(cached)
             setSearching(false)
@@ -100,7 +105,7 @@ export default function Scanner() {
         }
 
         if (isOffline) {
-            toast.error('Offline sind nur bereits gespeicherte Produkte verfügbar.')
+            notify.error('Offline sind nur bereits gespeicherte Produkte verfügbar.')
             setSearching(false)
             return
         }
@@ -109,14 +114,14 @@ export default function Scanner() {
             const result = await fetchProductByBarcode(code.trim())
             if (result) {
                 setProduct(result)
-                await productService.cacheProduct(code.trim(), result)
+                await cacheProduct(code.trim(), result)
             } else {
-                toast.error('Produkt nicht gefunden. Bitte manuell anlegen.')
+                notify.error('Produkt nicht gefunden. Bitte manuell anlegen.')
                 setBarcode(code.trim()) // Barcode im Feld lassen für manuelle Suche
             }
         } catch (err) {
             console.error('Search error:', err)
-            toast.error('Fehler bei der Produktsuche.')
+            notify.error('Fehler bei der Produktsuche.')
         } finally {
             setSearching(false)
         }
@@ -125,7 +130,7 @@ export default function Scanner() {
     const handleAddToFridge = async () => {
         if (!user || !product || !selectedFridge) return
 
-        await fridgeService.addItemToFridge(selectedFridge, product)
+        await addItemToFridge(selectedFridge, product)
         setAdded(true)
     }
 
@@ -136,10 +141,10 @@ export default function Scanner() {
         if (!user || !selectedFridge) return
 
         // Cache the dummy product so it can be resolved by the join in subscribeToFridgeItems
-        await productService.cacheProduct(manualProduct.barcode, manualProduct)
+        await cacheProduct(manualProduct.barcode, manualProduct)
 
         // Add to fridge with all details
-        await fridgeService.addItemToFridge(selectedFridge, manualProduct, options)
+        await addItemToFridge(selectedFridge, manualProduct, options)
         
         setProduct(manualProduct)
         setAdded(true)
@@ -148,13 +153,20 @@ export default function Scanner() {
     return (
         <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
             <div className="pt-safe">
-            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50">
-                    Scan Product
-                </h1>
-                <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
-                    Scan a barcode or search manually
-                </p>
+            <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 sm:px-6 lg:px-8 pb-5 pt-12 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <Camera size={22} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                            Scan Product
+                        </h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Scan a barcode or search manually.
+                        </p>
+                    </div>
+                </div>
             </div>
             </div>
 
@@ -383,19 +395,14 @@ export default function Scanner() {
                         {!added ? (
                             <div className="space-y-3">
                                 {fridges.length > 0 && (
-                                    <select
+                                    <Select
                                         value={selectedFridge}
-                                        onChange={(e) =>
-                                            setSelectedFridge(e.target.value)
-                                        }
-                                        className="w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-base font-medium text-slate-900 dark:text-slate-50 focus:border-emerald-500 focus:outline-none"
-                                    >
-                                        {fridges.map((f) => (
-                                            <option key={f.id} value={f.id}>
-                                                {f.name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        onChange={setSelectedFridge}
+                                        options={fridges.map((f) => ({
+                                            value: f.id,
+                                            label: f.name,
+                                        }))}
+                                    />
                                 )}
                                 <Button
                                     className="w-full"

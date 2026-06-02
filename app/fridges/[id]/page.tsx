@@ -1,11 +1,17 @@
 'use client'
 
-import { FormEvent, use, useMemo, useRef, useState, useEffect } from 'react'
+import { use, useMemo, useRef, useState, useEffect } from 'react'
 import { useAuth } from '../../../contexts/AuthContext'
-import { fridgeService } from '../../../lib/services/fridgeService'
+import {
+    deleteItem,
+    shareFridge,
+    unshareFridge,
+    updateItemQuantity,
+} from '../../../lib/services/fridgeService'
 import { useFridge } from '../../../hooks/useFridges'
 import { Button } from '../../../components/ui/Button'
 import { Input } from '../../../components/ui/Input'
+import { Select } from '../../../components/ui/Select'
 import {
     NutriScoreBadge,
 } from '../../../components/fridge-details/NutriScoreComponents'
@@ -32,6 +38,11 @@ import {
 } from 'lucide-react'
 import type { FridgeItem } from '../../../lib/types'
 import { modalNutriScore } from '../../../lib/utils'
+import {
+    itemQuantitySchema,
+    shareFridgeSchema,
+} from '../../../lib/validations'
+import { notify } from '../../../lib/notify'
 
 export default function FridgeDetail({
     params,
@@ -190,19 +201,19 @@ export default function FridgeDetail({
         [items]
     )
 
-    const handleShare = async (e: FormEvent<HTMLFormElement>) => {
+    const handleShare = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (
-            !user ||
-            !shareEmail.trim() ||
-            !fridge ||
-            fridge.userId !== user.uid
-        )
+        if (!user || !fridge || fridge.userId !== user.uid) return
+
+        const parsed = shareFridgeSchema.safeParse({ email: shareEmail })
+        if (!parsed.success) {
+            notify.error(parsed.error.issues[0].message)
             return
+        }
 
         setSharing(true)
         try {
-            await fridgeService.shareFridge(id, shareEmail)
+            await shareFridge(id, parsed.data.email)
             setShareEmail('')
             setShowShare(false)
         } finally {
@@ -212,7 +223,7 @@ export default function FridgeDetail({
 
     const handleUnshare = async (email: string) => {
         if (!user || !fridge || fridge.userId !== user.uid) return
-        await fridgeService.unshareFridge(id, email)
+        await unshareFridge(id, email)
     }
 
     const startQuantityEdit = (item: FridgeItem) => {
@@ -221,12 +232,21 @@ export default function FridgeDetail({
     }
 
     const saveQuantity = async (itemId: string) => {
-        const parsed = Number.parseInt(quantityDraft, 10)
-        if (!Number.isFinite(parsed) || parsed < 1) return
+        const parsed = itemQuantitySchema.safeParse({
+            quantity: Number.parseInt(quantityDraft, 10),
+        })
+        if (!parsed.success) {
+            notify.error(parsed.error.issues[0].message)
+            return
+        }
 
         setSavingQuantityItemId(itemId)
         try {
-            await fridgeService.updateItemQuantity(id, itemId, parsed)
+            await updateItemQuantity(
+                id,
+                itemId,
+                parsed.data.quantity
+            )
             setEditingQuantityItemId(null)
         } finally {
             setSavingQuantityItemId(null)
@@ -234,7 +254,7 @@ export default function FridgeDetail({
     }
 
     const deleteFridgeItem = async (itemId: string) => {
-        await fridgeService.deleteItem(id, itemId)
+        await deleteItem(id, itemId)
         if (selectedItem?.id === itemId) {
             setSelectedItem(null)
         }
@@ -345,7 +365,7 @@ export default function FridgeDetail({
 
     if (loading) {
         return (
-            <div className="flex-1 flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950">
+            <div className="flex-1 flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 lg:pl-20 xl:pl-56">
                 <div className="w-10 h-10 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
             </div>
         )
@@ -353,7 +373,7 @@ export default function FridgeDetail({
 
     if (error || !fridge) {
         return (
-            <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-6 text-center">
+            <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-6 text-center lg:pl-20 xl:pl-56">
                 <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center text-red-500 mb-6 shadow-inner">
                     <AlertCircle size={40} strokeWidth={1.5} />
                 </div>
@@ -363,7 +383,7 @@ export default function FridgeDetail({
                 <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs leading-relaxed">
                     {error || 'Fridge not found'}
                 </p>
-                <Link href="/fridges">
+                <Link href="/fridges?list=1">
                     <Button variant="outline">Back to Fridges</Button>
                 </Link>
             </div>
@@ -375,7 +395,7 @@ export default function FridgeDetail({
             <div className="pt-safe">
                 <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 flex items-center gap-3 sm:gap-4 shadow-sm">
                     <Link
-                        href="/fridges"
+                        href="/fridges?list=1"
                         className="p-2.5 -ml-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-500 dark:text-slate-400 min-w-[44px] min-h-[44px] flex items-center justify-center"
                     >
                         <ArrowLeft size={24} />
@@ -516,37 +536,37 @@ export default function FridgeDetail({
                             />
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3">
-                            <div className="flex-1 relative">
-                                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                                <select
-                                    value={filterCategory}
-                                    onChange={(e) => setFilterCategory(e.target.value)}
-                                    className="w-full appearance-none rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 outline-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500"
-                                >
-                                    <option value="all">Alle Kategorien</option>
-                                    <option value="dairy">Milchprodukte</option>
-                                    <option value="meat">Fleisch & Wurst</option>
-                                    <option value="veg">Gemüse</option>
-                                    <option value="fruit">Obst</option>
-                                    <option value="drinks">Getränke</option>
-                                </select>
-                            </div>
-                            <div className="flex-1 relative">
-                                <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="w-full appearance-none rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 pl-10 pr-8 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 outline-none transition-all hover:border-slate-300 dark:hover:border-slate-700 focus:border-emerald-500"
-                                >
-                                    <option value="name-asc">Name (A-Z)</option>
-                                    <option value="name-desc">Name (Z-A)</option>
-                                    <option value="quantity-asc">Menge (Aufsteigend)</option>
-                                    <option value="quantity-desc">Menge (Absteigend)</option>
-                                    <option value="nutri-asc">Nutri-Score (Aufsteigend)</option>
-                                    <option value="nutri-desc">Nutri-Score (Absteigend)</option>
-                                    <option value="expiry-asc">Ablaufdatum (Bald ablaufen zuerst)</option>
-                                </select>
-                            </div>
+                            <Select
+                                size="sm"
+                                className="flex-1"
+                                value={filterCategory}
+                                onChange={setFilterCategory}
+                                icon={<Filter size={16} />}
+                                options={[
+                                    { value: 'all', label: 'Alle Kategorien' },
+                                    { value: 'dairy', label: 'Milchprodukte' },
+                                    { value: 'meat', label: 'Fleisch & Wurst' },
+                                    { value: 'veg', label: 'Gemüse' },
+                                    { value: 'fruit', label: 'Obst' },
+                                    { value: 'drinks', label: 'Getränke' },
+                                ]}
+                            />
+                            <Select
+                                size="sm"
+                                className="flex-1"
+                                value={sortBy}
+                                onChange={setSortBy}
+                                icon={<ArrowUpDown size={16} />}
+                                options={[
+                                    { value: 'name-asc', label: 'Name (A-Z)' },
+                                    { value: 'name-desc', label: 'Name (Z-A)' },
+                                    { value: 'quantity-asc', label: 'Menge (Aufsteigend)' },
+                                    { value: 'quantity-desc', label: 'Menge (Absteigend)' },
+                                    { value: 'nutri-asc', label: 'Nutri-Score (Aufsteigend)' },
+                                    { value: 'nutri-desc', label: 'Nutri-Score (Absteigend)' },
+                                    { value: 'expiry-asc', label: 'Ablaufdatum (Bald ablaufen zuerst)' },
+                                ]}
+                            />
                         </div>
                     </div>
 
@@ -800,7 +820,7 @@ export default function FridgeDetail({
                     itemId={selectedItem.id}
                     fridgeId={id}
                     onQuantityChange={async (itemId, fridgeId, quantity) => {
-                        await fridgeService.updateItemQuantity(fridgeId, itemId, quantity)
+                        await updateItemQuantity(fridgeId, itemId, quantity)
                     }}
                     onDelete={async (itemId, fridgeId) => {
                         setSelectedItem(null)

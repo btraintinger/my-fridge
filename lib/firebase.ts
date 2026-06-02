@@ -15,7 +15,19 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Initialize Firebase only once
+// On HTTPS origins, route the OAuth handler through our own domain (proxied to
+// firebaseapp.com by the next.config rewrite) so signInWithRedirect isn't broken
+// by browsers blocking third-party storage. Dev (http://localhost) keeps the
+// firebaseapp.com authDomain because localhost is exempt from cookie blocking
+// and Firebase requires https for the handler URL.
+if (
+    typeof window !== 'undefined' &&
+    window.location.protocol === 'https:' &&
+    !window.location.host.endsWith('.firebaseapp.com')
+) {
+    firebaseConfig.authDomain = window.location.host
+}
+
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 const auth = getAuth(app)
 

@@ -58,13 +58,6 @@ async function networkFirst(request, cacheName, fallbackUrl) {
     }
 }
 
-async function notifyClients(message) {
-    const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
-    for (const client of clientsList) {
-        client.postMessage(message)
-    }
-}
-
 self.addEventListener('install', (event) => {
     event.waitUntil(
         (async () => {
@@ -130,17 +123,5 @@ self.addEventListener('fetch', (event) => {
     if (url.pathname.startsWith('/api/openfoodfacts/')) {
         event.respondWith(networkFirst(request, API_CACHE, null))
         return
-    }
-})
-
-self.addEventListener('sync', (event) => {
-    if (event.tag !== 'offline-changes') return
-
-    event.waitUntil(notifyClients({ type: 'SYNC_OFFLINE_MUTATIONS' }))
-})
-
-self.addEventListener('message', (event) => {
-    if (event.data?.type === 'REQUEST_OFFLINE_MUTATION_SYNC') {
-        event.waitUntil(notifyClients({ type: 'SYNC_OFFLINE_MUTATIONS' }))
     }
 })

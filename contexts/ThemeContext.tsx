@@ -9,7 +9,10 @@ import {
     useState,
 } from 'react'
 import { useAuth } from './AuthContext'
-import { userService } from '../lib/services/userService'
+import {
+    subscribeToUserPreferences,
+    updateUserPreferences,
+} from '../lib/services/userService'
 
 interface ThemeContextType {
     darkMode: boolean
@@ -43,28 +46,33 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }, [darkMode])
 
     const toggle = useCallback(async () => {
-        const newValue = !darkMode
-        setDarkMode(newValue)
-        localStorage.setItem('darkMode', String(newValue))
+        setDarkMode((prev) => {
+            const newValue = !prev
+            localStorage.setItem('darkMode', String(newValue))
 
-        if (user) {
-            try {
-                await userService.updateUserPreferences(user.uid, {
+            if (user) {
+                // Background update
+                void updateUserPreferences(user.uid, {
                     darkMode: newValue,
+                }).catch((error) => {
+                    console.error('Failed to update dark mode preference:', error)
                 })
-            } catch (error) {
-                console.error('Failed to update dark mode preference:', error)
             }
-        }
-    }, [darkMode, user])
+
+            return newValue
+        })
+    }, [user])
 
     useEffect(() => {
         if (loading || !user) return
 
         // Subscribe to user preferences in Firestore
-        const unsubscribe = userService.subscribeToUserPreferences(
+        const unsubscribe = subscribeToUserPreferences(
             user.uid,
-            (prefs) => {
+            (prefs, metadata) => {
+                // Skip if we have pending local writes to avoid flicker/revert
+                if (metadata.hasPendingWrites) return
+
                 if (typeof prefs.darkMode === 'boolean') {
                     setDarkMode(prefs.darkMode)
                     localStorage.setItem('darkMode', String(prefs.darkMode))

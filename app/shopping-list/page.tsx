@@ -1,8 +1,16 @@
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { fridgeService, productService } from '@/lib/services/fridgeService'
+import { addItemToFridge } from '@/lib/services/fridgeService'
+import {
+    addShoppingItem,
+    deleteShoppingItem,
+    moveShoppingItemToFridge,
+    subscribeToShoppingList,
+    toggleShoppingItem,
+} from '@/lib/services/shoppingListService'
+import { cacheProduct, getCachedProduct } from '@/lib/services/productService'
 import { useFridges } from '@/hooks/useFridges'
 import { fetchProductByBarcode } from '@/lib/openFoodFacts'
 import { ShoppingCart } from 'lucide-react'
@@ -15,6 +23,8 @@ import type {
     Product,
     ShoppingListItem as ShoppingListItemType,
 } from '../../lib/types'
+import { shoppingItemSchema } from '../../lib/validations'
+import { notify } from '../../lib/notify'
 
 export default function ShoppingList() {
     const { user } = useAuth()
@@ -44,7 +54,7 @@ export default function ShoppingList() {
         }
 
         setLoading(true)
-        const unsubscribe = fridgeService.subscribeToShoppingList(
+        const unsubscribe = subscribeToShoppingList(
             selectedFridge,
             (data) => {
                 setItems(data)
@@ -60,20 +70,26 @@ export default function ShoppingList() {
         return () => unsubscribe()
     }, [user, selectedFridge])
 
-    const handleAddItem = async (e: FormEvent<HTMLFormElement>) => {
+    const handleAddItem = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (!user || !newItem.trim() || !selectedFridge) return
+        if (!user || !selectedFridge) return
 
-        await fridgeService.addShoppingItem(selectedFridge, user.uid, newItem)
+        const parsed = shoppingItemSchema.safeParse({ name: newItem })
+        if (!parsed.success) {
+            notify.error(parsed.error.issues[0].message)
+            return
+        }
+
+        await addShoppingItem(selectedFridge, user.uid, parsed.data.name)
         setNewItem('')
     }
 
     const toggleItem = async (itemId: string, checked: boolean) => {
-        await fridgeService.toggleShoppingItem(selectedFridge, itemId, checked)
+        await toggleShoppingItem(selectedFridge, itemId, checked)
     }
 
     const deleteItem = async (itemId: string) => {
-        await fridgeService.deleteShoppingItem(selectedFridge, itemId)
+        await deleteShoppingItem(selectedFridge, itemId)
     }
 
     const handleScan = async (barcode: string) => {
@@ -85,7 +101,7 @@ export default function ShoppingList() {
             let product: Product | null = null
 
             // Check cache first
-            product = await productService.getCachedProduct(barcode)
+            product = await getCachedProduct(barcode)
 
             if (!product && isOffline) {
                 return
@@ -95,7 +111,7 @@ export default function ShoppingList() {
                 product = await fetchProductByBarcode(barcode)
                 if (product) {
                     // Save to cache
-                    await productService.cacheProduct(barcode, product)
+                    await cacheProduct(barcode, product)
                 }
             }
 
@@ -105,7 +121,7 @@ export default function ShoppingList() {
 
             // Move item to fridge
             if (scanningItemId) {
-                await fridgeService.moveShoppingItemToFridge(
+                await moveShoppingItemToFridge(
                     selectedFridge,
                     scanningItemId,
                     product
@@ -121,14 +137,14 @@ export default function ShoppingList() {
                             .includes(i.name.toLowerCase())
                 )
                 if (match) {
-                    await fridgeService.moveShoppingItemToFridge(
+                    await moveShoppingItemToFridge(
                         selectedFridge,
                         match.id,
                         product
                     )
                 } else {
                     // Just add it to the fridge anyway
-                    await fridgeService.addItemToFridge(selectedFridge, product)
+                    await addItemToFridge(selectedFridge, product)
                 }
             }
 
@@ -144,10 +160,20 @@ export default function ShoppingList() {
     return (
         <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 lg:pb-6 lg:pl-20 xl:pl-56">
             <div className="pt-safe">
-            <div className="pt-12 px-4 sm:px-6 lg:px-8 pb-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10 shadow-sm">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-50">
-                    Shopping List
-                </h1>
+            <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 sm:px-6 lg:px-8 pb-5 pt-12 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <ShoppingCart size={22} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                            Shopping List
+                        </h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Plan what to buy next.
+                        </p>
+                    </div>
+                </div>
             </div>
             </div>
 

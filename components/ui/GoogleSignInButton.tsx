@@ -1,12 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { auth } from '../../lib/firebase'
-import { useRouter } from 'next/navigation'
+import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth'
 import { Button } from './Button'
-import { Chrome } from 'lucide-react'
-import type { FirebaseError } from 'firebase/app'
+import { auth } from '@/lib/firebase'
+import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
+import { FcGoogle } from 'react-icons/fc'
 
 export function GoogleSignInButton({
     text = 'Sign in with Google',
@@ -17,23 +16,14 @@ export function GoogleSignInButton({
 }) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
-    const router = useRouter()
 
     const handleGoogleSignIn = async () => {
         setLoading(true)
         setError('')
-
-        const provider = new GoogleAuthProvider()
         try {
-            await signInWithPopup(auth, provider)
-            router.push('/fridges')
+            await signInWithRedirect(auth, new GoogleAuthProvider())
         } catch (err: unknown) {
-            console.error('Google sign in error:', err)
-            setError(
-                (err as FirebaseError).message ||
-                    'Failed to sign in with Google.'
-            )
-        } finally {
+            setError(getFirebaseAuthErrorMessage(err, 'Failed to sign in with Google.'))
             setLoading(false)
         }
     }
@@ -52,7 +42,7 @@ export function GoogleSignInButton({
                 onClick={handleGoogleSignIn}
                 disabled={loading}
             >
-                <Chrome size={18} className="text-slate-500" />
+                <FcGoogle aria-hidden="true" className="h-4.5 w-4.5" />
                 {loading ? 'Connecting...' : text}
             </Button>
         </div>
