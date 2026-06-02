@@ -37,7 +37,9 @@ function normalizeDigits(value: string): string {
 
 type ExtendedCapabilities = MediaTrackCapabilities & {
     torch?: boolean
-    zoom?: { max: number }
+    zoom?: { max: number; min?: number; step?: number }
+    focusDistance?: { max: number; min: number; step?: number }
+    frameRate?: { max: number }
 }
 type CameraConfig = string | { facingMode: string } | { deviceId: string }
 
@@ -245,30 +247,35 @@ export function ScannerModal({
                         () => {}
                     )
 
-                    // Macro zoom & torch for supported devices.
-                    // html5-qrcode v2 has no public way to reach the active
-                    // MediaStreamTrack — read it off the <video> element.
+                    // iOS 26 workaround: html5-qrcode/ZXing silently fails to
+                    // decode frames until we re-apply video constraints after
+                    // the stream is live. Applying frameRate + zoom +
+                    // focusDistance nudges WebKit's video pipeline so the
+                    // decoder actually starts consuming frames.
                     try {
-                        const track = getActiveVideoTrack()
-                        if (
-                            track &&
-                            typeof track.getCapabilities === 'function'
-                        ) {
-                            const caps =
-                                track.getCapabilities() as ExtendedCapabilities
-                            setTorchSupported(!!caps.torch)
-                            if (caps.zoom) {
-                                await track.applyConstraints({
-                                    advanced: [
-                                        {
-                                            zoom: Math.min(2.0, caps.zoom.max),
-                                        } as MediaTrackConstraintSet,
-                                    ],
-                                })
-                            }
+                        const caps =
+                            scanner.getRunningTrackCapabilities() as ExtendedCapabilities
+                        setTorchSupported(!!caps.torch)
+                        const advanced: MediaTrackConstraintSet[] = []
+                        if (caps.zoom) {
+                            advanced.push({
+                                zoom: Math.min(2.0, caps.zoom.max),
+                            } as MediaTrackConstraintSet)
                         }
+                        if (caps.focusDistance) {
+                            advanced.push({
+                                focusDistance: caps.focusDistance.min,
+                            } as MediaTrackConstraintSet)
+                        }
+                        await scanner.applyVideoConstraints({
+                            width: { ideal: 1000 },
+                            frameRate: {
+                                ideal: caps.frameRate?.max ?? 30,
+                            },
+                            advanced,
+                        })
                     } catch (e) {
-                        console.debug('Zoom/Torch not supported:', e)
+                        console.debug('Constraint reset failed:', e)
                     }
 
                     setScannerReady(true)
