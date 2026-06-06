@@ -3,7 +3,42 @@ import {
     OpenFoodFacts,
     type Product,
 } from '@openfoodfacts/openfoodfacts-nodejs'
-import { ProductSchema } from '@/lib/schemas'
+import { FieldValue } from 'firebase-admin/firestore'
+import { ProductSchema, type Product as CachedProduct } from '@/lib/schemas'
+import { productAdminDoc } from '@/lib/server/refs'
+
+const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+
+// Write the canonical OFF result to the shared cache via admin SDK. Clients
+// are read-only on /products (see firestore.rules), which prevents cache
+// poisoning from a malicious authenticated user.
+async function writeProductCache(barcode: string, product: CachedProduct) {
+    try {
+        await productAdminDoc(barcode).set({
+            ...product,
+            updatedAt: FieldValue.serverTimestamp(),
+        })
+    } catch (error) {
+        console.error('Failed to write product cache:', error)
+    }
+}
+
+// Return the cached product if it exists and is fresh, otherwise null.
+async function readFreshProductCache(
+    barcode: string
+): Promise<CachedProduct | null> {
+    try {
+        const snap = await productAdminDoc(barcode).get()
+        const data = snap.data()
+        if (!data) return null
+        const updatedAtMillis = data.updatedAt?.toMillis?.() ?? 0
+        if (Date.now() - updatedAtMillis > CACHE_TTL_MS) return null
+        return data
+    } catch (error) {
+        console.error('Failed to read product cache:', error)
+        return null
+    }
+}
 
 type Nutriments = NonNullable<Product['nutriments']>
 type NutrimentKey = Extract<keyof Nutriments, string>
@@ -207,6 +242,11 @@ export async function GET(
             return NextResponse.json({ product: null }, { status: 400 })
         }
 
+        const cached = await readFreshProductCache(normalizedBarcode)
+        if (cached) {
+            return NextResponse.json({ product: cached })
+        }
+
         const { data, error } = await off.apiv2.client.GET(
             '/api/v2/product/{code}',
             {
@@ -297,6 +337,7 @@ export async function GET(
 
         const validated = ProductSchema.safeParse(productData)
         if (validated.success) {
+            await writeProductCache(normalizedBarcode, validated.data)
             return NextResponse.json({ product: validated.data })
         }
 
@@ -311,6 +352,7 @@ export async function GET(
             nutriments: {},
         })
 
+        await writeProductCache(normalizedBarcode, fallback)
         return NextResponse.json({ product: fallback })
     } catch (error) {
         console.error('Open Food Facts proxy failed:', error)

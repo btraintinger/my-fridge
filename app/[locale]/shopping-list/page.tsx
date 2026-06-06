@@ -13,9 +13,8 @@ import {
     updateShoppingItemName,
     updateShoppingItemDetails,
 } from '@/lib/services/shoppingListService'
-import { cacheProduct, getCachedProduct } from '@/lib/services/productService'
+import { getProduct } from '@/lib/services/productService'
 import { useFridges } from '@/hooks/useFridges'
-import { fetchProductByBarcode } from '@/lib/openFoodFacts'
 import { ShoppingCart } from 'lucide-react'
 import { ScannerModal } from '@/components/ScannerModal'
 import { ShoppingListItem } from '@/components/shopping-list/ShoppingListItem'
@@ -23,10 +22,7 @@ import { FridgeSelector } from '@/components/shopping-list/FridgeSelector'
 import { AddItemForm } from '@/components/shopping-list/AddItemForm'
 import { createShoppingItemSchema } from '@/lib/validations'
 import { notify } from '@/lib/notify'
-import type {
-    Product,
-    ShoppingListItem as ShoppingListItemType,
-} from '@/lib/types'
+import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
 
 export default function ShoppingList() {
     const { user } = useAuth()
@@ -117,23 +113,7 @@ export default function ShoppingList() {
 
         setMovingItem(true)
         try {
-            const isOffline =
-                typeof navigator !== 'undefined' && !navigator.onLine
-            let product: Product | null = null
-
-            product = await getCachedProduct(barcode)
-
-            if (!product && isOffline) {
-                return
-            }
-
-            if (!product) {
-                product = await fetchProductByBarcode(barcode)
-                if (product) {
-                    await cacheProduct(barcode, product)
-                }
-            }
-
+            const product = await getProduct(barcode)
             if (!product) {
                 return
             }

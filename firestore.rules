@@ -1,54 +1,78 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow users to read/write their own fridges
+
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return uid == request.auth.uid;
+    }
+
+    // Sharing keys off the verified email claim. Unverified registrations
+    // (e.g. a user claiming someone else's address) cannot match.
+    function isVerifiedShare(data) {
+      return data.sharedWithEmails != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in data.sharedWithEmails;
+    }
+
+    function hasFridgeAccess(data) {
+      return isOwner(data.userId) || isVerifiedShare(data);
+    }
+
+    function fridgeData(fridgeId) {
+      return get(/databases/$(database)/documents/fridges/$(fridgeId)).data;
+    }
+
+    function hasParentFridgeAccess(fridgeId) {
+      return hasFridgeAccess(fridgeData(fridgeId));
+    }
+
+    // Fields a non-owner collaborator must leave untouched on update.
+    function preservesOwnership() {
+      return request.resource.data.userId == resource.data.userId
+        && request.resource.data.sharedWithEmails == resource.data.sharedWithEmails;
+    }
+
     match /fridges/{fridgeId} {
-      allow create: if request.auth != null;
-      allow read, update, delete: if request.auth != null &&
-      (resource.data.userId == request.auth.uid ||
-      (resource.data.sharedWithEmails != null &&
-       request.auth.token.email in resource.data.sharedWithEmails)
+      allow create: if isAuthed();
+      allow read, delete: if isAuthed() && hasFridgeAccess(resource.data);
+      // Owners may update freely. Verified collaborators may update too,
+      // but must NOT change ownership (userId) or the share list.
+      allow update: if isAuthed() && (
+        isOwner(resource.data.userId) ||
+        (isVerifiedShare(resource.data) && preservesOwnership())
       );
 
-      // Allow access to items within a fridge
       match /items/{itemId} {
-        // Check if user is owner or has shared access to parent fridge
-        allow read, write: if request.auth != null && (
-          get(/databases/$(database)/documents/fridges/$(fridgeId)).data.userId == request.auth.uid ||
-          (get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails != null &&
-           request.auth.token.email in get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails)
-        );
+        allow read, write: if isAuthed() && hasParentFridgeAccess(fridgeId);
       }
 
-      // Shopping list for this specific fridge
       match /shopping_list/{itemId} {
-        allow read, write: if request.auth != null && (
-          get(/databases/$(database)/documents/fridges/$(fridgeId)).data.userId == request.auth.uid ||
-          (get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails != null &&
-           request.auth.token.email in get(/databases/$(database)/documents/fridges/$(fridgeId)).data.sharedWithEmails)
-        );
+        allow read, write: if isAuthed() && hasParentFridgeAccess(fridgeId);
       }
     }
 
     // User preferences
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isAuthed() && isOwner(userId);
     }
 
     // FCM device tokens — the user owns and manages their own tokens.
     // Rules do NOT recurse from users/{userId} so this explicit block is required.
     match /users/{userId}/fcm_tokens/{tokenId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isAuthed() && isOwner(userId);
     }
 
-    // Global products cache. Any authenticated user can populate it on scan,
-    // but entries can't be deleted (vandalism) and the document's barcode
-    // must match the doc id.
+    // Global products cache. Read-only from clients; writes are performed
+    // exclusively by the server (admin SDK from /api/openfoodfacts) so that
+    // untrusted authenticated users cannot poison the shared cache with
+    // arbitrary text (e.g. fake allergens, phishing strings).
     match /products/{barcode} {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth != null
-        && request.resource.data.barcode == barcode;
-      allow delete: if false;
+      allow read: if isAuthed();
+      allow write: if false;
     }
   }
 }

@@ -4,9 +4,8 @@ import { useCallback, useState, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/contexts/AuthContext'
 import { addItemToFridge } from '@/lib/services/fridgeService'
-import { cacheProduct, getCachedProduct } from '@/lib/services/productService'
+import { getProduct } from '@/lib/services/productService'
 import { useFridges } from '@/hooks/useFridges'
-import { fetchProductByBarcode } from '@/lib/openFoodFacts'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
@@ -164,13 +163,7 @@ export default function Scanner() {
                 processingBarcodesRef.current.add(trimmedCode)
                 addItem(trimmedCode)
                 try {
-                    let prod = await getCachedProduct(trimmedCode)
-                    if (!prod) {
-                        prod = await fetchProductByBarcode(trimmedCode)
-                        if (prod) {
-                            await cacheProduct(trimmedCode, prod)
-                        }
-                    }
+                    const prod = await getProduct(trimmedCode)
 
                     if (prod) {
                         updateItem(trimmedCode, {
@@ -206,27 +199,15 @@ export default function Scanner() {
             const isOffline =
                 typeof navigator !== 'undefined' && !navigator.onLine
 
-            const cached = await getCachedProduct(trimmedCode)
-            if (cached) {
-                setProduct(cached)
-                setSearching(false)
-                return
-            }
-
-            if (isOffline) {
-                notify.error(t('scanner.errors.offline'))
-                setSearching(false)
-                return
-            }
-
             try {
-                const result = await fetchProductByBarcode(code.trim())
+                const result = await getProduct(trimmedCode)
                 if (result) {
                     setProduct(result)
-                    await cacheProduct(code.trim(), result)
+                } else if (isOffline) {
+                    notify.error(t('scanner.errors.offline'))
                 } else {
                     notify.error(t('scanner.errors.notFound'))
-                    setBarcode(code.trim())
+                    setBarcode(trimmedCode)
                 }
             } catch (err) {
                 console.error('Search error:', err)

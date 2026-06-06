@@ -3,6 +3,7 @@ import { COLLECTIONS } from '../constants'
 import {
     FcmTokenDocSchema,
     FridgeSchema,
+    ProductSchema,
     UserPreferencesSchema,
 } from '../schemas'
 import { zodAdminConverter } from './zodAdminConverter'
@@ -10,6 +11,7 @@ import { zodAdminConverter } from './zodAdminConverter'
 const fridgeAdminConverter = zodAdminConverter(FridgeSchema)
 const userPreferencesAdminConverter = zodAdminConverter(UserPreferencesSchema)
 const fcmTokenAdminConverter = zodAdminConverter(FcmTokenDocSchema)
+const productAdminConverter = zodAdminConverter(ProductSchema)
 
 export const fridgesAdminCollection = () =>
     adminDb.collection(COLLECTIONS.FRIDGES).withConverter(fridgeAdminConverter)
@@ -40,3 +42,9 @@ export const userFcmTokenAdminRef = (uid: string, token: string) =>
         .collection(COLLECTIONS.FCM_TOKENS)
         .doc(token)
         .withConverter(fcmTokenAdminConverter)
+
+export const productAdminDoc = (barcode: string) =>
+    adminDb
+        .collection(COLLECTIONS.PRODUCTS)
+        .doc(barcode)
+        .withConverter(productAdminConverter)
