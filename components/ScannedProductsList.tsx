@@ -27,11 +27,13 @@ function StatusBadge({
     status: ScannedItem['status']
     error?: string
 }) {
+    const t = useTranslations('scanner')
+    const tCommon = useTranslations('common')
     if (status === 'scanning') {
         return (
             <span className="text-xs text-slate-500 flex items-center gap-1">
                 <span className="w-3 h-3 border-2 border-slate-400 border-t-transparent rounded-full animate-spin inline-block" />
-                Suche...
+                {t('searching')}
             </span>
         )
     }
@@ -39,7 +41,7 @@ function StatusBadge({
         return (
             <span className="text-xs text-rose-500 font-medium flex items-center gap-1">
                 <AlertCircle size={11} />
-                {error || 'Fehler'}
+                {error || tCommon('error')}
             </span>
         )
     }
@@ -47,7 +49,7 @@ function StatusBadge({
         return (
             <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                 <Check size={12} />
-                Erkannt
+                {t('recognized')}
             </span>
         )
     }
@@ -95,7 +97,7 @@ export function ScannedProductsList({
 
             {items.length === 0 && (
                 <div className="text-center text-slate-500 py-8">
-                    Keine Produkte gescannt.
+                    {t('noProductsScanned')}
                 </div>
             )}
 
@@ -104,7 +106,7 @@ export function ScannedProductsList({
                 onQuantityChange={onUpdateQuantity}
                 onExpiryDateChange={onUpdateExpiryDate}
                 onRemove={onRemove}
-                badgeColumnHeader="Status"
+                badgeColumnHeader={tCommon('status')}
             />
 
             {items.length > 0 && (
@@ -139,10 +141,10 @@ export function ScannedProductsList({
                                 {isAdding ? (
                                     <span className="flex items-center justify-center gap-2">
                                         <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                        Füge hinzu...
+                                        {t('addingAll')}
                                     </span>
                                 ) : (
-                                    'Alle hinzufügen'
+                                    t('addAll')
                                 )}
                             </Button>
                         </div>

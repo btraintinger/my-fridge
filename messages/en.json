@@ -23,7 +23,9 @@
         "oops": "Oops",
         "today": "Today",
         "increase": "Increase",
-        "decrease": "Decrease"
+        "decrease": "Decrease",
+        "error": "Error",
+        "status": "Status"
     },
     "nav": {
         "fridges": "Fridges",
@@ -362,7 +364,12 @@
             "complete": "Done"
         },
         "multiScan": "Multi-Scan",
-        "multiScanReview": "Scanned Products"
+        "multiScanReview": "Scanned Products",
+        "searching": "Searching...",
+        "recognized": "Recognized",
+        "noProductsScanned": "No products scanned.",
+        "addingAll": "Adding...",
+        "addAll": "Add all"
     },
     "manualProduct": {
         "title": "Add product manually",

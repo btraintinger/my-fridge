@@ -23,7 +23,9 @@
         "oops": "Hoppla",
         "today": "Heute",
         "increase": "Erhöhen",
-        "decrease": "Verringern"
+        "decrease": "Verringern",
+        "error": "Fehler",
+        "status": "Status"
     },
     "nav": {
         "fridges": "Kühlschränke",
@@ -362,7 +364,12 @@
             "complete": "Fertig"
         },
         "multiScan": "Multi-Scan",
-        "multiScanReview": "Gescannte Produkte"
+        "multiScanReview": "Gescannte Produkte",
+        "searching": "Suche...",
+        "recognized": "Erkannt",
+        "noProductsScanned": "Keine Produkte gescannt.",
+        "addingAll": "Füge hinzu...",
+        "addAll": "Alle hinzufügen"
     },
     "manualProduct": {
         "title": "Produkt manuell anlegen",
