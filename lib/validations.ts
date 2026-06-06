@@ -70,7 +70,7 @@ export const createShoppingItemSchema = (t: Translator) =>
         name: z
             .string()
             .min(1, t('validation.shoppingItem.required'))
-            .max(120, t('validation.shoppingItem.max', { max: 120 }))
+            .max(15, t('validation.shoppingItem.max', { max: 15 }))
             .trim(),
     })
 

@@ -25,9 +25,10 @@ export function AddItemForm({
                     placeholder={t('addPlaceholder')}
                     value={newItem}
                     onChange={(e) => setNewItem(e.target.value)}
+                    maxLength={15}
                     className="flex-1"
                 />
-                <Button type="submit">
+                <Button type="submit" disabled={!newItem.trim()}>
                     <Plus size={20} />
                 </Button>
             </form>

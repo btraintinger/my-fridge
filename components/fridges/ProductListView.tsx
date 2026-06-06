@@ -151,9 +151,11 @@ export function ProductListView({
                                     scope="col"
                                     className="px-4 py-3 font-semibold"
                                 >
-                                    {t('fridges.detail.sort.nameAsc').split(
-                                        ' '
-                                    )[0]}
+                                    {
+                                        t('fridges.detail.sort.nameAsc').split(
+                                            ' '
+                                        )[0]
+                                    }
                                 </th>
                                 <th
                                     scope="col"
@@ -257,7 +259,8 @@ export function ProductListView({
                                         <div className="inline-flex">
                                             <NutriScoreBadge
                                                 grade={
-                                                    item.product.nutriscore_grade
+                                                    item.product
+                                                        .nutriscore_grade
                                                 }
                                                 size="sm"
                                             />
