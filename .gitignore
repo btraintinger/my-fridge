@@ -46,6 +46,7 @@ next-env.d.ts
 /public/sw.js.map
 /public/workbox-*.js
 /public/swe-worker-*.js
+
 .idea/
 
 certificates

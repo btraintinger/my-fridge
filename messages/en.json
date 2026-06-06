@@ -601,22 +601,6 @@
         "offlineBadge": "Offline",
         "installCta": "Add to Home Screen"
     },
-    "debug": {
-        "title": "Debug Tools",
-        "description": "This page resets test data during development.",
-        "mustBeLoggedIn": "You must be signed in to delete your data.",
-        "confirm": "Do you really want to delete ALL your fridges, products, and shopping lists? This cannot be undone.",
-        "deleteStarted": "Deletion started...",
-        "deleteSuccess": "Database cleared successfully. {count} of your fridges were deleted.",
-        "deleteButton": "Clear database now",
-        "backToApp": "Back to app",
-        "retry": "Retry",
-        "permissionDenied": "Permission denied. Make sure you are signed in or temporarily open the security rules in the Firebase console.",
-        "genericFailure": "Deletion failed: {message}",
-        "unknownError": "Unknown error",
-        "cancel": "Cancel and go back",
-        "cacheWarn": "Product cache could not be cleared (possibly missing permission):"
-    },
     "allergenWarning": {
         "title": "Allergen Warning",
         "body": "This product contains allergens from your profile: {allergens}"
