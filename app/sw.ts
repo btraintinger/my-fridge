@@ -3,8 +3,8 @@
 /// <reference lib="webworker" />
 
 import { defaultCache } from '@serwist/turbopack/worker'
-import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { Serwist } from 'serwist'
+import { type PrecacheEntry, type SerwistGlobalConfig, Serwist } from 'serwist'
+import en from '@/messages/en.json'
 import { initializeApp, getApps } from 'firebase/app'
 import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw'
 
@@ -31,7 +31,7 @@ try {
         : initializeApp(firebaseConfig)
     const messaging = getMessaging(firebaseApp)
     onBackgroundMessage(messaging, (payload) => {
-        const title = payload.data?.title ?? 'MyFridge'
+        const title = payload.data?.title ?? en.common.appName
         const body = payload.data?.body ?? ''
         const link = payload.data?.link ?? '/'
         self.registration.showNotification(title, {

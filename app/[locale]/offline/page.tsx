@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { WifiOff, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
@@ -19,19 +20,23 @@ export default function OfflinePage() {
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                    <Link
-                        href="/fridges"
-                        className="inline-flex items-center justify-center rounded-2xl bg-emerald-500 px-6 py-3 font-semibold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-600"
-                    >
-                        <RefreshCw size={18} className="mr-2" />
-                        {t('retry')}
-                    </Link>
-                    <Link
-                        href="/scanner"
-                        className="inline-flex items-center justify-center rounded-2xl border-2 border-slate-200 px-6 py-3 font-semibold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
-                    >
-                        {t('openScanner')}
-                    </Link>
+                    <Button asChild>
+                        <Link
+                            href="/fridges"
+                            className="inline-flex items-center justify-center rounded-2xl bg-emerald-500 px-6 py-3 font-semibold text-white shadow-sm shadow-emerald-500/20 transition-all hover:bg-emerald-600"
+                        >
+                            <RefreshCw size={18} className="mr-2" />
+                            {t('retry')}
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <Link
+                            href="/scanner"
+                            className="inline-flex items-center justify-center rounded-2xl border-2 border-slate-200 px-6 py-3 font-semibold text-slate-700 transition-all hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900"
+                        >
+                            {t('openScanner')}
+                        </Link>
+                    </Button>
                 </div>
             </div>
         </div>

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { zodConverter } from './zodConverter'
+import { PRODUCT_CATEGORIES } from '@/lib/products/productCategorization'
 
 // Accepts:
 // - Firestore Timestamps (read path: has toDate/toMillis)
@@ -46,7 +47,7 @@ export const ProductSchema = z.object({
     }),
     nutriments: NutrimentsSchema,
     ecoscore_grade: z.string().nullable().default(null),
-    category: z.string().default('Sonstiges'),
+    category: z.enum(PRODUCT_CATEGORIES).default('other'),
     unit: z.string().optional(),
     // Cache metadata — only set by client-side cache writes.
     updatedAt: TimestampType.optional(),

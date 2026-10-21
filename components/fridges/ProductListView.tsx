@@ -3,7 +3,11 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import type { FridgeItem } from '@/lib/types'
-import { ProductItemList, type ProductRowItem } from '../ui/ProductItemList'
+import { getProductCategoryLabel } from '@/lib/products/productCategories'
+import {
+    ProductItemList,
+    type ProductRowItem,
+} from '@/components/products/ProductItemList'
 
 interface ProductListViewProps {
     items: FridgeItem[]
@@ -54,7 +58,7 @@ export function ProductListView({
         expiryDate: item.expiryDate,
         badge: (
             <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px] text-slate-500 dark:text-slate-400 flex-shrink-0">
-                {item.product.category || t('fridges.detail.categories.other')}
+                {getProductCategoryLabel(item.product.category, t)}
             </span>
         ),
         controlsDisabled: updatingItems[item.id!],
@@ -70,7 +74,7 @@ export function ProductListView({
                 const item = items.find((i) => i.id === id)
                 if (item) onDeleteRequest(item)
             }}
-            badgeColumnHeader="Kategorie"
+            badgeColumnHeader={t('common.category')}
         />
     )
 }

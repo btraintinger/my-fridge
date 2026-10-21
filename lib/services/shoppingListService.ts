@@ -1,28 +1,21 @@
-import { db } from '../firebase'
-import type { FirestoreError } from 'firebase/firestore'
 import {
+    type FirestoreError,
     addDoc,
     deleteDoc,
-    doc,
     onSnapshot,
     orderBy,
     query,
     serverTimestamp,
     updateDoc,
-    writeBatch,
 } from 'firebase/firestore'
 import type {
     Product,
     ShoppingListItem as ShoppingListItemType,
-} from '../types'
+} from '@/lib/types'
 import { runFirebaseAction, subscriptionErrorHandler } from './firebaseAction'
-import { newItemPayload } from './fridgeService'
-import {
-    itemsCollection,
-    shoppingItemDoc,
-    shoppingListCollection,
-} from './refs'
-import { postNotify } from '../notificationsClient'
+import { saveItemToFridge } from './fridgeService'
+import { shoppingItemDoc, shoppingListCollection } from './refs'
+import { postNotify } from '@/lib/notificationsClient'
 
 export function subscribeToShoppingList(
     fridgeId: string,
@@ -130,10 +123,8 @@ export async function moveShoppingItemToFridge(
     itemId: string,
     product: Product
 ) {
-    return runFirebaseAction(async () => {
-        const batch = writeBatch(db)
-        batch.set(doc(itemsCollection(fridgeId)), newItemPayload(product))
-        batch.delete(shoppingItemDoc(fridgeId, itemId))
-        await batch.commit()
-    }, `"${product.product_name}" in den Kühlschrank verschoben`)
+    return runFirebaseAction(
+        () => saveItemToFridge(fridgeId, product, {}, itemId),
+        { key: 'toast.movedToFridge', values: { name: product.product_name } }
+    )
 }

@@ -25,7 +25,17 @@
         "increase": "Increase",
         "decrease": "Decrease",
         "error": "Error",
-        "status": "Status"
+        "status": "Status",
+        "selectDate": "Select date…",
+        "dismiss": "Dismiss",
+        "product": "Product",
+        "quantity": "Quantity",
+        "category": "Category",
+        "expiryDate": "Expiry date",
+        "actions": "Actions",
+        "nutriScore": "Nutri-Score",
+        "nutriScoreWithGrade": "Nutri-Score: {grade}",
+        "appNameStyled": "My<accent>Fridge</accent>"
     },
     "nav": {
         "fridges": "Fridges",
@@ -105,6 +115,11 @@
             "auth/user-not-found": "No account found for this email.",
             "auth/weak-password": "Choose a stronger password (at least 6 characters).",
             "auth/wrong-password": "Current password is incorrect."
+        },
+        "errors": {
+            "sessionExpired": "Your session has expired. Please sign in again.",
+            "missingAccountEmail": "No account email was found for this profile.",
+            "currentPasswordRequired": "Enter your current password to continue."
         }
     },
     "validation": {
@@ -141,7 +156,8 @@
             "nameMax": "Product name must be at most {max} characters.",
             "categoryRequired": "Category is required.",
             "notesMax": "Notes must be at most {max} characters."
-        }
+        },
+        "nonnegative": "Value must be zero or greater."
     },
     "fridges": {
         "list": {
@@ -216,7 +232,9 @@
                 "quantityDesc": "Quantity (Desc)",
                 "nutriAsc": "Nutri-Score (Asc)",
                 "nutriDesc": "Nutri-Score (Desc)",
-                "expiryAsc": "Expiry (Soonest first)"
+                "expiryAsc": "Expiry (Soonest first)",
+                "categoryAsc": "Category (A-Z)",
+                "addedDesc": "Newest first"
             },
             "categories": {
                 "dairy": "Dairy",
@@ -226,6 +244,15 @@
                 "snacks": "Snacks & Sweets",
                 "frozen": "Frozen",
                 "other": "Other"
+            },
+            "view": {
+                "categories": "Categories",
+                "list": "List"
+            },
+            "errors": {
+                "accessDenied": "Access denied.",
+                "loadFridge": "Failed to load fridge.",
+                "loadItems": "Failed to load items."
             }
         },
         "analysis": {
@@ -306,11 +333,11 @@
             "backToFridge": "Back to fridge",
             "warningCount": "{count, plural, one {# warning} other {# warnings}}",
             "allergenAlerts": {
-                "title": "Allergen Alerts",
-                "subtitle": "Products in this fridge that contain your registered allergens.",
-                "empty": "No allergens detected. All clear!",
-                "noAllergies": "No allergies registered in your profile.",
-                "contains": "Contains: {allergens}"
+                "title": "Dietary profile alerts",
+                "subtitle": "Products with detected conflicts with your dietary preferences or allergies.",
+                "empty": "No conflicts with your dietary profile detected.",
+                "noAllergies": "No dietary preferences or allergies registered in your profile.",
+                "contains": "Conflicts with your dietary profile: {allergens}"
             }
         }
     },
@@ -369,7 +396,12 @@
         "recognized": "Recognized",
         "noProductsScanned": "No products scanned.",
         "addingAll": "Adding...",
-        "addAll": "Add all"
+        "addAll": "Add all",
+        "expiryLabel": "Expiry date (optional)",
+        "expiryPlaceholder": "Choose date...",
+        "fridgeLabel": "Fridge",
+        "scanAdded": "+ {name}",
+        "scanQuantityAdded": "+1 {name} ({quantity}×)"
     },
     "manualProduct": {
         "title": "Add product manually",
@@ -395,6 +427,7 @@
         }
     },
     "productModal": {
+        "categoryUpdateError": "Could not update the category. Please try again.",
         "noImage": "No image available",
         "origin": "Origin: {country}",
         "inventory": "Inventory",
@@ -412,6 +445,7 @@
         "energy": "Energy",
         "fat": "Fat",
         "saturatedFat": "Saturated Fat",
+        "carbohydrates": "Carbohydrates",
         "sugars": "Sugars",
         "proteins": "Proteins",
         "fiber": "Fiber",
@@ -551,6 +585,9 @@
             "newPlaceholder": "New password",
             "confirmPlaceholder": "Confirm new password",
             "currentPlaceholder": "Current password",
+            "newRequired": "Enter a new password.",
+            "confirmRequired": "Confirm your new password.",
+            "currentRequired": "Enter your current password.",
             "submit": "Change Password",
             "submitting": "Updating password...",
             "mismatch": "Passwords must match.",
@@ -594,7 +631,10 @@
                     "3d": "3 days before",
                     "7d": "7 days before"
                 }
-            }
+            },
+            "enableFailed": "Could not enable notifications. Please try again.",
+            "disableFailed": "Could not disable notifications. Please try again.",
+            "foregroundMessage": "{title} — {body}"
         },
         "modal": {
             "closeAria": "Close dialog"
@@ -609,8 +649,8 @@
         "installCta": "Add to Home Screen"
     },
     "allergenWarning": {
-        "title": "Allergen Warning",
-        "body": "This product contains allergens from your profile: {allergens}"
+        "title": "Dietary profile alert",
+        "body": "Conflicts with your dietary profile: {allergens}"
     },
     "nutrimentWarnings": {
         "sugar": {
@@ -640,7 +680,15 @@
         }
     },
     "toast": {
-        "genericError": "Something went wrong. Please try again."
+        "categoryUpdated": "Category updated",
+        "genericError": "Something went wrong. Please try again.",
+        "fridgeDeleted": "Fridge deleted",
+        "fridgeShared": "Successfully shared with {email}",
+        "accessRemoved": "Access removed for {email}",
+        "productRemoved": "Product removed",
+        "productAdded": "\"{name}\" added!",
+        "unitUpdated": "Contents updated",
+        "movedToFridge": "\"{name}\" moved to the fridge"
     },
     "pushNotifications": {
         "someone": "Someone",
@@ -681,6 +729,38 @@
             "title": "{count, plural, one {# item expiring soon} other {# items expiring soon}}",
             "body": "{items}",
             "bodyWithMore": "{items} +{extra} more"
+        },
+        "unnamedItem": "an item",
+        "unknownItem": "Unknown item"
+    },
+    "nutrients": {
+        "energy_kcal": "Energy",
+        "fat": "Fat",
+        "saturated_fat": "Saturated fat",
+        "carbohydrates": "Carbohydrates",
+        "sugars": "Sugars",
+        "proteins": "Proteins",
+        "salt": "Salt",
+        "fiber": "Fiber"
+    },
+    "pwa": {
+        "description": "Digital fridge management with offline support",
+        "shortcuts": {
+            "fridges": "My Fridges",
+            "scanner": "Scan Item",
+            "shoppingList": "Shopping List",
+            "settings": "Settings"
         }
+    },
+    "calendar": {
+        "previousMonth": "Go to the previous month",
+        "nextMonth": "Go to the next month",
+        "chooseMonth": "Choose the month",
+        "chooseYear": "Choose the year",
+        "navigation": "Calendar navigation",
+        "weekNumber": "Week {week}",
+        "weekNumberHeader": "Week number",
+        "todayDate": "Today, {date}",
+        "selectedDate": "{date}, selected"
     }
 }

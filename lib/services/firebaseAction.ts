@@ -1,16 +1,16 @@
 import type { FirestoreError } from 'firebase/firestore'
-import { notify } from '../notify'
+import { notify, type ToastMessage } from '@/lib/notify'
 
 export async function runFirebaseAction<T>(
     action: () => Promise<T>,
-    successMessage?: string
+    successMessage?: ToastMessage
 ): Promise<T> {
     try {
         const result = await action()
         if (successMessage) notify.success(successMessage)
         return result
     } catch (error) {
-        notify.error(error as Error)
+        notify.error(error instanceof Error ? error : new Error())
         throw error
     }
 }

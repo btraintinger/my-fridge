@@ -1,124 +1,145 @@
 'use client'
 
-import type { FormEvent } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslations } from 'next-intl'
 
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { SettingsActionForm } from '@/components/settings/SettingsActionForm'
-import { SettingsActionModal } from '@/components/settings/SettingsActionModal'
-import { useFirebaseAuth } from '@/hooks/useFirebaseAuth'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { FormField } from '@/components/forms/FormField'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+    SettingsActionForm,
+    SettingsActionModal,
+} from '@/components/settings/SettingsAction'
+import { useFirebaseAuth } from '@/components/auth/useFirebaseAuth'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { createPasswordChangeSchema } from '@/lib/validations'
 
-export const PasswordChangeModal = () => {
+interface PasswordChangeModalProps {
+    onClose: () => void
+    onSuccess: (message: string) => void
+}
+
+export const PasswordChangeModal = ({
+    onClose,
+    onSuccess,
+}: PasswordChangeModalProps) => {
     const t = useTranslations('settings')
     const tCommon = useTranslations('common')
-    const isOpen = useSettingsStore(
-        (state) => state.activeDialog === 'password'
-    )
-    const passwordState = useSettingsStore((state) => state.password)
-    const closeDialog = useSettingsStore((state) => state.closeDialog)
-    const setPasswordField = useSettingsStore((state) => state.setPasswordField)
-    const setPasswordStatus = useSettingsStore(
-        (state) => state.setPasswordStatus
-    )
-    const setPasswordLoading = useSettingsStore(
-        (state) => state.setPasswordLoading
-    )
-    const resetPassword = useSettingsStore((state) => state.resetPassword)
     const { updateUserPassword, formatAuthError } = useFirebaseAuth()
+    const [status, setStatus] = useState('')
+    const schema = useMemo(() => createPasswordChangeSchema(t), [t])
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm({
+        resolver: zodResolver(schema),
+        defaultValues: {
+            newPassword: '',
+            confirmNewPassword: '',
+            currentPassword: '',
+        },
+    })
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        setPasswordStatus('')
-
-        if (passwordState.newPassword !== passwordState.confirmNewPassword) {
-            setPasswordStatus(t('password.mismatch'))
-            return
-        }
-
-        if (passwordState.newPassword.length < 6) {
-            setPasswordStatus(t('password.tooShort'))
-            return
-        }
-
-        setPasswordLoading(true)
-
-        try {
-            await updateUserPassword(
-                passwordState.currentPassword,
-                passwordState.newPassword
-            )
-            resetPassword(t('password.updated'))
-            closeDialog()
-        } catch (error) {
-            setPasswordStatus(
-                formatAuthError(error, t('password.updateFailed'))
-            )
-        } finally {
-            setPasswordLoading(false)
-        }
+    const handleClose = () => {
+        if (!isSubmitting) onClose()
     }
+
+    const onSubmit = handleSubmit(async (data) => {
+        setStatus('')
+        try {
+            await updateUserPassword(data.currentPassword, data.newPassword)
+            onSuccess(t('password.updated'))
+            onClose()
+        } catch (error) {
+            setStatus(formatAuthError(error, t('password.updateFailed')))
+        }
+    })
 
     return (
         <SettingsActionModal
-            isOpen={isOpen}
-            onClose={closeDialog}
+            isOpen
+            onClose={handleClose}
             title={t('password.title')}
         >
-            <SettingsActionForm onSubmit={handleSubmit} className="space-y-4">
-                <Input
-                    type="password"
-                    value={passwordState.newPassword}
-                    onChange={(event) =>
-                        setPasswordField('newPassword', event.target.value)
-                    }
-                    placeholder={t('password.newPlaceholder')}
+            <SettingsActionForm
+                onSubmit={onSubmit}
+                noValidate
+                className="space-y-4"
+            >
+                <FormField
+                    label={t('password.newPlaceholder')}
                     required
-                    minLength={6}
-                />
-                <Input
-                    type="password"
-                    value={passwordState.confirmNewPassword}
-                    onChange={(event) =>
-                        setPasswordField(
-                            'confirmNewPassword',
-                            event.target.value
-                        )
-                    }
-                    placeholder={t('password.confirmPlaceholder')}
+                    error={errors.newPassword?.message}
+                >
+                    {(fieldProps) => (
+                        <Input
+                            {...fieldProps}
+                            {...register('newPassword')}
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder={t('password.newPlaceholder')}
+                            required
+                            minLength={6}
+                        />
+                    )}
+                </FormField>
+                <FormField
+                    label={t('password.confirmPlaceholder')}
                     required
-                    minLength={6}
-                />
-                <Input
-                    type="password"
-                    value={passwordState.currentPassword}
-                    onChange={(event) =>
-                        setPasswordField('currentPassword', event.target.value)
-                    }
-                    placeholder={t('password.currentPlaceholder')}
+                    error={errors.confirmNewPassword?.message}
+                >
+                    {(fieldProps) => (
+                        <Input
+                            {...fieldProps}
+                            {...register('confirmNewPassword')}
+                            type="password"
+                            autoComplete="new-password"
+                            placeholder={t('password.confirmPlaceholder')}
+                            required
+                            minLength={6}
+                        />
+                    )}
+                </FormField>
+                <FormField
+                    label={t('password.currentPlaceholder')}
                     required
-                />
-                {passwordState.status && (
-                    <p className="text-sm text-slate-600 dark:text-slate-300">
-                        {passwordState.status}
-                    </p>
+                    error={errors.currentPassword?.message}
+                >
+                    {(fieldProps) => (
+                        <Input
+                            {...fieldProps}
+                            {...register('currentPassword')}
+                            type="password"
+                            autoComplete="current-password"
+                            placeholder={t('password.currentPlaceholder')}
+                            required
+                        />
+                    )}
+                </FormField>
+                {status && (
+                    <Alert variant="destructive">
+                        <AlertDescription>{status}</AlertDescription>
+                    </Alert>
                 )}
                 <div className="flex gap-3 pt-2">
                     <Button
                         type="button"
                         variant="outline"
                         className="flex-1"
-                        onClick={closeDialog}
+                        onClick={handleClose}
+                        disabled={isSubmitting}
                     >
                         {tCommon('cancel')}
                     </Button>
                     <Button
                         type="submit"
                         className="flex-1"
-                        disabled={passwordState.loading}
+                        disabled={isSubmitting}
                     >
-                        {passwordState.loading
+                        {isSubmitting
                             ? t('password.submitting')
                             : t('password.submit')}
                     </Button>

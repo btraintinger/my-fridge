@@ -9,9 +9,12 @@ import {
     ArrowUpDown,
 } from 'lucide-react'
 import type { FridgeItem } from '@/lib/types'
-import { useFridgeProducts } from '@/hooks/useFridgeProducts'
-import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
+import { useFridgeProducts } from '@/components/fridges/useFridgeProducts'
+import { PRODUCT_CATEGORIES } from '@/lib/products/productCategories'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Input } from '@/components/ui/input'
+import { EmptyState } from '@/components/feedback/States'
+import { Select } from '@/components/forms/SelectField'
 import { ProductGridView } from './ProductGridView'
 import { ProductListView } from './ProductListView'
 
@@ -63,9 +66,18 @@ export function FridgeView({
                             className="pl-10 py-2 text-sm rounded-xl w-full"
                         />
                     </div>
-                    <div className="flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shrink-0 w-full sm:w-auto">
-                        <button
-                            onClick={() => setViewMode('grid')}
+                    <ToggleGroup
+                        type="single"
+                        value={viewMode}
+                        spacing={1}
+                        onValueChange={(value) => {
+                            if (value === 'grid' || value === 'list')
+                                setViewMode(value)
+                        }}
+                        className="flex bg-slate-100 dark:bg-slate-800 rounded-xl p-1 shrink-0 w-full sm:w-auto"
+                    >
+                        <ToggleGroupItem
+                            value="grid"
                             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
                                 viewMode === 'grid'
                                     ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm'
@@ -73,10 +85,10 @@ export function FridgeView({
                             }`}
                         >
                             <LayoutGrid size={16} />
-                            Kategorien
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
+                            {t('fridges.detail.view.categories')}
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                            value="list"
                             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
                                 viewMode === 'list'
                                     ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm'
@@ -84,9 +96,9 @@ export function FridgeView({
                             }`}
                         >
                             <ListIcon size={16} />
-                            Liste
-                        </button>
-                    </div>
+                            {t('fridges.detail.view.list')}
+                        </ToggleGroupItem>
+                    </ToggleGroup>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                     <Select
@@ -102,26 +114,12 @@ export function FridgeView({
                                     'fridges.detail.filters.allCategories'
                                 ),
                             },
-                            {
-                                value: 'dairy',
-                                label: t('fridges.detail.filters.dairy'),
-                            },
-                            {
-                                value: 'meat',
-                                label: t('fridges.detail.filters.meat'),
-                            },
-                            {
-                                value: 'veg',
-                                label: t('fridges.detail.filters.veg'),
-                            },
-                            {
-                                value: 'fruit',
-                                label: t('fridges.detail.filters.fruit'),
-                            },
-                            {
-                                value: 'drinks',
-                                label: t('fridges.detail.filters.drinks'),
-                            },
+                            ...PRODUCT_CATEGORIES.map((category) => ({
+                                value: category,
+                                label: t(
+                                    `fridges.detail.categories.${category}`
+                                ),
+                            })),
                         ]}
                     />
                     <Select
@@ -141,7 +139,7 @@ export function FridgeView({
                             },
                             {
                                 value: 'category-asc',
-                                label: 'Kategorie (A-Z)',
+                                label: t('fridges.detail.sort.categoryAsc'),
                             },
                             {
                                 value: 'quantity-desc',
@@ -157,7 +155,7 @@ export function FridgeView({
                             },
                             {
                                 value: 'added-desc',
-                                label: 'Neueste zuerst',
+                                label: t('fridges.detail.sort.addedDesc'),
                             },
                         ]}
                     />
@@ -172,16 +170,15 @@ export function FridgeView({
                 </div>
 
                 {filteredAndSortedItems.length === 0 ? (
-                    <div className="bg-white dark:bg-slate-900 rounded-4xl p-16 border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center text-center">
-                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-600 mb-6">
-                            <Search size={40} strokeWidth={1.5} />
-                        </div>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mb-8">
-                            {items.length === 0
+                    <EmptyState
+                        icon={Search}
+                        title={
+                            items.length === 0
                                 ? t('fridges.detail.emptyFridge')
-                                : t('fridges.detail.noResults')}
-                        </p>
-                    </div>
+                                : t('fridges.detail.noResults')
+                        }
+                        className="bg-card rounded-4xl p-16 md:p-16 border-2 border-dashed border-border [&_[data-slot=empty-icon]]:size-20 [&_[data-slot=empty-icon]]:rounded-full [&_[data-slot=empty-icon]]:bg-muted [&_[data-slot=empty-title]]:text-muted-foreground"
+                    />
                 ) : viewMode === 'grid' ? (
                     <ProductGridView
                         groupedItems={groupedItems}

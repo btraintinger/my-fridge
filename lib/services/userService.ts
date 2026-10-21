@@ -4,9 +4,9 @@ import {
     serverTimestamp,
     setDoc,
     updateDoc,
+    type FirestoreError,
 } from 'firebase/firestore'
-import type { FirestoreError } from 'firebase/firestore'
-import type { UserPreferences } from '../types'
+import type { UserPreferences } from '@/lib/types'
 import { runFirebaseAction, subscriptionErrorHandler } from './firebaseAction'
 import { userDoc } from './refs'
 

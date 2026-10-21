@@ -25,7 +25,17 @@
         "increase": "Erhöhen",
         "decrease": "Verringern",
         "error": "Fehler",
-        "status": "Status"
+        "status": "Status",
+        "selectDate": "Datum wählen…",
+        "dismiss": "Schließen",
+        "product": "Produkt",
+        "quantity": "Menge",
+        "category": "Kategorie",
+        "expiryDate": "Ablaufdatum",
+        "actions": "Aktionen",
+        "nutriScore": "Nutri-Score",
+        "nutriScoreWithGrade": "Nutri-Score: {grade}",
+        "appNameStyled": "My<accent>Fridge</accent>"
     },
     "nav": {
         "fridges": "Kühlschränke",
@@ -105,6 +115,11 @@
             "auth/user-not-found": "Kein Konto für diese E-Mail gefunden.",
             "auth/weak-password": "Wähle ein stärkeres Passwort (mindestens 6 Zeichen).",
             "auth/wrong-password": "Das aktuelle Passwort ist falsch."
+        },
+        "errors": {
+            "sessionExpired": "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+            "missingAccountEmail": "Für dieses Profil wurde keine E-Mail-Adresse gefunden.",
+            "currentPasswordRequired": "Gib dein aktuelles Passwort ein, um fortzufahren."
         }
     },
     "validation": {
@@ -141,7 +156,8 @@
             "nameMax": "Produktname darf maximal {max} Zeichen lang sein.",
             "categoryRequired": "Kategorie ist erforderlich.",
             "notesMax": "Notizen dürfen maximal {max} Zeichen lang sein."
-        }
+        },
+        "nonnegative": "Der Wert muss null oder größer sein."
     },
     "fridges": {
         "list": {
@@ -216,7 +232,9 @@
                 "quantityDesc": "Menge (Absteigend)",
                 "nutriAsc": "Nutri-Score (Aufsteigend)",
                 "nutriDesc": "Nutri-Score (Absteigend)",
-                "expiryAsc": "Ablaufdatum (Bald ablaufen zuerst)"
+                "expiryAsc": "Ablaufdatum (Bald ablaufen zuerst)",
+                "categoryAsc": "Kategorie (A-Z)",
+                "addedDesc": "Neueste zuerst"
             },
             "categories": {
                 "dairy": "Milchprodukte",
@@ -226,6 +244,15 @@
                 "snacks": "Snacks & Süßes",
                 "frozen": "Tiefkühl",
                 "other": "Sonstiges"
+            },
+            "view": {
+                "categories": "Kategorien",
+                "list": "Liste"
+            },
+            "errors": {
+                "accessDenied": "Zugriff verweigert.",
+                "loadFridge": "Kühlschrank konnte nicht geladen werden.",
+                "loadItems": "Produkte konnten nicht geladen werden."
             }
         },
         "analysis": {
@@ -306,11 +333,11 @@
             "backToFridge": "Zurück zum Kühlschrank",
             "warningCount": "{count, plural, one {# Warnung} other {# Warnungen}}",
             "allergenAlerts": {
-                "title": "Allergen-Warnungen",
-                "subtitle": "Produkte in diesem Kühlschrank, die deine eingetragenen Allergene enthalten.",
-                "empty": "Keine Allergene erkannt. Gut so!",
-                "noAllergies": "Keine Allergien im Profil eingetragen.",
-                "contains": "Enthält: {allergens}"
+                "title": "Hinweise zu deinem Ernährungsprofil",
+                "subtitle": "Produkte mit erkannten Konflikten zu deinen Ernährungspräferenzen oder Allergien.",
+                "empty": "Keine Konflikte mit deinem Ernährungsprofil erkannt.",
+                "noAllergies": "Keine Ernährungspräferenzen oder Allergien im Profil eingetragen.",
+                "contains": "Konflikt mit deinem Ernährungsprofil: {allergens}"
             }
         }
     },
@@ -369,7 +396,12 @@
         "recognized": "Erkannt",
         "noProductsScanned": "Keine Produkte gescannt.",
         "addingAll": "Füge hinzu...",
-        "addAll": "Alle hinzufügen"
+        "addAll": "Alle hinzufügen",
+        "expiryLabel": "Ablaufdatum (optional)",
+        "expiryPlaceholder": "Datum wählen...",
+        "fridgeLabel": "Kühlschrank",
+        "scanAdded": "+ {name}",
+        "scanQuantityAdded": "+1 {name} ({quantity}×)"
     },
     "manualProduct": {
         "title": "Produkt manuell anlegen",
@@ -395,6 +427,7 @@
         }
     },
     "productModal": {
+        "categoryUpdateError": "Die Kategorie konnte nicht aktualisiert werden. Bitte versuche es erneut.",
         "noImage": "Kein Bild verfügbar",
         "origin": "Herkunft: {country}",
         "inventory": "Inventar",
@@ -412,6 +445,7 @@
         "energy": "Energie",
         "fat": "Fett",
         "saturatedFat": "Gesättigte Fettsäuren",
+        "carbohydrates": "Kohlenhydrate",
         "sugars": "Zucker",
         "proteins": "Proteine",
         "fiber": "Ballaststoffe",
@@ -551,6 +585,9 @@
             "newPlaceholder": "Neues Passwort",
             "confirmPlaceholder": "Neues Passwort bestätigen",
             "currentPlaceholder": "Aktuelles Passwort",
+            "newRequired": "Gib ein neues Passwort ein.",
+            "confirmRequired": "Bestätige dein neues Passwort.",
+            "currentRequired": "Gib dein aktuelles Passwort ein.",
             "submit": "Passwort ändern",
             "submitting": "Aktualisiere Passwort...",
             "mismatch": "Die Passwörter müssen übereinstimmen.",
@@ -594,7 +631,10 @@
                     "3d": "3 Tage vorher",
                     "7d": "7 Tage vorher"
                 }
-            }
+            },
+            "enableFailed": "Benachrichtigungen konnten nicht aktiviert werden. Bitte erneut versuchen.",
+            "disableFailed": "Benachrichtigungen konnten nicht deaktiviert werden. Bitte erneut versuchen.",
+            "foregroundMessage": "{title} — {body}"
         },
         "modal": {
             "closeAria": "Dialog schließen"
@@ -609,8 +649,8 @@
         "installCta": "Zum Startbildschirm hinzufügen"
     },
     "allergenWarning": {
-        "title": "Allergen-Warnung",
-        "body": "Dieses Produkt enthält Allergene aus deinem Profil: {allergens}"
+        "title": "Hinweis zu deinem Ernährungsprofil",
+        "body": "Konflikt mit deinem Ernährungsprofil: {allergens}"
     },
     "nutrimentWarnings": {
         "sugar": {
@@ -640,7 +680,15 @@
         }
     },
     "toast": {
-        "genericError": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+        "categoryUpdated": "Kategorie aktualisiert",
+        "genericError": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+        "fridgeDeleted": "Kühlschrank gelöscht",
+        "fridgeShared": "Erfolgreich mit {email} geteilt",
+        "accessRemoved": "Zugriff für {email} entfernt",
+        "productRemoved": "Produkt entfernt",
+        "productAdded": "\"{name}\" hinzugefügt!",
+        "unitUpdated": "Inhalt aktualisiert",
+        "movedToFridge": "\"{name}\" in den Kühlschrank verschoben"
     },
     "pushNotifications": {
         "someone": "Jemand",
@@ -681,6 +729,38 @@
             "title": "{count, plural, one {# Artikel läuft bald ab} other {# Artikel laufen bald ab}}",
             "body": "{items}",
             "bodyWithMore": "{items} +{extra} weitere"
+        },
+        "unnamedItem": "einen Artikel",
+        "unknownItem": "Unbekannter Artikel"
+    },
+    "nutrients": {
+        "energy_kcal": "Energie",
+        "fat": "Fett",
+        "saturated_fat": "Gesättigte Fettsäuren",
+        "carbohydrates": "Kohlenhydrate",
+        "sugars": "Zucker",
+        "proteins": "Proteine",
+        "salt": "Salz",
+        "fiber": "Ballaststoffe"
+    },
+    "pwa": {
+        "description": "Digitale Kühlschrankverwaltung mit Offline-Unterstützung",
+        "shortcuts": {
+            "fridges": "Meine Kühlschränke",
+            "scanner": "Produkt scannen",
+            "shoppingList": "Einkaufsliste",
+            "settings": "Einstellungen"
         }
+    },
+    "calendar": {
+        "previousMonth": "Zum vorherigen Monat",
+        "nextMonth": "Zum nächsten Monat",
+        "chooseMonth": "Monat auswählen",
+        "chooseYear": "Jahr auswählen",
+        "navigation": "Kalendernavigation",
+        "weekNumber": "Woche {week}",
+        "weekNumberHeader": "Wochennummer",
+        "todayDate": "Heute, {date}",
+        "selectedDate": "{date}, ausgewählt"
     }
 }

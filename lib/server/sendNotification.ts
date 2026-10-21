@@ -1,13 +1,13 @@
 import { getTranslations } from 'next-intl/server'
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore'
-import type { NotificationDoc, NotificationPreferences } from '../types'
-import { routing } from '../../i18n/routing'
+import type { NotificationDoc, NotificationPreferences } from '@/lib/types'
+import { routing } from '@/i18n/routing'
 import { adminAuth, adminMessaging } from './firebaseAdmin'
 import {
     userAdminDoc,
     userFcmTokenAdminRef,
     userFcmTokensAdminRef,
-} from './refs'
+} from '@/lib/services/refs.server'
 
 type SupportedLocale = (typeof routing.locales)[number]
 
@@ -46,7 +46,7 @@ export interface OutgoingNotification {
     type: NotificationDoc['type']
     titleKey: string
     bodyKey: string
-    params?: Record<string, string | number>
+    params?: Record<string, string | number | string[]>
     link?: string
     tag?: string
 }
@@ -69,12 +69,20 @@ export async function sendToUser(
     // Params with a "@@" prefix are looked up as translation keys (so defaults
     // like "Someone" / "a fridge" follow the recipient's locale).
     const params: Record<string, string | number> = {}
+    const translateValue = (value: string) =>
+        value.startsWith('@@')
+            ? t(value.slice(2) as Parameters<typeof t>[0])
+            : value
     if (n.params) {
         for (const [k, v] of Object.entries(n.params)) {
-            params[k] =
-                typeof v === 'string' && v.startsWith('@@')
-                    ? t(v.slice(2) as Parameters<typeof t>[0])
-                    : v
+            params[k] = Array.isArray(v)
+                ? new Intl.ListFormat(locale, {
+                      style: 'short',
+                      type: 'conjunction',
+                  }).format(v.map(translateValue))
+                : typeof v === 'string'
+                  ? translateValue(v)
+                  : v
         }
     }
 

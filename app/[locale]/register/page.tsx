@@ -1,5 +1,6 @@
 'use client'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -8,10 +9,10 @@ import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
 import { auth } from '@/lib/firebase'
 import { getFirebaseAuthErrorMessage } from '@/lib/firebaseAuthErrors'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { FormField } from '@/components/ui/FormField'
-import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { FormField } from '@/components/forms/FormField'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { createRegisterSchema, type RegisterFormData } from '@/lib/validations'
 import { notify } from '@/lib/notify'
@@ -61,13 +62,19 @@ export default function Register() {
             subtitle={t('auth.register.subtitle')}
         >
             <form
+                noValidate
                 onSubmit={handleSubmit(onSubmit)}
                 className="w-full space-y-6"
             >
                 {serverError && (
-                    <div className="p-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 rounded-2xl text-sm font-semibold border border-red-100 dark:border-red-900/50 animate-in shake-in duration-300">
-                        {serverError}
-                    </div>
+                    <Alert
+                        variant="destructive"
+                        className="p-4 bg-error/10 text-error rounded-2xl text-sm font-semibold border border-error/20 animate-in shake-in duration-300"
+                    >
+                        <AlertDescription className="text-inherit">
+                            {serverError}
+                        </AlertDescription>
+                    </Alert>
                 )}
 
                 <FormField
@@ -75,12 +82,15 @@ export default function Register() {
                     required
                     error={errors.name?.message}
                 >
-                    <Input
-                        type="text"
-                        placeholder={t('auth.register.namePlaceholder')}
-                        error={!!errors.name}
-                        {...register('name')}
-                    />
+                    {(fieldProps) => (
+                        <Input
+                            {...fieldProps}
+                            type="text"
+                            placeholder={t('auth.register.namePlaceholder')}
+                            aria-invalid={!!errors.name}
+                            {...register('name')}
+                        />
+                    )}
                 </FormField>
 
                 <FormField
@@ -88,12 +98,15 @@ export default function Register() {
                     required
                     error={errors.email?.message}
                 >
-                    <Input
-                        type="email"
-                        placeholder={t('auth.fields.emailPlaceholder')}
-                        error={!!errors.email}
-                        {...register('email')}
-                    />
+                    {(fieldProps) => (
+                        <Input
+                            {...fieldProps}
+                            type="email"
+                            placeholder={t('auth.fields.emailPlaceholder')}
+                            aria-invalid={!!errors.email}
+                            {...register('email')}
+                        />
+                    )}
                 </FormField>
 
                 <FormField
@@ -101,15 +114,22 @@ export default function Register() {
                     required
                     error={errors.password?.message}
                 >
-                    <Input
-                        type="password"
-                        placeholder={t('auth.fields.passwordPlaceholder')}
-                        error={!!errors.password}
-                        {...register('password')}
-                    />
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 ml-1 mt-1">
-                        {t('auth.register.passwordRules')}
-                    </p>
+                    {(fieldProps) => (
+                        <>
+                            <Input
+                                {...fieldProps}
+                                type="password"
+                                placeholder={t(
+                                    'auth.fields.passwordPlaceholder'
+                                )}
+                                aria-invalid={!!errors.password}
+                                {...register('password')}
+                            />
+                            <p className="text-[11px] text-slate-400 dark:text-slate-500 ml-1 mt-1">
+                                {t('auth.register.passwordRules')}
+                            </p>
+                        </>
+                    )}
                 </FormField>
 
                 <Button

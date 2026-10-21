@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { requireAuth } from '@/lib/server/auth'
-import { fridgeAdminDoc } from '@/lib/server/refs'
+import { fridgeAdminDoc } from '@/lib/services/refs.server'
 import {
     actorDisplayName,
     findUidByEmail,

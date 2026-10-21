@@ -4,7 +4,10 @@ export const maxDuration = 60
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore'
 import { requireCronSecret } from '@/lib/server/auth'
 import { adminDb } from '@/lib/server/firebaseAdmin'
-import { fridgesAdminCollection, userAdminDoc } from '@/lib/server/refs'
+import {
+    fridgesAdminCollection,
+    userAdminDoc,
+} from '@/lib/services/refs.server'
 import { findUidByEmail, sendToUser } from '@/lib/server/sendNotification'
 import { COLLECTIONS } from '@/lib/constants'
 import type { Fridge } from '@/lib/schemas'
@@ -72,7 +75,7 @@ export async function GET(request: Request) {
                             name:
                                 d.data().product?.product_name ??
                                 d.data().product?.id ??
-                                'Unknown item',
+                                '@@unknownItem',
                             expiryDate: d.data().expiryDate as string,
                             fridgeId,
                         })
@@ -142,7 +145,7 @@ export async function GET(request: Request) {
 
                     const top3 = userItems.slice(0, 3).map((i) => i.name)
                     const extra = userItems.length - top3.length
-                    const items = top3.join(', ')
+                    const items = top3
 
                     await sendToUser(uid, {
                         type: 'expiration_alert',

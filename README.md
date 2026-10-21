@@ -11,9 +11,9 @@
 
 <p>
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000?logo=nextdotjs&logoColor=white" />
-  <img alt="React" src="https://img.shields.io/badge/React-19.2-61dafb?logo=react&logoColor=000" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white" />
-  <img alt="Firebase" src="https://img.shields.io/badge/Firebase-12-ffca28?logo=firebase&logoColor=000" />
+  <img alt="React" src="https://img.shields.io/badge/React-19.3-61dafb?logo=react&logoColor=000" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-7-3178c6?logo=typescript&logoColor=white" />
+  <img alt="Firebase" src="https://img.shields.io/badge/Firebase-13-ffca28?logo=firebase&logoColor=000" />
   <img alt="Tailwind" src="https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss&logoColor=white" />
   <img alt="Zod" src="https://img.shields.io/badge/Zod-4-3e67b1?logo=zod&logoColor=white" />
   <img alt="PWA" src="https://img.shields.io/badge/PWA-ready-5a0fc8?logo=pwa&logoColor=white" />
@@ -66,7 +66,7 @@ top shelf — not for ten thousand tenants. The priorities are mobile-first, off
 
 | Layer          | Choice                                                                       |
 | -------------- | ---------------------------------------------------------------------------- |
-| Framework      | Next.js 16 (App Router, React 19.2)                                          |
+| Framework      | Next.js 16.4 (App Router, React 19.3)                                        |
 | Styling        | Tailwind v4                                                                  |
 | Auth           | Firebase Auth (email/password + Google, behind a same-origin OAuth proxy)    |
 | Database       | Firestore (client SDK with persistent multi-tab cache + Admin SDK on server) |
@@ -84,7 +84,7 @@ top shelf — not for ten thousand tenants. The priorities are mobile-first, off
 
 ## Getting started
 
-You'll need Node 20+ and a Firebase project of your own.
+You'll need Node 24.12+ and a Firebase project of your own.
 
 ```bash
 npm install
@@ -103,21 +103,27 @@ leave the server.
 
 ## Layout
 
-| Path                     | What lives there                                                                    |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| `app/[locale]/`          | Localized pages: fridges, shopping-list, scanner, settings, login, register         |
-| `app/api/cron/`          | Daily expiration-alerts job                                                         |
-| `app/api/notifications/` | FCM send endpoints                                                                  |
-| `app/api/openfoodfacts/` | Server-side product lookup                                                          |
-| `app/sw.ts`              | Serwist service worker entry                                                        |
-| `components/`            | `AuthGate`, `ScannerModal`, `ManualProductModal`, `ui/` primitives, feature folders |
-| `contexts/`              | React context providers                                                             |
-| `hooks/`                 | Shared hooks                                                                        |
-| `i18n/`                  | next-intl config                                                                    |
-| `lib/`                   | Firestore refs, schemas, services, OFF client, utilities                            |
-| `messages/`              | `en.json`, `de.json`                                                                |
-| `stores/`                | Zustand stores for UI state                                                         |
-| `firestore.rules`        | Security rules: ownership + email-based sharing                                     |
-| `firestore.indexes.json` | Composite index definitions                                                         |
-| `proxy.ts`               | OAuth proxy entry (avoids third-party cookie blocking)                              |
-| `vercel.json`            | Cron schedule                                                                       |
+| Path                     | What lives there                                                            |
+| ------------------------ | --------------------------------------------------------------------------- |
+| `app/[locale]/`          | Localized pages: fridges, shopping-list, scanner, settings, login, register |
+| `app/api/cron/`          | Daily expiration-alerts job                                                 |
+| `app/api/notifications/` | FCM send endpoints                                                          |
+| `app/api/openfoodfacts/` | Server-side product lookup                                                  |
+| `app/sw.ts`              | Serwist service worker entry                                                |
+| `components/<feature>/`  | Feature components and their hooks; settings also owns its UI state store   |
+| `components/ui/`         | shadcn primitives                                                           |
+| `components/layout/`     | Page layouts, navigation, language switcher, and section cards              |
+| `components/forms/`      | Shared form fields, date picker, quantity stepper, and select wrapper       |
+| `components/feedback/`   | Loading, empty/error states, tooltips, and toast provider                   |
+| `components/pwa/`        | Installation, splash links, and service-worker registration                 |
+| `contexts/`              | React context providers                                                     |
+| `hooks/`                 | Cross-feature subscriptions and user preferences                            |
+| `i18n/`                  | next-intl config                                                            |
+| `lib/`                   | Shared schemas, Firebase setup, services, server code, and utilities        |
+| `lib/products/`          | Product lookup, categories, nutrition, and dietary/allergen logic           |
+| `lib/fridges/`           | Fridge analytics, health scoring, and selection helpers                     |
+| `messages/`              | `en.json`, `de.json`                                                        |
+| `firestore.rules`        | Security rules: ownership + email-based sharing                             |
+| `firestore.indexes.json` | Composite index definitions                                                 |
+| `proxy.ts`               | OAuth proxy entry (avoids third-party cookie blocking)                      |
+| `vercel.json`            | Cron schedule                                                               |

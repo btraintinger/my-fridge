@@ -4,13 +4,15 @@ import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { Link, useRouter } from '@/i18n/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ScanLine } from 'lucide-react'
 
 export default function Home() {
     const { user, loading } = useAuth()
     const router = useRouter()
     const t = useTranslations('home')
+    const tCommon = useTranslations('common')
 
     useEffect(() => {
         if (!loading && user) {
@@ -21,9 +23,13 @@ export default function Home() {
     if (loading || user) {
         return (
             <div className="flex-1 flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-                <div className="animate-pulse flex flex-col items-center">
-                    <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/20 rounded-3xl mb-4"></div>
-                    <div className="w-32 h-4 bg-slate-200 dark:bg-slate-800 rounded-full"></div>
+                <div
+                    className="flex flex-col items-center"
+                    role="status"
+                    aria-label={tCommon('loading')}
+                >
+                    <Skeleton className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/20 rounded-3xl mb-4" />
+                    <Skeleton className="w-32 h-4 bg-slate-200 dark:bg-slate-800 rounded-full" />
                 </div>
             </div>
         )
@@ -37,10 +43,13 @@ export default function Home() {
                 </div>
 
                 <h1 className="text-5xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight mb-6">
-                    My
-                    <span className="text-emerald-600 dark:text-emerald-400">
-                        Fridge
-                    </span>
+                    {tCommon.rich('appNameStyled', {
+                        accent: (chunks) => (
+                            <span className="text-emerald-600 dark:text-emerald-400">
+                                {chunks}
+                            </span>
+                        ),
+                    })}
                 </h1>
 
                 <p className="text-xl text-slate-500 dark:text-slate-400 mb-12 leading-relaxed font-medium">

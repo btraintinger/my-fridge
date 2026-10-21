@@ -1,16 +1,33 @@
+import { timingSafeEqual } from 'node:crypto'
 import { adminAuth } from './firebaseAdmin'
+
+type AuthenticatedUser = {
+    uid: string
+    email: string | null
+    name: string | null
+}
+
+function getBearerToken(request: Request): string | null {
+    const authorization = request.headers.get('Authorization')
+    return authorization?.startsWith('Bearer ')
+        ? authorization.slice('Bearer '.length)
+        : null
+}
+
+function unauthorizedResponse(): Response {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+    })
+}
 
 export async function requireAuth(
     request: Request
-): Promise<{ uid: string; email: string | null; name: string | null }> {
-    const authHeader = request.headers.get('Authorization')
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+): Promise<AuthenticatedUser> {
+    const token = getBearerToken(request)
 
     if (!token) {
-        throw new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-        })
+        throw unauthorizedResponse()
     }
 
     try {
@@ -22,23 +39,24 @@ export async function requireAuth(
             name: userRecord.displayName ?? null,
         }
     } catch {
-        throw new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-        })
+        throw unauthorizedResponse()
     }
 }
 
 export function requireCronSecret(request: Request): void {
-    const authHeader = request.headers.get('Authorization')
-    const secret = authHeader?.startsWith('Bearer ')
-        ? authHeader.slice(7)
-        : null
+    const secret = getBearerToken(request)
+    const expectedSecret = process.env.CRON_SECRET
 
-    if (!secret || secret !== process.env.CRON_SECRET) {
-        throw new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401,
-            headers: { 'Content-Type': 'application/json' },
-        })
+    if (!secret || !expectedSecret) {
+        throw unauthorizedResponse()
+    }
+
+    const supplied = Buffer.from(secret)
+    const expected = Buffer.from(expectedSecret)
+    if (
+        supplied.length !== expected.length ||
+        !timingSafeEqual(supplied, expected)
+    ) {
+        throw unauthorizedResponse()
     }
 }
