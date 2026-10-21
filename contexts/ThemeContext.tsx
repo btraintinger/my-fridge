@@ -14,7 +14,7 @@ import { useAuth } from './AuthContext'
 import {
     subscribeToUserPreferences,
     updateUserPreferences,
-} from '../lib/services/userService'
+} from '@/lib/services/userService'
 
 interface ThemeContextType {
     darkMode: boolean

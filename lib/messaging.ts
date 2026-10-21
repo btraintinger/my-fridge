@@ -5,8 +5,9 @@ import {
     getToken,
     isSupported,
     onMessage,
+    type MessagePayload,
+    type Unsubscribe,
 } from 'firebase/messaging'
-import type { MessagePayload, Unsubscribe } from 'firebase/messaging'
 import { app } from './firebase'
 import { userFcmTokenRef } from './services/refs'
 

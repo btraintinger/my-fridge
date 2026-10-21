@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { CheckCircle2, Mail, ShieldCheck, User as UserIcon } from 'lucide-react'
 import type { User as FirebaseUser } from 'firebase/auth'
 import { useTranslations } from 'next-intl'
@@ -30,21 +30,22 @@ export const ProfileSummaryCard = ({ user }: ProfileSummaryCardProps) => {
     return (
         <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-start gap-4">
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-                    {user.photoURL ? (
-                        <Image
-                            src={user.photoURL}
-                            alt={
-                                user.displayName || t('profile.profileImageAlt')
-                            }
-                            width={64}
-                            height={64}
-                            className="h-full w-full object-cover"
-                        />
-                    ) : (
-                        <UserIcon size={32} />
-                    )}
-                </div>
+                <Avatar className="size-16">
+                    <AvatarImage
+                        src={user.photoURL || undefined}
+                        alt={user.displayName || t('profile.profileImageAlt')}
+                        className="h-full w-full object-cover"
+                    />
+                    <AvatarFallback
+                        className="bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400"
+                        role="img"
+                        aria-label={
+                            user.displayName || t('profile.profileImageAlt')
+                        }
+                    >
+                        <UserIcon size={32} aria-hidden="true" />
+                    </AvatarFallback>
+                </Avatar>
 
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">

@@ -1,7 +1,8 @@
+import { TooltipButton } from '@/components/feedback/TooltipButton'
 import { Plus, ScanLine } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface AddItemFormProps {
     newItem: string
@@ -32,13 +33,14 @@ export function AddItemForm({
                     <Plus size={20} />
                 </Button>
             </form>
-            <Button
+            <TooltipButton
+                aria-label={t('scanTooltip')}
                 variant="secondary"
                 onClick={onOpenScanner}
-                title={t('scanTooltip')}
+                tooltip={t('scanTooltip')}
             >
                 <ScanLine size={20} />
-            </Button>
+            </TooltipButton>
         </div>
     )
 }

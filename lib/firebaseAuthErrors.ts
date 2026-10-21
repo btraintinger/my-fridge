@@ -3,6 +3,8 @@ import type { useTranslations } from 'next-intl'
 
 type Translator = ReturnType<typeof useTranslations>
 
+export class LocalizedAuthError extends Error {}
+
 const KNOWN_CODES = new Set([
     'auth/cancelled-popup-request',
     'auth/email-already-in-use',
@@ -33,8 +35,10 @@ export function getFirebaseAuthErrorMessage(
         return t(`auth.firebaseErrors.${code}` as never)
     }
 
-    if (typeof firebaseError?.message === 'string' && firebaseError.message) {
-        return firebaseError.message
+    // Locally created errors already contain translated copy. Unknown SDK
+    // errors use the translated fallback instead of exposing raw SDK messages.
+    if (error instanceof LocalizedAuthError) {
+        return error.message
     }
 
     return fallback

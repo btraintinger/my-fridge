@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PRODUCT_CATEGORIES } from '@/lib/products/productCategorization'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Translator = (key: any, values?: any) => string
 
@@ -35,6 +36,29 @@ export const createLoginSchema = (t: Translator) =>
     })
 
 export type LoginFormData = z.infer<ReturnType<typeof createLoginSchema>>
+
+// ── Password Change ─────────────────────────────────────────────────────────
+export const createPasswordChangeSchema = (t: Translator) =>
+    z
+        .object({
+            newPassword: z
+                .string()
+                .min(1, t('password.newRequired'))
+                .min(6, t('password.tooShort')),
+            confirmNewPassword: z
+                .string()
+                .min(1, t('password.confirmRequired')),
+            currentPassword: z.string().min(1, t('password.currentRequired')),
+        })
+        .refine(
+            (data) =>
+                !data.confirmNewPassword ||
+                data.newPassword === data.confirmNewPassword,
+            {
+                message: t('password.mismatch'),
+                path: ['confirmNewPassword'],
+            }
+        )
 
 // ── Create Fridge ───────────────────────────────────────────────────────────
 export const createCreateFridgeSchema = (t: Translator) =>
@@ -103,7 +127,9 @@ export const createManualProductSchema = (t: Translator) =>
             .number({ error: t('validation.quantity.type') })
             .int(t('validation.quantity.int'))
             .min(1, t('validation.quantity.min', { min: 1 })),
-        category: z.string().min(1, t('validation.product.categoryRequired')),
+        category: z.enum(PRODUCT_CATEGORIES, {
+            error: t('validation.product.categoryRequired'),
+        }),
         expiryDate: z.string().optional(),
         notes: z
             .string()
@@ -113,13 +139,34 @@ export const createManualProductSchema = (t: Translator) =>
             .enum(['A', 'B', 'C', 'D', 'E', 'a', 'b', 'c', 'd', 'e'])
             .nullable()
             .optional(),
-        energy_kcal: z.number().min(0).optional(),
-        fat: z.number().min(0).optional(),
-        saturated_fat: z.number().min(0).optional(),
-        carbohydrates: z.number().min(0).optional(),
-        sugars: z.number().min(0).optional(),
-        proteins: z.number().min(0).optional(),
-        salt: z.number().min(0).optional(),
+        energy_kcal: z
+            .number({ error: t('validation.quantity.type') })
+            .min(0, t('validation.nonnegative'))
+            .optional(),
+        fat: z
+            .number({ error: t('validation.quantity.type') })
+            .min(0, t('validation.nonnegative'))
+            .optional(),
+        saturated_fat: z
+            .number({ error: t('validation.quantity.type') })
+            .min(0, t('validation.nonnegative'))
+            .optional(),
+        carbohydrates: z
+            .number({ error: t('validation.quantity.type') })
+            .min(0, t('validation.nonnegative'))
+            .optional(),
+        sugars: z
+            .number({ error: t('validation.quantity.type') })
+            .min(0, t('validation.nonnegative'))
+            .optional(),
+        proteins: z
+            .number({ error: t('validation.quantity.type') })
+            .min(0, t('validation.nonnegative'))
+            .optional(),
+        salt: z
+            .number({ error: t('validation.quantity.type') })
+            .min(0, t('validation.nonnegative'))
+            .optional(),
     })
 
 export type ManualProductFormData = z.infer<

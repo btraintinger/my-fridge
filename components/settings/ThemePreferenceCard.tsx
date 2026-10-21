@@ -2,7 +2,7 @@
 
 import { Moon, Sun } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { cn } from '@/components/ui/Button'
+import { Switch } from '@/components/ui/switch'
 
 interface ThemePreferenceCardProps {
     darkMode: boolean
@@ -31,26 +31,11 @@ export const ThemePreferenceCard = ({
                 </div>
             </div>
 
-            <button
-                type="button"
-                role="switch"
-                aria-checked={darkMode}
-                onClick={onToggle}
-                className={cn(
-                    'relative h-8 w-14 flex-none overflow-hidden rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 min-h-0',
-                    darkMode
-                        ? 'bg-emerald-500'
-                        : 'bg-slate-200 dark:bg-slate-800'
-                )}
+            <Switch
+                checked={darkMode}
+                onCheckedChange={onToggle}
                 aria-label={darkMode ? t('turnOff') : t('turnOn')}
-            >
-                <span
-                    className={cn(
-                        'absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform',
-                        darkMode ? 'translate-x-6' : 'translate-x-0'
-                    )}
-                />
-            </button>
+            />
         </div>
     )
 }

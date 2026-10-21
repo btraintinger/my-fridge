@@ -1,6 +1,6 @@
 import { collection, doc } from 'firebase/firestore'
-import { db } from '../firebase'
-import { COLLECTIONS } from '../constants'
+import { db } from '@/lib/firebase'
+import { COLLECTIONS } from '@/lib/constants'
 import {
     fcmTokenConverter,
     fridgeConverter,
@@ -8,7 +8,7 @@ import {
     productConverter,
     shoppingListItemConverter,
     userPreferencesConverter,
-} from '../schemas'
+} from '@/lib/schemas'
 
 export const fridgesCollection = () =>
     collection(db, COLLECTIONS.FRIDGES).withConverter(fridgeConverter)

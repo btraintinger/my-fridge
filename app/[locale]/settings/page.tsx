@@ -1,8 +1,9 @@
 'use client'
 
+import { PageShell, PageHeader, PageContainer } from '@/components/layout/Page'
+import { Button } from '@/components/ui/button'
 import { useRouter } from '@/i18n/navigation'
-import { useEffect, useMemo } from 'react'
-import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { signOut } from 'firebase/auth'
 import {
     ChevronRight,
@@ -10,7 +11,6 @@ import {
     type LucideIcon,
     LogOut,
     Settings as SettingsIcon,
-    ShieldAlert,
     Trash2,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -20,13 +20,12 @@ import { NotificationsCard } from '@/components/settings/NotificationsCard'
 import { PasswordChangeModal } from '@/components/settings/PasswordChangeModal'
 import { ProfileSummaryCard } from '@/components/settings/ProfileSummaryCard'
 import { ThemePreferenceCard } from '@/components/settings/ThemePreferenceCard'
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher'
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
 import { DietaryPreferencesForm } from '@/components/settings/DietaryPreferencesForm'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { auth } from '@/lib/firebase'
-import { useSettingsStore } from '@/stores/settingsStore'
-import { cn } from '@/components/ui/Button'
+import { cn } from '@/lib/utils'
 
 const PASSWORD_PROVIDER_ID = 'password'
 
@@ -36,7 +35,10 @@ export default function Settings() {
     const router = useRouter()
     const t = useTranslations('settings')
 
-    const openDialog = useSettingsStore((state) => state.openDialog)
+    const [activeDialog, setActiveDialog] = useState<
+        'password' | 'delete' | null
+    >(null)
+    const [passwordStatus, setPasswordStatus] = useState('')
 
     const usesPasswordProvider = useMemo(
         () =>
@@ -64,26 +66,16 @@ export default function Settings() {
     if (loading || !user) return null
 
     return (
-        <div className="flex-1 flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-20 lg:pl-20 xl:pl-56">
-            <div className="pt-safe">
-                <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-6 pb-5 pt-12 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-                    <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-300">
-                            <SettingsIcon size={22} />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
-                                {t('title')}
-                            </h1>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                {t('subtitle')}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <PageShell className="pb-20 lg:pb-20">
+            <PageHeader
+                icon={SettingsIcon}
+                title={t('title')}
+                subtitle={t('subtitle')}
+                className="px-6 sm:px-6 lg:px-6"
+                contentClassName="mx-auto w-full max-w-3xl"
+            />
 
-            <div className="mx-auto w-full max-w-3xl space-y-8 p-6">
+            <PageContainer noPadding className="p-6">
                 <section className="space-y-3">
                     <SectionHeading
                         title={t('sections.account.title')}
@@ -105,13 +97,8 @@ export default function Settings() {
 
                 <section className="space-y-3">
                     <SectionHeading
-                        title={t('sections.dietary.title', {
-                            defaultMessage: 'Dietary & Allergies',
-                        })}
-                        description={t('sections.dietary.description', {
-                            defaultMessage:
-                                'Manage your dietary preferences for product warnings.',
-                        })}
+                        title={t('sections.dietary.title')}
+                        description={t('sections.dietary.description')}
                     />
                     <DietaryPreferencesForm />
                 </section>
@@ -146,7 +133,7 @@ export default function Settings() {
                                 description={t(
                                     'actions.changePassword.description'
                                 )}
-                                onClick={() => openDialog('password')}
+                                onClick={() => setActiveDialog('password')}
                             />
                         )}
                         <SettingsActionRow
@@ -160,18 +147,30 @@ export default function Settings() {
                             title={t('actions.deleteAccount.title')}
                             description={t('actions.deleteAccount.description')}
                             danger
-                            onClick={() => openDialog('delete')}
+                            onClick={() => setActiveDialog('delete')}
                         />
                     </div>
 
-                    <SettingsStatusMessages />
+                    {passwordStatus && (
+                        <StatusMessage>{passwordStatus}</StatusMessage>
+                    )}
                 </section>
-            </div>
+            </PageContainer>
 
-            {usesPasswordProvider && <PasswordChangeModal />}
+            {usesPasswordProvider && activeDialog === 'password' && (
+                <PasswordChangeModal
+                    onClose={() => setActiveDialog(null)}
+                    onSuccess={setPasswordStatus}
+                />
+            )}
 
-            <DeleteAccountModal usesPasswordProvider={usesPasswordProvider} />
-        </div>
+            {activeDialog === 'delete' && (
+                <DeleteAccountModal
+                    usesPasswordProvider={usesPasswordProvider}
+                    onClose={() => setActiveDialog(null)}
+                />
+            )}
+        </PageShell>
     )
 }
 
@@ -208,11 +207,12 @@ function SettingsActionRow({
     onClick: () => void
 }) {
     return (
-        <button
+        <Button
+            variant="ghost"
             type="button"
             onClick={onClick}
             className={cn(
-                'group flex w-full items-center gap-4 border-b border-slate-100 p-4 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500 dark:border-slate-800 dark:hover:bg-slate-800/60 sm:p-5',
+                'group flex h-auto w-full items-center gap-4 whitespace-normal border-b border-slate-100 p-4 text-left transition-colors last:border-b-0 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500 dark:border-slate-800 dark:hover:bg-slate-800/60 sm:p-5',
                 danger && 'hover:bg-red-50 dark:hover:bg-red-950/20'
             )}
         >
@@ -245,44 +245,16 @@ function SettingsActionRow({
                     danger && 'text-red-300 dark:text-red-800'
                 )}
             />
-        </button>
+        </Button>
     )
 }
 
-function SettingsStatusMessages() {
-    const activeDialog = useSettingsStore((state) => state.activeDialog)
-    const passwordStatus = useSettingsStore((state) => state.password.status)
-    const deleteStatus = useSettingsStore((state) => state.deleteAccount.status)
-
-    return (
-        <>
-            {passwordStatus && activeDialog !== 'password' && (
-                <StatusMessage>{passwordStatus}</StatusMessage>
-            )}
-
-            {deleteStatus && activeDialog !== 'delete' && (
-                <StatusMessage danger>{deleteStatus}</StatusMessage>
-            )}
-        </>
-    )
-}
-
-function StatusMessage({
-    children,
-    danger = false,
-}: {
-    children: ReactNode
-    danger?: boolean
-}) {
+function StatusMessage({ children }: { children: ReactNode }) {
     return (
         <p
-            className={cn(
-                'flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300',
-                danger &&
-                    'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300'
-            )}
+            role="status"
+            className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700 dark:bg-slate-900 dark:text-slate-300"
         >
-            {danger && <ShieldAlert size={16} />}
             {children}
         </p>
     )

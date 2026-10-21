@@ -1,13 +1,15 @@
 'use client'
 
+import { TooltipButton } from '@/components/feedback/TooltipButton'
+
 import { Check, ScanLine, Trash2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import type { ShoppingListItem as ShoppingListItemType } from '@/lib/types'
-import { Button } from '../ui/Button'
-import { Input } from '../ui/Input'
-import { QuantityStepper } from '../ui/QuantityStepper'
-import { Select } from '../ui/Select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { QuantityStepper } from '@/components/forms/QuantityStepper'
+import { Select } from '@/components/forms/SelectField'
 
 interface ShoppingListItemProps {
     item: ShoppingListItemType
@@ -43,6 +45,7 @@ export function ShoppingListItem({
     onUpdateDetails,
 }: ShoppingListItemProps) {
     const t = useTranslations('shoppingList')
+    const tCommon = useTranslations('common')
     const tUnits = useTranslations('shoppingList.units')
     const [editing, setEditing] = useState(false)
     const [draft, setDraft] = useState(item.name)
@@ -83,24 +86,12 @@ export function ShoppingListItem({
     if (item.checked) {
         return (
             <div className="flex items-center gap-3 bg-white/60 dark:bg-slate-900/40 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 animate-in fade-in duration-300">
-                <button
-                    onClick={() => onToggle(item.id!, item.checked)}
-                    className="w-6 h-6 rounded-full bg-emerald-500 flex-shrink-0 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                </button>
+                <Checkbox
+                    checked={item.checked}
+                    onCheckedChange={() => onToggle(item.id!, item.checked)}
+                    aria-label={item.name}
+                    className="size-6 min-h-0 min-w-0 rounded-full"
+                />
                 <span className="flex-1 text-slate-400 dark:text-slate-500 font-medium line-through decoration-slate-300 dark:decoration-slate-700">
                     {item.name}
                 </span>
@@ -118,12 +109,17 @@ export function ShoppingListItem({
                         )}
                     </span>
                 )}
-                <button
+                <TooltipButton
+                    tooltip={tCommon('delete')}
+                    variant="ghost"
+                    size="icon"
+                    type="button"
                     onClick={() => onDelete(item.id!)}
+                    aria-label={tCommon('delete')}
                     className="text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 p-1 transition-colors"
                 >
                     <Trash2 size={18} />
-                </button>
+                </TooltipButton>
             </div>
         )
     }
@@ -132,9 +128,11 @@ export function ShoppingListItem({
         <div className="flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 group hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all">
             {/* Main row */}
             <div className="flex items-center gap-2 p-4">
-                <button
-                    onClick={() => onToggle(item.id!, item.checked)}
-                    className="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-400 flex-shrink-0 transition-all active:scale-90"
+                <Checkbox
+                    checked={item.checked}
+                    onCheckedChange={() => onToggle(item.id!, item.checked)}
+                    aria-label={item.name}
+                    className="size-6 min-h-0 min-w-0 rounded-full border-2"
                 />
                 {editing ? (
                     <form
@@ -158,40 +156,43 @@ export function ShoppingListItem({
                             }}
                             className="flex-1 h-11 py-0"
                         />
-                        <Button
+                        <TooltipButton
+                            tooltip={t('saveItemName')}
                             type="submit"
-                            variant="primary"
                             size="sm"
                             disabled={saving}
                             className="px-3 min-h-[44px]"
                             aria-label={t('saveItemName')}
                         >
                             <Check size={18} />
-                        </Button>
+                        </TooltipButton>
                     </form>
                 ) : (
-                    <button
+                    <TooltipButton
+                        variant="ghost"
                         type="button"
                         onClick={() => {
                             setDraft(item.name)
                             setEditing(true)
                         }}
-                        className="flex-1 text-left text-slate-900 dark:text-slate-100 font-medium truncate hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                        title={t('editItemName')}
+                        className="flex-1 justify-start text-left text-slate-900 dark:text-slate-100 font-medium truncate hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                        tooltip={t('editItemName')}
                     >
                         {item.name}
-                    </button>
+                    </TooltipButton>
                 )}
                 {!editing && (
                     <>
-                        <button
+                        <TooltipButton
+                            variant="ghost"
+                            type="button"
                             onClick={() => setEditingDetails((v) => !v)}
                             className={`h-9 px-3 inline-flex items-center gap-1 rounded-xl transition-colors whitespace-nowrap active:scale-95 ${
                                 hasDetails
                                     ? 'bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
                                     : 'text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-emerald-600 dark:hover:text-emerald-400'
                             }`}
-                            title={
+                            tooltip={
                                 hasDetails ? t('editDetails') : t('addDetails')
                             }
                         >
@@ -213,20 +214,29 @@ export function ShoppingListItem({
                                     {t('addDetailsShort')}
                                 </span>
                             )}
-                        </button>
-                        <button
+                        </TooltipButton>
+                        <TooltipButton
+                            aria-label={t('itemScanTooltip')}
+                            variant="ghost"
+                            size="icon"
+                            type="button"
                             onClick={() => onScan(item.id!)}
                             className="text-emerald-500 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 p-2 rounded-xl transition-all active:scale-95"
-                            title={t('itemScanTooltip')}
+                            tooltip={t('itemScanTooltip')}
                         >
                             <ScanLine size={18} />
-                        </button>
-                        <button
+                        </TooltipButton>
+                        <TooltipButton
+                            tooltip={tCommon('delete')}
+                            variant="ghost"
+                            size="icon"
+                            type="button"
                             onClick={() => onDelete(item.id!)}
+                            aria-label={tCommon('delete')}
                             className="text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 p-2 rounded-xl transition-all active:scale-95"
                         >
                             <Trash2 size={18} />
-                        </button>
+                        </TooltipButton>
                     </>
                 )}
             </div>
@@ -249,14 +259,17 @@ export function ShoppingListItem({
                         placeholder={t('unitPlaceholder')}
                         className="flex-1 max-w-[140px]"
                     />
-                    <button
+                    <TooltipButton
+                        aria-label={t('cancelEdit')}
+                        variant="ghost"
+                        size="icon"
                         type="button"
                         onClick={() => setEditingDetails(false)}
                         className="ml-auto text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 p-2 rounded-xl transition-colors active:scale-95"
-                        title={t('cancelEdit')}
+                        tooltip={t('cancelEdit')}
                     >
                         <X size={16} />
-                    </button>
+                    </TooltipButton>
                 </div>
             )}
         </div>

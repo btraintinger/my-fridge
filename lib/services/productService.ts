@@ -1,6 +1,6 @@
 import { getDoc } from 'firebase/firestore'
-import { fetchProductByBarcode } from '../openFoodFacts'
-import type { Product } from '../types'
+import { fetchProductByBarcode } from '@/lib/products/openFoodFacts'
+import type { Product } from '@/lib/types'
 import { productDoc } from './refs'
 
 const CACHE_TTL_DAYS = 30

@@ -1,28 +1,26 @@
-import { forwardRef, InputHTMLAttributes } from 'react'
-import { cn } from './Button'
+import * as React from 'react'
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-    error?: boolean
+import { cn } from '@/lib/utils'
+
+function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
+    return (
+        <input
+            type={type}
+            data-slot="input"
+            className={cn(
+                'flex min-h-[44px] w-full min-w-0 rounded-2xl border-2 border-slate-200 bg-white dark:bg-slate-900 px-4 py-3 text-[16px] sm:text-base font-medium text-slate-900 dark:text-slate-100 shadow-sm transition-all outline-none',
+                'placeholder:text-slate-400 dark:placeholder:text-slate-500',
+                'hover:border-slate-300 dark:hover:border-slate-700',
+                'focus-visible:border-primary focus-visible:ring-0',
+                'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+                'selection:bg-primary selection:text-primary-foreground',
+                'file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground',
+                'aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40',
+                className
+            )}
+            {...props}
+        />
+    )
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ className, error, ...props }, ref) => {
-        return (
-            <input
-                ref={ref}
-                className={cn(
-                    'flex w-full rounded-2xl border-2 bg-white dark:bg-slate-900 px-4 py-3 text-base font-medium text-slate-900 dark:text-slate-100 transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm min-h-[44px]',
-                    /* 16px font prevents iOS zoom on focus */
-                    'text-[16px] sm:text-base',
-                    error
-                        ? 'border-red-500 focus-visible:border-red-500'
-                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 focus-visible:border-emerald-500 dark:focus-visible:border-emerald-500',
-                    className
-                )}
-                {...props}
-            />
-        )
-    }
-)
-
-Input.displayName = 'Input'
+export { Input }

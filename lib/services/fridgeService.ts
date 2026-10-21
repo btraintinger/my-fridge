@@ -1,5 +1,5 @@
-import type { FirestoreError } from 'firebase/firestore'
 import {
+    type FirestoreError,
     addDoc,
     arrayRemove,
     arrayUnion,
@@ -10,23 +10,29 @@ import {
     or,
     orderBy,
     query,
+    runTransaction,
     serverTimestamp,
     updateDoc,
     where,
-    writeBatch,
 } from 'firebase/firestore'
-import { db } from '../firebase'
-import type { Fridge, FridgeItem, Product } from '../types'
+import type { Fridge, FridgeItem, Product } from '@/lib/types'
+import { db } from '@/lib/firebase'
 import { runFirebaseAction, subscriptionErrorHandler } from './firebaseAction'
+import { executeBatch } from './executeBatch'
 import {
     fridgeDoc,
     fridgesCollection,
     itemDoc,
     itemsCollection,
     shoppingListCollection,
+    shoppingItemDoc,
 } from './refs'
-import { postNotify } from '../notificationsClient'
-import { normalizeGrade } from '../utils'
+import { postNotify } from '@/lib/notificationsClient'
+import { normalizeGrade } from '@/lib/utils'
+import {
+    PRODUCT_CATEGORIES,
+    type ProductCategory,
+} from '@/lib/products/productCategorization'
 
 export type NewItemOptions = {
     quantity?: number
@@ -127,13 +133,15 @@ export async function deleteFridge(fridgeId: string) {
         getDocs(itemsCollection(fridgeId)),
         getDocs(shoppingListCollection(fridgeId)),
     ])
-    return runFirebaseAction(async () => {
-        const batch = writeBatch(db)
-        itemsSnapshot.docs.forEach((d) => batch.delete(d.ref))
-        shoppingSnapshot.docs.forEach((d) => batch.delete(d.ref))
-        batch.delete(fridgeDoc(fridgeId))
-        await batch.commit()
-    }, 'Kühlschrank gelöscht')
+    return runFirebaseAction(
+        () =>
+            executeBatch((batch) => {
+                itemsSnapshot.docs.forEach((d) => batch.delete(d.ref))
+                shoppingSnapshot.docs.forEach((d) => batch.delete(d.ref))
+                batch.delete(fridgeDoc(fridgeId))
+            }),
+        { key: 'toast.fridgeDeleted' }
+    )
 }
 
 export async function shareFridge(fridgeId: string, email: string) {
@@ -142,7 +150,7 @@ export async function shareFridge(fridgeId: string, email: string) {
             updateDoc(fridgeDoc(fridgeId), {
                 sharedWithEmails: arrayUnion(email.toLowerCase()),
             }),
-        `Erfolgreich mit ${email} geteilt`
+        { key: 'toast.fridgeShared', values: { email } }
     )
     postNotify('fridge-invite', { fridgeId, inviteeEmail: email.toLowerCase() })
     return result
@@ -154,7 +162,7 @@ export async function unshareFridge(fridgeId: string, email: string) {
             updateDoc(fridgeDoc(fridgeId), {
                 sharedWithEmails: arrayRemove(email),
             }),
-        `Zugriff für ${email} entfernt`
+        { key: 'toast.accessRemoved', values: { email } }
     )
 }
 
@@ -167,19 +175,67 @@ export async function deleteItem(
         itemName?: string
     }
 ) {
-    const result = await runFirebaseAction(async () => {
-        const batch = writeBatch(db)
-        batch.delete(itemDoc(fridgeId, itemId))
-        const delta = gradeCountDelta(prev.grade, -prev.quantity)
-        if (delta) batch.update(fridgeDoc(fridgeId), delta)
-        await batch.commit()
-    }, 'Produkt entfernt')
+    const result = await runFirebaseAction(
+        () =>
+            executeBatch((batch) => {
+                batch.delete(itemDoc(fridgeId, itemId))
+                const delta = gradeCountDelta(prev.grade, -prev.quantity)
+                if (delta) batch.update(fridgeDoc(fridgeId), delta)
+            }),
+        { key: 'toast.productRemoved' }
+    )
     postNotify('fridge-activity', {
         fridgeId,
         action: 'item_removed',
-        itemName: prev.itemName ?? 'an item',
+        itemName: prev.itemName ?? '@@unnamedItem',
     })
     return result
+}
+export async function saveItemToFridge(
+    fridgeId: string,
+    product: Product,
+    options: NewItemOptions = {},
+    shoppingItemId?: string
+) {
+    const payload = newItemPayload(product, options)
+    const items = itemsCollection(fridgeId)
+    // Find older entries too, which were created with random IDs.
+    const matches = await getDocs(
+        query(items, where('product.barcode', '==', product.barcode))
+    )
+    const existing = matches.docs.find(
+        (snapshot) =>
+            (snapshot.data().expiryDate || '') === (options.expiryDate || '')
+    )
+    // A stable ID prevents simultaneous first additions from creating
+    // separate entries. The transaction retries if the quantity changes.
+    const targetRef =
+        existing?.ref ??
+        doc(
+            items,
+            `barcode-${encodeURIComponent(product.barcode)}-expiry-${encodeURIComponent(options.expiryDate || '')}`
+        )
+    await runTransaction(db, async (transaction) => {
+        const snapshot = await transaction.get(targetRef)
+        const current = snapshot.exists() ? snapshot.data() : null
+        if (current) {
+            transaction.update(targetRef, {
+                quantity: (current.quantity ?? 1) + payload.quantity,
+            })
+        } else {
+            transaction.set(targetRef, payload)
+        }
+        const delta = gradeCountDelta(
+            current
+                ? current.product.nutriscore_grade
+                : product.nutriscore_grade,
+            payload.quantity
+        )
+        if (delta) transaction.update(fridgeDoc(fridgeId), delta)
+        if (shoppingItemId) {
+            transaction.delete(shoppingItemDoc(fridgeId, shoppingItemId))
+        }
+    })
 }
 
 export async function addItemToFridge(
@@ -187,19 +243,12 @@ export async function addItemToFridge(
     product: Product,
     options: NewItemOptions = {}
 ) {
-    const result = await runFirebaseAction(async () => {
-        const newItemRef = doc(itemsCollection(fridgeId))
-        const payload = newItemPayload(product, options)
-
-        const batch = writeBatch(db)
-        batch.set(newItemRef, payload)
-        const delta = gradeCountDelta(
-            product.nutriscore_grade,
-            payload.quantity
-        )
-        if (delta) batch.update(fridgeDoc(fridgeId), delta)
-        await batch.commit()
-    }, `"${product.product_name}" hinzugefügt!`)
+    const result = await runFirebaseAction(
+        async () => {
+            await saveItemToFridge(fridgeId, product, options)
+        },
+        { key: 'toast.productAdded', values: { name: product.product_name } }
+    )
     postNotify('fridge-activity', {
         fridgeId,
         action: 'item_added',
@@ -214,13 +263,13 @@ export async function updateItemQuantity(
     quantity: number,
     prev: { grade: string | null | undefined; quantity: number }
 ) {
-    return runFirebaseAction(async () => {
-        const batch = writeBatch(db)
-        batch.update(itemDoc(fridgeId, itemId), { quantity })
-        const delta = gradeCountDelta(prev.grade, quantity - prev.quantity)
-        if (delta) batch.update(fridgeDoc(fridgeId), delta)
-        await batch.commit()
-    })
+    return runFirebaseAction(() =>
+        executeBatch((batch) => {
+            batch.update(itemDoc(fridgeId, itemId), { quantity })
+            const delta = gradeCountDelta(prev.grade, quantity - prev.quantity)
+            if (delta) batch.update(fridgeDoc(fridgeId), delta)
+        })
+    )
 }
 
 export async function updateItemExpiryDate(
@@ -233,6 +282,23 @@ export async function updateItemExpiryDate(
     })
 }
 
+export async function updateItemCategory(
+    fridgeId: string,
+    itemId: string,
+    category: ProductCategory
+) {
+    if (!PRODUCT_CATEGORIES.includes(category)) {
+        throw new Error('Invalid product category')
+    }
+    return runFirebaseAction(
+        () =>
+            updateDoc(itemDoc(fridgeId, itemId), {
+                'product.category': category,
+            }),
+        { key: 'toast.categoryUpdated' }
+    )
+}
+
 export async function updateItemUnit(
     fridgeId: string,
     itemId: string,
@@ -240,6 +306,6 @@ export async function updateItemUnit(
 ) {
     return runFirebaseAction(
         () => updateDoc(itemDoc(fridgeId, itemId), { unit }),
-        'Einheit aktualisiert'
+        { key: 'toast.unitUpdated' }
     )
 }

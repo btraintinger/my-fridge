@@ -13,8 +13,8 @@ import {
     signOut,
     User,
 } from 'firebase/auth'
-import { auth } from '../lib/firebase'
-import { ensureUserPreferencesDocument } from '../lib/services/userService'
+import { auth } from '@/lib/firebase'
+import { ensureUserPreferencesDocument } from '@/lib/services/userService'
 
 interface AuthContextType {
     user: User | null

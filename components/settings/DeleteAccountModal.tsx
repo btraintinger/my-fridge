@@ -1,121 +1,137 @@
 'use client'
 
-import type { FormEvent } from 'react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { SettingsActionForm } from '@/components/settings/SettingsActionForm'
-import { SettingsActionModal } from '@/components/settings/SettingsActionModal'
-import { useFirebaseAuth } from '@/hooks/useFirebaseAuth'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { Button } from '@/components/ui/button'
+import { FormField } from '@/components/forms/FormField'
+import { Input } from '@/components/ui/input'
+import { AlertDialogCancel } from '@/components/ui/alert-dialog'
+import {
+    SettingsActionForm,
+    SettingsActionModal,
+} from '@/components/settings/SettingsAction'
+import { useFirebaseAuth } from '@/components/auth/useFirebaseAuth'
 
 interface DeleteAccountModalProps {
     usesPasswordProvider: boolean
+    onClose: () => void
 }
 
 export function DeleteAccountModal({
     usesPasswordProvider,
+    onClose,
 }: DeleteAccountModalProps) {
     const router = useRouter()
     const t = useTranslations('settings')
     const tCommon = useTranslations('common')
-    const isOpen = useSettingsStore((state) => state.activeDialog === 'delete')
-    const deleteState = useSettingsStore((state) => state.deleteAccount)
-    const closeDialog = useSettingsStore((state) => state.closeDialog)
-    const setDeleteField = useSettingsStore((state) => state.setDeleteField)
-    const setDeleteStatus = useSettingsStore((state) => state.setDeleteStatus)
-    const setDeleteLoading = useSettingsStore((state) => state.setDeleteLoading)
+    const [status, setStatus] = useState('')
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm({
+        defaultValues: { confirmation: '', currentPassword: '' },
+    })
     const { deleteUserAccount, formatAuthError } = useFirebaseAuth()
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault()
-        setDeleteStatus('')
-
-        if (deleteState.confirmation !== t('delete.confirmText')) {
-            setDeleteStatus(t('delete.typeDelete'))
-            return
-        }
-
-        setDeleteLoading(true)
-
+    const onSubmit = handleSubmit(async (data) => {
+        setStatus('')
         try {
             await deleteUserAccount(
-                usesPasswordProvider ? deleteState.currentPassword : undefined
+                usesPasswordProvider ? data.currentPassword : undefined
             )
+            onClose()
             router.push('/register')
         } catch (error) {
-            setDeleteStatus(formatAuthError(error, t('delete.deleteFailed')))
-        } finally {
-            setDeleteLoading(false)
+            setStatus(formatAuthError(error, t('delete.deleteFailed')))
         }
-    }
+    })
 
     return (
         <SettingsActionModal
-            isOpen={isOpen}
-            onClose={closeDialog}
+            isOpen
+            onClose={() => {
+                if (!isSubmitting) onClose()
+            }}
             title={t('delete.title')}
+            description={t('delete.warning')}
             danger
         >
             <SettingsActionForm
-                onSubmit={handleSubmit}
+                onSubmit={onSubmit}
                 danger
+                noValidate
                 className="space-y-4"
             >
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t('delete.warning')}
-                </p>
-                <Input
-                    type="text"
-                    value={deleteState.confirmation}
-                    onChange={(event) =>
-                        setDeleteField('confirmation', event.target.value)
-                    }
-                    placeholder={t('delete.confirmText')}
+                <FormField
+                    label={t('delete.confirmText')}
                     required
-                />
+                    error={errors.confirmation?.message}
+                >
+                    {(fieldProps) => (
+                        <Input
+                            {...fieldProps}
+                            type="text"
+                            {...register('confirmation', {
+                                validate: (value) =>
+                                    value === t('delete.confirmText') ||
+                                    t('delete.typeDelete'),
+                            })}
+                            placeholder={t('delete.confirmText')}
+                        />
+                    )}
+                </FormField>
                 {usesPasswordProvider && (
-                    <Input
-                        type="password"
-                        value={deleteState.currentPassword}
-                        onChange={(event) =>
-                            setDeleteField(
-                                'currentPassword',
-                                event.target.value
-                            )
-                        }
-                        placeholder={t('delete.currentPasswordPlaceholder')}
+                    <FormField
+                        label={t('delete.currentPasswordPlaceholder')}
                         required
-                    />
+                        error={errors.currentPassword?.message}
+                    >
+                        {(fieldProps) => (
+                            <Input
+                                {...fieldProps}
+                                type="password"
+                                {...register('currentPassword', {
+                                    validate: (value) =>
+                                        !usesPasswordProvider ||
+                                        !!value ||
+                                        t('password.currentRequired'),
+                                })}
+                                placeholder={t(
+                                    'delete.currentPasswordPlaceholder'
+                                )}
+                            />
+                        )}
+                    </FormField>
                 )}
                 {!usesPasswordProvider && (
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                         {t('delete.googleNote')}
                     </p>
                 )}
-                {deleteState.status && (
+                {status && (
                     <p className="text-sm text-red-600 dark:text-red-400">
-                        {deleteState.status}
+                        {status}
                     </p>
                 )}
                 <div className="flex gap-3 pt-2">
-                    <Button
+                    <AlertDialogCancel
                         type="button"
-                        variant="outline"
                         className="flex-1"
-                        onClick={closeDialog}
+                        disabled={isSubmitting}
                     >
                         {tCommon('cancel')}
-                    </Button>
+                    </AlertDialogCancel>
                     <Button
                         type="submit"
                         variant="outline"
-                        disabled={deleteState.loading}
+                        disabled={isSubmitting}
                         className="flex-1 border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
                     >
-                        {deleteState.loading
+                        {isSubmitting
                             ? t('delete.submitting')
                             : t('delete.submit')}
                     </Button>

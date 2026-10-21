@@ -37,7 +37,7 @@ service cloud.firestore {
     }
 
     match /fridges/{fridgeId} {
-      allow create: if isAuthed();
+      allow create: if isAuthed() && isOwner(request.resource.data.userId);
       allow read, delete: if isAuthed() && hasFridgeAccess(resource.data);
       // Owners may update freely. Verified collaborators may update too,
       // but must NOT change ownership (userId) or the share list.
